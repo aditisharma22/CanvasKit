@@ -1,4 +1,28 @@
 /**
+ * Line breaking scoring configuration
+ * These constants control how different aspects of line breaking are scored
+ */
+const SCORING_CONFIG = {
+  // Penalty applied to lines that break protected words
+  PROTECTED_BREAK_PENALTY: 30,
+  
+  // Penalty applied to single-word lines (widows/orphans)
+  WIDOW_ORPHAN_PENALTY: 50,
+  
+  // Mode-specific weighting factors
+  MODE_WEIGHTS: {
+    fit: {
+      raggedness: 3,
+      evenness: 0.2
+    },
+    uniform: {
+      raggedness: 0.5,
+      evenness: 4
+    }
+  }
+};
+
+/**
  * Line candidate type
  * @typedef {Object} LineCandidate
  * @property {number[]} breaks - Break points in the text
@@ -86,37 +110,24 @@ function scoreCandidate(lines, lineWidths, targetWidth, breaks, words, mode) {
 
   // Penalize single-word lines at the end (widows)
   const lastLine = lines[lines.length - 1];
-  const widowsOrphans = lastLine.length === 1 ? 50 : 0;
+  const widowsOrphans = lastLine.length === 1 ? SCORING_CONFIG.WIDOW_ORPHAN_PENALTY : 0;
 
   // Penalty for breaking at protected words
-  const PROTECTED_BREAK_PENALTY = 30; // Extract hardcoded value
-  const protectedBreaks = breaks.filter(i => isProtectedBreak(words, i)).length * PROTECTED_BREAK_PENALTY;
-
-  // Weight factors based on selected optimization mode
-  const MODE_WEIGHTS = {
-    fit: {
-      raggedness: 3,
-      evenness: 0.2
-    },
-    uniform: {
-      raggedness: 0.5,
-      evenness: 4
-    }
-  };
+  const protectedBreaks = breaks.filter(i => isProtectedBreak(words, i)).length * SCORING_CONFIG.PROTECTED_BREAK_PENALTY;
 
   // Calculate weighted score based on selected mode
   let weightedScore = 0;
   if (mode === "fit") {
     weightedScore = 
-      raggedness * MODE_WEIGHTS.fit.raggedness + 
-      evenness * MODE_WEIGHTS.fit.evenness + 
+      raggedness * SCORING_CONFIG.MODE_WEIGHTS.fit.raggedness + 
+      evenness * SCORING_CONFIG.MODE_WEIGHTS.fit.evenness + 
       fillPenalty + 
       widowsOrphans + 
       protectedBreaks;
   } else if (mode === "uniform") {
     weightedScore = 
-      raggedness * MODE_WEIGHTS.uniform.raggedness + 
-      evenness * MODE_WEIGHTS.uniform.evenness + 
+      raggedness * SCORING_CONFIG.MODE_WEIGHTS.uniform.raggedness + 
+      evenness * SCORING_CONFIG.MODE_WEIGHTS.uniform.evenness + 
       fillPenalty + 
       widowsOrphans + 
       protectedBreaks;
@@ -134,18 +145,6 @@ function scoreCandidate(lines, lineWidths, targetWidth, breaks, words, mode) {
   };
 }
 
-/**
- * Generate line breaking candidates
- * @param {string[]} words - Array of words
- * @param {number[]} wordWidths - Width of each word
- * @param {number} spaceWidth - Width of space
- * @param {number} targetWidth - Target line width
- * @param {number} candidateCount - Number of candidates to generate
- * @param {'fit'|'uniform'} mode - Optimization mode
- * @param {number} balanceFactor - Balance factor (0-1)
- * @param {number} minFillRatio - Minimum fill ratio (0-1)
- * @returns {LineCandidate[]} Line breaking candidates
- */
 /**
  * Generate possible line breaking candidates for text layout optimization
  * Uses a recursive approach to explore different line breaking possibilities
@@ -217,19 +216,6 @@ export function generateCandidates(words, wordWidths, spaceWidth, targetWidth, c
     .slice(0, candidateCount);
 }
 
-/**
- * Compute line breaking options
- * @param {string[]} words - Array of words
- * @param {number[]} wordWidths - Width of each word
- * @param {number} spaceWidth - Width of space
- * @param {number} targetWidth - Target line width
- * @param {number} candidateCount - Number of candidates to generate
- * @param {HTMLElement} [debugElement] - Debug element
- * @param {number} balanceFactor - Balance factor (0-1)
- * @param {number} minFillRatio - Minimum fill ratio (0-1)
- * @param {'fit'|'uniform'} mode - Optimization mode
- * @returns {LineCandidate[]} Line breaking candidates
- */
 /**
  * Compute optimal line breaking options for a given text
  * This is the main entry point for the line breaking optimization

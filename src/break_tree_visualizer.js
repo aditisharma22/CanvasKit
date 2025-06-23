@@ -121,14 +121,29 @@ function buildGroupedTree(words, candidates) {
  * @param {Object} treeData - Tree structure from buildGroupedTree
  */
 function renderTree(container, words, wordWidths, spaceWidth, treeData) {
+  // CSS class names for visualization elements
+  const CSS_CLASSES = {
+    NODE: "node",
+    SHARED: "shared",
+    DIVERGED: "diverged",
+    TOGGLE: "toggle",
+    CHILDREN: "children",
+    OPEN: "open"
+  };
+  
+  // Common text labels
+  const LABELS = {
+    PREFIX_HEADER: "Common prefix lines:"
+  };
+  
   const { prefix, rootNodes } = treeData;
 
   // Render common prefix (line breaks shared by all candidates)
   if (prefix.length) {
     // Create header for common prefix section
     const prefixDiv = document.createElement("div");
-    prefixDiv.classList.add("node", "shared");
-    prefixDiv.textContent = "Common prefix lines:";
+    prefixDiv.classList.add(CSS_CLASSES.NODE, CSS_CLASSES.SHARED);
+    prefixDiv.textContent = LABELS.PREFIX_HEADER;
     container.appendChild(prefixDiv);
 
     // Render each line in the common prefix
@@ -139,7 +154,7 @@ function renderTree(container, words, wordWidths, spaceWidth, treeData) {
       
       // Create line element
       const lineDiv = document.createElement("div");
-      lineDiv.classList.add("node", "shared");
+      lineDiv.classList.add(CSS_CLASSES.NODE, CSS_CLASSES.SHARED);
       
       // Calculate width and display line content
       const lineWidth = calcWidth(words, wordWidths, spaceWidth, start, breakIdx);
@@ -167,11 +182,11 @@ function renderTree(container, words, wordWidths, spaceWidth, treeData) {
     for (const node of nodes) {
       // Create container for this node
       const nodeDiv = document.createElement("div");
-      nodeDiv.classList.add("node", "diverged");
+      nodeDiv.classList.add(CSS_CLASSES.NODE, CSS_CLASSES.DIVERGED);
 
       // Create toggleable header for node
       const toggleDiv = document.createElement("div");
-      toggleDiv.classList.add("toggle");
+      toggleDiv.classList.add(CSS_CLASSES.TOGGLE);
       
       // Extract words for this line
       const lineWords = words.slice(node.start, node.end + 1);
@@ -182,10 +197,10 @@ function renderTree(container, words, wordWidths, spaceWidth, treeData) {
 
       // Container for child nodes
       const childrenDiv = document.createElement("div");
-      childrenDiv.classList.add("children");
+      childrenDiv.classList.add(CSS_CLASSES.CHILDREN);
 
       // Make toggleable by clicking
-      toggleDiv.onclick = () => nodeDiv.classList.toggle("open");
+      toggleDiv.onclick = () => nodeDiv.classList.toggle(CSS_CLASSES.OPEN);
 
       // Assemble node structure
       nodeDiv.appendChild(toggleDiv);
@@ -210,16 +225,35 @@ function renderTree(container, words, wordWidths, spaceWidth, treeData) {
  * @param {Array} candidates - Line breaking candidates to summarize
  */
 function renderSummary(container, candidates) {
+  // CSS class names
+  const CSS_CLASSES = {
+    SUMMARY: "summary",
+    SCORE_BREAKDOWN: "score-breakdown"
+  };
+  
+  // Text templates
+  const TEMPLATES = {
+    HEADER: (count) => `<div><strong>Top ${count} Candidates</strong></div><hr>`,
+    NO_CANDIDATES: "<div>No candidates available</div>",
+    CANDIDATE_HEADER: (index, percentage) => `<strong>Candidate ${index+1} (${percentage} match)</strong><br>`,
+    BREAKDOWN_HEADER: "<strong>Breakdown:</strong><br>",
+    SCORE_COMPONENT: (name, value) => `${name}: ${value}<br>`
+  };
+  
+  // Number formatting
+  const DECIMAL_PLACES = 1;
+  const PERCENT_100 = '100%';
+
   // Create summary container
   const summaryDiv = document.createElement("div");
-  summaryDiv.classList.add("summary");
+  summaryDiv.classList.add(CSS_CLASSES.SUMMARY);
   
   // Create header
-  summaryDiv.innerHTML = `<div><strong>Top ${candidates.length} Candidates</strong></div><hr>`;
+  summaryDiv.innerHTML = TEMPLATES.HEADER(candidates.length);
 
   // Handle empty candidates case
   if (candidates.length === 0) {
-    summaryDiv.innerHTML += "<div>No candidates available</div>";
+    summaryDiv.innerHTML += TEMPLATES.NO_CANDIDATES;
     container.appendChild(summaryDiv);
     return;
   }
@@ -231,23 +265,26 @@ function renderSummary(container, candidates) {
   candidates.forEach((c, i) => {
     // Calculate relative score as percentage of best score
     const percentage = (bestScore / c.score) * 100;
-    const pctStr = i === 0 ? '100%' : `${percentage.toFixed(1)}%`;
+    const pctStr = i === 0 ? PERCENT_100 : `${percentage.toFixed(DECIMAL_PLACES)}%`;
     
     // Create candidate div
     const cDiv = document.createElement("div");
     
-    // Add score breakdown with detailed component scores
-    cDiv.innerHTML += `
-    <div class="score-breakdown">
-      <strong>Candidate ${i+1} (${pctStr} match)</strong><br>
-      <strong>Breakdown:</strong><br>
-      Raggedness: ${c.scoreBreakdown.raggedness.toFixed(1)}<br>
-      Evenness: ${c.scoreBreakdown.evenness.toFixed(1)}<br>
-      Fill Penalty: ${c.scoreBreakdown.fillPenalty.toFixed(1)}<br>
-      Widows/Orphans: ${c.scoreBreakdown.widowsOrphans}<br>
-      Protected Breaks: ${c.scoreBreakdown.protectedBreaks}<br>
+    // Build HTML for score breakdown
+    let breakdownHTML = `
+    <div class="${CSS_CLASSES.SCORE_BREAKDOWN}">
+      ${TEMPLATES.CANDIDATE_HEADER(i, pctStr)}
+      ${TEMPLATES.BREAKDOWN_HEADER}
+      ${TEMPLATES.SCORE_COMPONENT('Raggedness', c.scoreBreakdown.raggedness.toFixed(DECIMAL_PLACES))}
+      ${TEMPLATES.SCORE_COMPONENT('Evenness', c.scoreBreakdown.evenness.toFixed(DECIMAL_PLACES))}
+      ${TEMPLATES.SCORE_COMPONENT('Fill Penalty', c.scoreBreakdown.fillPenalty.toFixed(DECIMAL_PLACES))}
+      ${TEMPLATES.SCORE_COMPONENT('Widows/Orphans', c.scoreBreakdown.widowsOrphans)}
+      ${TEMPLATES.SCORE_COMPONENT('Protected Breaks', c.scoreBreakdown.protectedBreaks)}
     </div><hr>
-  `;
+    `;
+    
+    // Add score breakdown
+    cDiv.innerHTML = breakdownHTML;
 
     // Add to summary
     summaryDiv.appendChild(cDiv);

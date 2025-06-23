@@ -9,8 +9,17 @@ import { processTextForLineBreaking, getLineBreakingRules } from './localization
  * @returns {Array} - Enhanced word metrics with locale-specific line-breaking constraints
  */
 export async function enhanceWordMetricsWithLocalization(wordMetrics, locale) {
+  // Define constants for line breaking constraints
+  const LINE_BREAK = {
+    ALLOW: 'allow',
+    AVOID: 'avoid'
+  };
+  
+  // Define default locale
+  const DEFAULT_LOCALE = 'en';
+  
   // Skip localization processing for English or if no locale provided
-  if (!locale || locale === 'en') {
+  if (!locale || locale === DEFAULT_LOCALE) {
     return wordMetrics;
   }
   
@@ -24,12 +33,12 @@ export async function enhanceWordMetricsWithLocalization(wordMetrics, locale) {
   return wordMetrics.map((metric, index) => {
     // Get line breaking constraint from localized metrics, default to 'allow' if not available
     const localConstraint = index < localizedMetrics.length ? 
-      localizedMetrics[index].lineBreaking : 'allow';
+      localizedMetrics[index].lineBreaking : LINE_BREAK.ALLOW;
       
     // Return enhanced metrics with line breaking constraint
     return {
       ...metric,
-      lineBreaking: localConstraint === 'avoid' ? 'avoid' : 'allow'
+      lineBreaking: localConstraint === LINE_BREAK.AVOID ? LINE_BREAK.AVOID : LINE_BREAK.ALLOW
     };
   });
 }
@@ -51,6 +60,13 @@ export async function enhanceWordMetricsWithLocalization(wordMetrics, locale) {
  * @returns {Array} - Filtered candidates that respect locale-specific rules
  */
 export function filterCandidatesByLocalizationRules(candidates, words, locale) {
+  // Constants for rule and validation checks
+  const VIOLATION_TYPES = {
+    HYPHENATED_WORD: 'hyphen',
+    FUNCTION_WORD: 'articles',
+    COMPOUND_WORD: 'compounds'
+  };
+
   // Get localization rules for the specified locale
   const rules = getLineBreakingRules(locale);
   
@@ -72,23 +88,24 @@ export function filterCandidatesByLocalizationRules(candidates, words, locale) {
       const nextWord = words[breakIdx + 1];
       
       // Rule: Don't break after hyphenated words
-      if (rules.rules.avoidBreakAfter?.includes("hyphen") && prevWord.endsWith('-')) {
+      if (rules.rules.avoidBreakAfter?.includes(VIOLATION_TYPES.HYPHENATED_WORD) && 
+          prevWord.endsWith('-')) {
         return false; // Reject candidate with this violation
       }
       
       // Rule: Don't break before function words (articles, prepositions, etc.)
-      if (rules.rules.avoidBreakBefore?.includes("articles") && 
+      if (rules.rules.avoidBreakBefore?.includes(VIOLATION_TYPES.FUNCTION_WORD) && 
           rules.functionWords?.includes(nextWord.toLowerCase())) {
         return false; // Reject candidate with this violation
       }
       
-      // Future rule implementations can be added here
-      
       // Add explicit check for compound words (if supported by locale rules)
-      if (rules.rules.avoidBreakWithin?.includes("compounds") &&
+      if (rules.rules.avoidBreakWithin?.includes(VIOLATION_TYPES.COMPOUND_WORD) &&
           (prevWord.endsWith('-') || nextWord.startsWith('-'))) {
         return false;
       }
+      
+      // Future rule implementations can be added here
     }
     
     // No violations found, keep this candidate
@@ -98,17 +115,15 @@ export function filterCandidatesByLocalizationRules(candidates, words, locale) {
 
 /**
  * Factory function to create a localization-aware line breaking optimizer
- * @param {function} originalOptimizer - The original line breaking optimizer function
- * @returns {function} - Enhanced optimizer that respects localization rules
- */
-/**
- * Factory function to create a localization-aware line breaking optimizer
  * Wraps an existing line breaking optimizer with locale-specific rules
  *
  * @param {function} originalOptimizer - The original line breaking optimizer function
  * @returns {function} - Enhanced optimizer that respects locale-specific rules
  */
 export function createLocalizedLineBreakOptimizer(originalOptimizer) {
+  // Define constants for default values and locale handling
+  const DEFAULT_LOCALE = 'en';
+  
   /**
    * Localized line breaking optimizer function
    * 
@@ -126,7 +141,7 @@ export function createLocalizedLineBreakOptimizer(originalOptimizer) {
    */
   return async function(words, wordWidths, spaceWidth, targetWidth, 
                         candidateCount, debugElement, balanceFactor, 
-                        minFillRatio, mode, locale = 'en') {
+                        minFillRatio, mode, locale = DEFAULT_LOCALE) {
     
     // First, get candidates from the original optimizer
     const candidates = originalOptimizer(
@@ -136,7 +151,7 @@ export function createLocalizedLineBreakOptimizer(originalOptimizer) {
     );
     
     // Apply localization filtering for non-English locales
-    if (locale && locale !== 'en') {
+    if (locale && locale !== DEFAULT_LOCALE) {
       return filterCandidatesByLocalizationRules(candidates, words, locale);
     }
     

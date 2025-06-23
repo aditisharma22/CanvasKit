@@ -3,6 +3,26 @@
  * Applies language-specific rules to determine where line breaks should be avoided
  */
 
+// Constants for line breaking behavior
+const LINE_BREAK = {
+  ALLOW: 'allow',
+  AVOID: 'avoid'
+};
+
+// Constants for special characters
+const SEPARATORS = {
+  HYPHEN: '-',
+  NON_BREAKING_HYPHEN: '\u2011'
+};
+
+// Regular expression patterns for text classification
+const REGEX_PATTERNS = {
+  PUNCTUATION: /^[.,:;!?%)]$/,
+  NUMERIC: /^\d+$/,
+  PROPER_NOUN: /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+$/,
+  SCORE_PATTERN: /^(Punkte|punkt|Punkte\.)$/i
+};
+
 /**
  * Annotate word metrics with line breaking constraints based on separators
  * 
@@ -17,15 +37,15 @@ export function annotateLineBreakingWithSeparators(wordMetricsArray, ruleConfig)
   // Process each token in the word metrics array
   return wordMetricsArray.map((token, i, arr) => {
     // Start with existing line breaking setting or default to 'allow'
-    let lineBreaking = token.lineBreaking || 'allow';
+    let lineBreaking = token.lineBreaking || LINE_BREAK.ALLOW;
 
     // Rule: Avoid breaking after hyphens (compound words)
     if (
       i < arr.length - 1 &&
       rules?.avoidBreakAfter?.includes("hyphen") &&
-      (token.separator === "-" || token.separator === "\u2011") // regular hyphen or non-breaking hyphen
+      (token.separator === SEPARATORS.HYPHEN || token.separator === SEPARATORS.NON_BREAKING_HYPHEN)
     ) {
-      lineBreaking = 'avoid';
+      lineBreaking = LINE_BREAK.AVOID;
     }
 
     // Rule: Avoid breaking before periods in specific contexts
@@ -35,14 +55,13 @@ export function annotateLineBreakingWithSeparators(wordMetricsArray, ruleConfig)
       periods &&
       periods.includes(arr[i + 1].text)
     ) {
-      lineBreaking = 'avoid';
+      lineBreaking = LINE_BREAK.AVOID;
     }
 
     // Return updated token with line breaking annotation
     return { ...token, lineBreaking };
   });
 }
-
 
 /**
  * Apply segmentation rules to find potential line breaking violations
@@ -71,28 +90,28 @@ export function applySegmentationRules(wordMetricsArray, ruleConfig) {
    * @param {string} w - Word to check
    * @returns {boolean} - True if it's punctuation
    */
-  const isPunctuation = (w) => /^[.,:;!?%)]$/.test(w);
+  const isPunctuation = (w) => REGEX_PATTERNS.PUNCTUATION.test(w);
   
   /**
    * Check if a separator is a hyphen
    * @param {string} sep - Separator to check
    * @returns {boolean} - True if it's a hyphen
    */
-  const isHyphen = (sep) => sep === "-" || sep === "\u2011"; // Regular or non-breaking hyphen
+  const isHyphen = (sep) => sep === SEPARATORS.HYPHEN || sep === SEPARATORS.NON_BREAKING_HYPHEN;
   
   /**
    * Check if a word is numeric
    * @param {string} w - Word to check
    * @returns {boolean} - True if it's numeric
    */
-  const isNumeric = (w) => /^\d+$/.test(w);
+  const isNumeric = (w) => REGEX_PATTERNS.NUMERIC.test(w);
   
   /**
    * Check if a word is a proper noun (capitalized)
    * @param {string} w - Word to check
    * @returns {boolean} - True if it looks like a proper noun
    */
-  const isProperNoun = (w) => /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+$/.test(w);
+  const isProperNoun = (w) => REGEX_PATTERNS.PROPER_NOUN.test(w);
 
   /**
    * Check if two adjacent words form a fixed expression or brand name
@@ -121,6 +140,7 @@ export function applySegmentationRules(wordMetricsArray, ruleConfig) {
     return false;
   }
 
+  // Check for violations in each pair of adjacent words
   for (let i = 0; i < wordMetricsArray.length - 1; i++) {
     const curr = wordMetricsArray[i];
     const next = wordMetricsArray[i + 1];
@@ -150,7 +170,7 @@ export function applySegmentationRules(wordMetricsArray, ruleConfig) {
     }
 
     // Avoid break for scores (e.g., "100 Punkte")
-    if (isNumeric(curr.text) && /^(Punkte|punkt|Punkte\.)$/i.test(next.text)) {
+    if (isNumeric(curr.text) && REGEX_PATTERNS.SCORE_PATTERN.test(next.text)) {
       violations.push([i, `'${curr.text}' | '${next.text}'`, "Avoid break in score"]);
     }
 

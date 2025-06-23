@@ -16,6 +16,11 @@ export function segmentsToWordMetrics(
   context,
   paragraph
 ) {
+  // Constants for default values
+  const DEFAULT_SEPARATOR = '';
+  const DEFAULT_SEPARATOR_WIDTH = 0;
+  const DEFAULT_LINE_BREAKING = 'allow';
+  
   /**
    * Count Unicode graphemes (visible characters) in a string
    * This handles multi-codepoint characters properly
@@ -57,7 +62,7 @@ export function segmentsToWordMetrics(
     const end = segArr[i + 1] ? segArr[i + 1].index : sourceText.length;
 
     // Extract separator that follows this segment
-    let separator = '';
+    let separator = DEFAULT_SEPARATOR;
     if (end < sourceText.length) {
       // Find next word-like segment
       const nextWordLike = segArr.slice(i + 1).find(s => s.isWordLike);
@@ -68,7 +73,7 @@ export function segmentsToWordMetrics(
     }
 
     // Get line breaking annotation for this segment if available
-    let lineBreaking = lineBreakingAnnotations[i] || 'allow';
+    let lineBreaking = lineBreakingAnnotations[i] || DEFAULT_LINE_BREAKING;
 
     // Create token with all metadata
     tokens.push({
@@ -79,7 +84,7 @@ export function segmentsToWordMetrics(
       rect: getWordRect(context, paragraph, { start, end }),
       lineBreaking,
       separator,
-      separatorWidth: 0, // Will be calculated later if needed
+      separatorWidth: DEFAULT_SEPARATOR_WIDTH, // Will be calculated later if needed
       separatorCharCount: getGraphemesCount(separator),
     });
   }

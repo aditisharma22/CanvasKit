@@ -5,6 +5,7 @@ import ruleEngine from "./rules/ruleConfigs.js";
 
 /**
  * Segments text based on locale using Intl.Segmenter
+ * 
  * @param {string} text - The text to segment
  * @param {string} locale - The locale/language code (e.g., "en", "ja", "th")
  * @returns {Array} - Array of segment objects
@@ -16,6 +17,7 @@ export async function segmentText(text, locale = "en") {
     return [...segmenter.segment(text)];
   } catch (err) {
     console.warn(`Segmentation failed for ${locale}, falling back to default`, err);
+    
     // Fallback to basic space-based segmentation if Intl.Segmenter fails
     const segments = [];
     let currentPos = 0;
@@ -36,24 +38,6 @@ export async function segmentText(text, locale = "en") {
     }
     
     return segments;
-  }
-  
-  // Default to Intl.Segmenter for most languages
-  try {
-    const segmenter = new Intl.Segmenter(locale, { granularity: "word" });
-    return [...segmenter.segment(text)];
-  } catch (err) {
-    console.warn(`Segmentation failed for ${locale}, falling back to default`, err);
-    // Fallback to basic space-based segmentation if Intl.Segmenter fails
-    return text.split(/\s+/).map((word, idx) => {
-      const index = idx === 0 ? 0 : text.indexOf(word, previousEnd);
-      const previousEnd = index + word.length;
-      return {
-        segment: word,
-        index,
-        isWordLike: true
-      };
-    });
   }
 }
 
@@ -97,7 +81,16 @@ export function getLineBreakingRules(locale) {
 /**
  * Run test cases to demonstrate localization segmentation with beautified JSON output
  */
+/**
+ * Run test cases to demonstrate localization segmentation with beautified JSON output
+ * @returns {Array} - Array of test results with formatted metrics
+ */
 export async function runTestCases() {
+  // Define constants for separators and punctuation
+  const DEFAULT_SEPARATOR = " ";
+  const DEFAULT_SEPARATOR_CHAR_COUNT = 1;
+  const END_PUNCTUATION = ['.', ',', '!', '?', ';', ':'];
+  
   const allResults = [];
   
   for (const { locale, text } of testCases) {
@@ -113,14 +106,14 @@ export async function runTestCases() {
       const end = start + w.text.length;
       currentPosition = end + 1; // +1 for space or punctuation
       
-      // Figure out the separator - typically space between words or punctuation at the end
-      let separator = " ";
-      let separatorCharCount = 1;
+      // Default separator configuration
+      let separator = DEFAULT_SEPARATOR;
+      let separatorCharCount = DEFAULT_SEPARATOR_CHAR_COUNT;
       
+      // Handle last word's separator - check for punctuation
       if (isLast) {
-        // Check if text ends with punctuation
         const lastChar = text.charAt(text.length - 1);
-        if (lastChar === '.' || lastChar === ',' || lastChar === '!' || lastChar === '?') {
+        if (END_PUNCTUATION.includes(lastChar)) {
           separator = lastChar;
         }
       }
