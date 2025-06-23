@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Concise Interactive Break Tree</title>
+<style>
+  body {
+    background: #1e1e1e;
+    color: #ddd;
+    font-family: monospace;
+    padding: 1em;
+  }
+  .break-tree {
+    white-space: pre;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .node {
+    margin-left: 1em;
+    cursor: pointer;
+    user-select: none;
+  }
+  .line-group {
+    font-weight: bold;
+    color: #80cbc4;
+  }
+  .shared {
+    color: #666;
+  }
+  .diverged {
+    color: #9ccc65;
+  }
+  .toggle::before {
+    content: "▶ ";
+    display: inline-block;
+    width: 1em;
+  }
+  .open > .toggle::before {
+    content: "▼ ";
+  }
+  .children {
+    display: none;
+    margin-left: 1.5em;
+  }
+  .open > .children {
+    display: block;
+  }
+  .summary {
+    margin-top: 2em;
+    border-top: 1px solid #444;
+    padding-top: 1em;
+  }
+  .score {
+    color: #ffab91;
+  }
+  .rank {
+    color: #f06292;
+    font-weight: bold;
+  }
+  .breaks {
+    color: #64b5f6;
+  }
+</style>
+</head>
+<body>
+
+<div id="treeOutput" class="break-tree"></div>
+
+<script>
+const words = ["The", "quick", "brown", "fox"];
+const wordWidths = [30, 50, 50, 40];
+const spaceWidth = 10;
+const maxWidth = 100;
+const maxCandidates = 3;
+
+// Compute breaks function with memoization and scoring
+function computeBreaks(words, wordWidths, spaceWidth, maxWidth, maxCandidates) {
+  const memo = new Map();
+
+  function score(lines) {
+    let raggedness = 0;
+    for (const line of lines) {
+      let lineWidth = 0;
+      for (let i = 0; i < line.length; i++) {
+        const idx = words.indexOf(line[i]);
+        lineWidth += wordWidths[idx];
+        if (i > 0) lineWidth += spaceWidth;
+      }
+      const diff = maxWidth - lineWidth;
+      raggedness += diff * diff;
+    }
+    return raggedness;
+  }
+
+  function breakRecursive(start) {
+    if (start >= words.length) return [{ lines: [], score: 0, breaks: [] }];
+    if (memo.has(start)) return memo.get(start);
+
+    let results = [];
+    for (let end = start; end < words.length; end++) {
+      let width = 0;
+      for (let i = start; i <= end; i++) {
+        width += wordWidths[i];
+        if (i > start) width += spaceWidth;
+      }
+      if (width > maxWidth) break;
+
+      const currentLine = words.slice(start, end + 1);
+      const restLines = breakRecursive(end + 1);
+
+      for (const rest of restLines) {
+        const combinedLines = [currentLine, ...rest.lines];
+        const combinedScore = score(combinedLines);
+        const combinedBreaks = [end, ...rest.breaks];
+        results.push({ lines: combinedLines, score: combinedScore, breaks: combinedBreaks });
+      }
+    }
+    results = results.sort((a,b) => a.score - b.score).slice(0, maxCandidates);
+    memo.set(start, results);
+    return results;
+  }
+
+  return breakRecursive(0).sort((a,b) => a.score - b.score).slice(0, maxCandidates);
+}
+
+// Find longest common prefix of break sequences among candidates
+function commonPrefix(arrays) {
+  if (!arrays.length) return [];
+  let prefix = [];
+  for (let i = 0; ; i++) {
+    const firstVal = arrays[0][i];
+    if (firstVal === undefined) break;
+    if (arrays.some(arr => arr[i] !== firstVal)) break;
+    prefix.push(firstVal);
+  }
+  return prefix;
+}
+
+// Build a grouped tree structure from candidates for concise display
+function buildGroupedTree(candidates) {
+  // Extract break sequences (indices)
+  const breaksList = candidates.map(c => c.breaks);
+
+  // Find common prefix among all candidates
+  const prefix = commonPrefix(breaksList);
+
+  // Recursively build tree nodes grouping by first line segment after prefix
+  function buildNode(start, remainingCandidates) {
+    if (start >= words.length) return null;
+
+    // Group candidates by their next break after start
+    const groups = new Map();
+    for (const candidate of remainingCandidates) {
+      // Next break index after start in candidate breaks
+      let nextBreak = candidate.breaks.find(b => b >= start);
+      if (nextBreak === undefined) nextBreak = words.length - 1;
+      if (!groups.has(nextBreak)) groups.set(nextBreak, []);
+      groups.get(nextBreak).push(candidate);
+    }
+
+    const nodes = [];
+    for (const [end, groupCandidates] of groups.entries()) {
+      nodes.push({
+        start,
+        end,
+        candidates: groupCandidates,
+        children: buildNode(end + 1, groupCandidates)
+      });
+    }
+    return nodes;
+  }
+
+  const rootNodes = buildNode(0, candidates);
+
+  return { prefix, rootNodes };
+}
+
+// Render the concise interactive tree
+function renderTree(container, treeData) {
+  const { prefix, rootNodes } = treeData;
+
+  // Render the common prefix lines at the top, collapsed and dimmed
+  if (prefix.length) {
+    const prefixDiv = document.createElement("div");
+    prefixDiv.classList.add("node", "shared");
+    prefixDiv.textContent = "Common prefix lines:";
+    container.appendChild(prefixDiv);
+
+    let start = 0;
+    for (const breakIdx of prefix) {
+      const lineWords = words.slice(start, breakIdx + 1);
+      const lineDiv = document.createElement("div");
+      lineDiv.classList.add("node", "shared");
+      lineDiv.textContent = `[${lineWords.join(", ")}] (width: ${calcWidth(start, breakIdx)})`;
+      container.appendChild(lineDiv);
+      start = breakIdx + 1;
+    }
+  }
+
+  // Recursively render grouped nodes
+  function renderNodes(parent, nodes, level = 0) {
+    if (!nodes) return;
+    for (const node of nodes) {
+      const nodeDiv = document.createElement("div");
+      nodeDiv.classList.add("node", "diverged");
+
+      // Line group label and toggle
+      const toggleDiv = document.createElement("div");
+      toggleDiv.classList.add("toggle");
+      const lineWords = words.slice(node.start, node.end + 1);
+      toggleDiv.textContent = `[${lineWords.join(", ")}] (width: ${calcWidth(node.start, node.end)})`;
+
+      // Child container
+      const childrenDiv = document.createElement("div");
+      childrenDiv.classList.add("children");
+
+      toggleDiv.onclick = () => nodeDiv.classList.toggle("open");
+
+      nodeDiv.appendChild(toggleDiv);
+      nodeDiv.appendChild(childrenDiv);
+
+      parent.appendChild(nodeDiv);
+
+      renderNodes(childrenDiv, node.children, level + 1);
+    }
+  }
+
+  renderNodes(container, rootNodes);
+}
+
+function calcWidth(start, end) {
+  let width = 0;
+  for (let i = start; i <= end; i++) {
+    width += wordWidths[i];
+    if (i > start) width += spaceWidth;
+  }
+  return width;
+}
+
+// Render summary of top candidates
+function renderSummary(container, candidates) {
+  const summaryDiv = document.createElement("div");
+  summaryDiv.classList.add("summary");
+  summaryDiv.innerHTML = `<div><strong>Top ${candidates.length} Candidates</strong></div>`;
+
+  candidates.forEach((c, i) => {
+    const cDiv = document.createElement("div");
+    cDiv.innerHTML = 
+      `Candidate <span class="rank">${i+1}</span>: <span class="score">score=${c.score}</span><br>` +
+      c.lines.map((line, j) => `&nbsp;&nbsp;Line ${j+1}: ${line.join(" ")}`).join("<br>") + 
+      `<br>Break indices: <span class="breaks">${c.breaks.join(", ")}</span><br><br>`;
+    summaryDiv.appendChild(cDiv);
+  });
+
+  container.appendChild(summaryDiv);
+}
+
+function main() {
+  const container = document.getElementById("treeOutput");
+  container.innerHTML = "";
+
+  const candidates = computeBreaks(words, wordWidths, spaceWidth, maxWidth, maxCandidates);
+
+  const groupedTree = buildGroupedTree(candidates);
+
+  renderTree(container, groupedTree);
+
+  renderSummary(container, candidates);
+}
+
+main();
+
+</script>
+
+</body>
+</html>
