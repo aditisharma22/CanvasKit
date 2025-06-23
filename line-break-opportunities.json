@@ -1,0 +1,4334 @@
+[
+  {
+    "locale": "en",
+    "originalText": "This is a test to find line break opportunities for this sentence.",
+    "formattedMetrics": [
+      {
+        "text": "This",
+        "trimmedText": "This",
+        "charCount": 4,
+        "boundary": {
+          "start": 0,
+          "end": 4
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "is",
+        "trimmedText": "is",
+        "charCount": 2,
+        "boundary": {
+          "start": 5,
+          "end": 7
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "a",
+        "trimmedText": "a",
+        "charCount": 1,
+        "boundary": {
+          "start": 8,
+          "end": 9
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "test",
+        "trimmedText": "test",
+        "charCount": 4,
+        "boundary": {
+          "start": 10,
+          "end": 14
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "to",
+        "trimmedText": "to",
+        "charCount": 2,
+        "boundary": {
+          "start": 15,
+          "end": 17
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "find",
+        "trimmedText": "find",
+        "charCount": 4,
+        "boundary": {
+          "start": 18,
+          "end": 22
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "line",
+        "trimmedText": "line",
+        "charCount": 4,
+        "boundary": {
+          "start": 23,
+          "end": 27
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "break",
+        "trimmedText": "break",
+        "charCount": 5,
+        "boundary": {
+          "start": 28,
+          "end": 33
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "opportunities",
+        "trimmedText": "opportunities",
+        "charCount": 13,
+        "boundary": {
+          "start": 34,
+          "end": 47
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "for",
+        "trimmedText": "for",
+        "charCount": 3,
+        "boundary": {
+          "start": 48,
+          "end": 51
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "this",
+        "trimmedText": "this",
+        "charCount": 4,
+        "boundary": {
+          "start": 52,
+          "end": 56
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "sentence",
+        "trimmedText": "sentence",
+        "charCount": 8,
+        "boundary": {
+          "start": 57,
+          "end": 65
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "zh",
+    "originalText": "这是一个用于检测换行点的测试。",
+    "formattedMetrics": [
+      {
+        "text": "这",
+        "trimmedText": "这",
+        "charCount": 1,
+        "boundary": {
+          "start": 0,
+          "end": 1
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "是",
+        "trimmedText": "是",
+        "charCount": 1,
+        "boundary": {
+          "start": 2,
+          "end": 3
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "一个",
+        "trimmedText": "一个",
+        "charCount": 2,
+        "boundary": {
+          "start": 4,
+          "end": 6
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "用于",
+        "trimmedText": "用于",
+        "charCount": 2,
+        "boundary": {
+          "start": 7,
+          "end": 9
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "检测",
+        "trimmedText": "检测",
+        "charCount": 2,
+        "boundary": {
+          "start": 10,
+          "end": 12
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "换",
+        "trimmedText": "换",
+        "charCount": 1,
+        "boundary": {
+          "start": 13,
+          "end": 14
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "行",
+        "trimmedText": "行",
+        "charCount": 1,
+        "boundary": {
+          "start": 15,
+          "end": 16
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "点",
+        "trimmedText": "点",
+        "charCount": 1,
+        "boundary": {
+          "start": 17,
+          "end": 18
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "的",
+        "trimmedText": "的",
+        "charCount": 1,
+        "boundary": {
+          "start": 19,
+          "end": 20
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "测试",
+        "trimmedText": "测试",
+        "charCount": 2,
+        "boundary": {
+          "start": 21,
+          "end": 23
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "ja",
+    "originalText": "これは改行ポイントを見つけるためのテストです。",
+    "formattedMetrics": [
+      {
+        "text": "これ",
+        "trimmedText": "これ",
+        "charCount": 2,
+        "boundary": {
+          "start": 0,
+          "end": 2
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "は",
+        "trimmedText": "は",
+        "charCount": 1,
+        "boundary": {
+          "start": 3,
+          "end": 4
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "改行",
+        "trimmedText": "改行",
+        "charCount": 2,
+        "boundary": {
+          "start": 5,
+          "end": 7
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "ポイント",
+        "trimmedText": "ポイント",
+        "charCount": 4,
+        "boundary": {
+          "start": 8,
+          "end": 12
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "を",
+        "trimmedText": "を",
+        "charCount": 1,
+        "boundary": {
+          "start": 13,
+          "end": 14
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "見つける",
+        "trimmedText": "見つける",
+        "charCount": 4,
+        "boundary": {
+          "start": 15,
+          "end": 19
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "ため",
+        "trimmedText": "ため",
+        "charCount": 2,
+        "boundary": {
+          "start": 20,
+          "end": 22
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "の",
+        "trimmedText": "の",
+        "charCount": 1,
+        "boundary": {
+          "start": 23,
+          "end": 24
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "テスト",
+        "trimmedText": "テスト",
+        "charCount": 3,
+        "boundary": {
+          "start": 25,
+          "end": 28
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "です",
+        "trimmedText": "です",
+        "charCount": 2,
+        "boundary": {
+          "start": 29,
+          "end": 31
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "th",
+    "originalText": "ใครๆ ก็แสวงหาความตื่นเต้น แต่เว้นยูจีนไว้คนหนึ่งละกั",
+    "formattedMetrics": [
+      {
+        "text": "ใครๆ",
+        "trimmedText": "ใครๆ",
+        "charCount": 4,
+        "boundary": {
+          "start": 0,
+          "end": 4
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "ก็",
+        "trimmedText": "ก็",
+        "charCount": 2,
+        "boundary": {
+          "start": 5,
+          "end": 7
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "แสวงหา",
+        "trimmedText": "แสวงหา",
+        "charCount": 6,
+        "boundary": {
+          "start": 8,
+          "end": 14
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "ความ",
+        "trimmedText": "ความ",
+        "charCount": 4,
+        "boundary": {
+          "start": 15,
+          "end": 19
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "ตื่น",
+        "trimmedText": "ตื่น",
+        "charCount": 4,
+        "boundary": {
+          "start": 20,
+          "end": 24
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "เต้น",
+        "trimmedText": "เต้น",
+        "charCount": 4,
+        "boundary": {
+          "start": 25,
+          "end": 29
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "แต่",
+        "trimmedText": "แต่",
+        "charCount": 3,
+        "boundary": {
+          "start": 30,
+          "end": 33
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "เว้น",
+        "trimmedText": "เว้น",
+        "charCount": 4,
+        "boundary": {
+          "start": 34,
+          "end": 38
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "ยู",
+        "trimmedText": "ยู",
+        "charCount": 2,
+        "boundary": {
+          "start": 39,
+          "end": 41
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "จีน",
+        "trimmedText": "จีน",
+        "charCount": 3,
+        "boundary": {
+          "start": 42,
+          "end": 45
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "ไว้",
+        "trimmedText": "ไว้",
+        "charCount": 3,
+        "boundary": {
+          "start": 46,
+          "end": 49
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "คน",
+        "trimmedText": "คน",
+        "charCount": 2,
+        "boundary": {
+          "start": 50,
+          "end": 52
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "หนึ่ง",
+        "trimmedText": "หนึ่ง",
+        "charCount": 5,
+        "boundary": {
+          "start": 53,
+          "end": 58
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "ละกั",
+        "trimmedText": "ละกั",
+        "charCount": 4,
+        "boundary": {
+          "start": 59,
+          "end": 63
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "ko",
+    "originalText": "이것은 줄 바꿈 기회를 찾기 위한 테스트입니다。",
+    "formattedMetrics": [
+      {
+        "text": "이것은",
+        "trimmedText": "이것은",
+        "charCount": 3,
+        "boundary": {
+          "start": 0,
+          "end": 3
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "줄",
+        "trimmedText": "줄",
+        "charCount": 1,
+        "boundary": {
+          "start": 4,
+          "end": 5
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "바꿈",
+        "trimmedText": "바꿈",
+        "charCount": 2,
+        "boundary": {
+          "start": 6,
+          "end": 8
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "기회를",
+        "trimmedText": "기회를",
+        "charCount": 3,
+        "boundary": {
+          "start": 9,
+          "end": 12
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "찾기",
+        "trimmedText": "찾기",
+        "charCount": 2,
+        "boundary": {
+          "start": 13,
+          "end": 15
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "위한",
+        "trimmedText": "위한",
+        "charCount": 2,
+        "boundary": {
+          "start": 16,
+          "end": 18
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "테스트입니다",
+        "trimmedText": "테스트입니다",
+        "charCount": 6,
+        "boundary": {
+          "start": 19,
+          "end": 25
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "en",
+    "originalText": "This is a well-known issue with browser-specific behavior.",
+    "formattedMetrics": [
+      {
+        "text": "This",
+        "trimmedText": "This",
+        "charCount": 4,
+        "boundary": {
+          "start": 0,
+          "end": 4
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "is",
+        "trimmedText": "is",
+        "charCount": 2,
+        "boundary": {
+          "start": 5,
+          "end": 7
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "a",
+        "trimmedText": "a",
+        "charCount": 1,
+        "boundary": {
+          "start": 8,
+          "end": 9
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "well",
+        "trimmedText": "well",
+        "charCount": 4,
+        "boundary": {
+          "start": 10,
+          "end": 14
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "known",
+        "trimmedText": "known",
+        "charCount": 5,
+        "boundary": {
+          "start": 15,
+          "end": 20
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "issue",
+        "trimmedText": "issue",
+        "charCount": 5,
+        "boundary": {
+          "start": 21,
+          "end": 26
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "with",
+        "trimmedText": "with",
+        "charCount": 4,
+        "boundary": {
+          "start": 27,
+          "end": 31
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "browser",
+        "trimmedText": "browser",
+        "charCount": 7,
+        "boundary": {
+          "start": 32,
+          "end": 39
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "specific",
+        "trimmedText": "specific",
+        "charCount": 8,
+        "boundary": {
+          "start": 40,
+          "end": 48
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "behavior",
+        "trimmedText": "behavior",
+        "charCount": 8,
+        "boundary": {
+          "start": 49,
+          "end": 57
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "de",
+    "originalText": "Die Entscheidung war eine wohlüberlegte, aber nicht leicht-zu-treffende.",
+    "formattedMetrics": [
+      {
+        "text": "Die",
+        "trimmedText": "Die",
+        "charCount": 3,
+        "boundary": {
+          "start": 0,
+          "end": 3
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Entscheidung",
+        "trimmedText": "Entscheidung",
+        "charCount": 12,
+        "boundary": {
+          "start": 4,
+          "end": 16
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "war",
+        "trimmedText": "war",
+        "charCount": 3,
+        "boundary": {
+          "start": 17,
+          "end": 20
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "eine",
+        "trimmedText": "eine",
+        "charCount": 4,
+        "boundary": {
+          "start": 21,
+          "end": 25
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "wohlüberlegte",
+        "trimmedText": "wohlüberlegte",
+        "charCount": 13,
+        "boundary": {
+          "start": 26,
+          "end": 39
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "aber",
+        "trimmedText": "aber",
+        "charCount": 4,
+        "boundary": {
+          "start": 40,
+          "end": 44
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "nicht",
+        "trimmedText": "nicht",
+        "charCount": 5,
+        "boundary": {
+          "start": 45,
+          "end": 50
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "leicht",
+        "trimmedText": "leicht",
+        "charCount": 6,
+        "boundary": {
+          "start": 51,
+          "end": 57
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "zu",
+        "trimmedText": "zu",
+        "charCount": 2,
+        "boundary": {
+          "start": 58,
+          "end": 60
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "treffende",
+        "trimmedText": "treffende",
+        "charCount": 9,
+        "boundary": {
+          "start": 61,
+          "end": 70
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "fr",
+    "originalText": "C'est une situation socio-économique bien connue.",
+    "formattedMetrics": [
+      {
+        "text": "C'est",
+        "trimmedText": "C'est",
+        "charCount": 5,
+        "boundary": {
+          "start": 0,
+          "end": 5
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "une",
+        "trimmedText": "une",
+        "charCount": 3,
+        "boundary": {
+          "start": 6,
+          "end": 9
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "situation",
+        "trimmedText": "situation",
+        "charCount": 9,
+        "boundary": {
+          "start": 10,
+          "end": 19
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "socio",
+        "trimmedText": "socio",
+        "charCount": 5,
+        "boundary": {
+          "start": 20,
+          "end": 25
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "économique",
+        "trimmedText": "économique",
+        "charCount": 10,
+        "boundary": {
+          "start": 26,
+          "end": 36
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "bien",
+        "trimmedText": "bien",
+        "charCount": 4,
+        "boundary": {
+          "start": 37,
+          "end": 41
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "connue",
+        "trimmedText": "connue",
+        "charCount": 6,
+        "boundary": {
+          "start": 42,
+          "end": 48
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "es",
+    "originalText": "Evita dividir la palabra reproducción incorrectamente.",
+    "formattedMetrics": [
+      {
+        "text": "Evita",
+        "trimmedText": "Evita",
+        "charCount": 5,
+        "boundary": {
+          "start": 0,
+          "end": 5
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "dividir",
+        "trimmedText": "dividir",
+        "charCount": 7,
+        "boundary": {
+          "start": 6,
+          "end": 13
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "la",
+        "trimmedText": "la",
+        "charCount": 2,
+        "boundary": {
+          "start": 14,
+          "end": 16
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "palabra",
+        "trimmedText": "palabra",
+        "charCount": 7,
+        "boundary": {
+          "start": 17,
+          "end": 24
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "reproducción",
+        "trimmedText": "reproducción",
+        "charCount": 12,
+        "boundary": {
+          "start": 25,
+          "end": 37
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "incorrectamente",
+        "trimmedText": "incorrectamente",
+        "charCount": 15,
+        "boundary": {
+          "start": 38,
+          "end": 53
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "es",
+    "originalText": "Nos gusta la música y televisión de calidad.",
+    "formattedMetrics": [
+      {
+        "text": "Nos",
+        "trimmedText": "Nos",
+        "charCount": 3,
+        "boundary": {
+          "start": 0,
+          "end": 3
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "gusta",
+        "trimmedText": "gusta",
+        "charCount": 5,
+        "boundary": {
+          "start": 4,
+          "end": 9
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "la",
+        "trimmedText": "la",
+        "charCount": 2,
+        "boundary": {
+          "start": 10,
+          "end": 12
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "música",
+        "trimmedText": "música",
+        "charCount": 6,
+        "boundary": {
+          "start": 13,
+          "end": 19
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "y",
+        "trimmedText": "y",
+        "charCount": 1,
+        "boundary": {
+          "start": 20,
+          "end": 21
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "televisión",
+        "trimmedText": "televisión",
+        "charCount": 10,
+        "boundary": {
+          "start": 22,
+          "end": 32
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "de",
+        "trimmedText": "de",
+        "charCount": 2,
+        "boundary": {
+          "start": 33,
+          "end": 35
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "calidad",
+        "trimmedText": "calidad",
+        "charCount": 7,
+        "boundary": {
+          "start": 36,
+          "end": 43
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "es",
+    "originalText": "Escucha la lista de reproducción ahora.",
+    "formattedMetrics": [
+      {
+        "text": "Escucha",
+        "trimmedText": "Escucha",
+        "charCount": 7,
+        "boundary": {
+          "start": 0,
+          "end": 7
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "la",
+        "trimmedText": "la",
+        "charCount": 2,
+        "boundary": {
+          "start": 8,
+          "end": 10
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "lista",
+        "trimmedText": "lista",
+        "charCount": 5,
+        "boundary": {
+          "start": 11,
+          "end": 16
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "de",
+        "trimmedText": "de",
+        "charCount": 2,
+        "boundary": {
+          "start": 17,
+          "end": 19
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "reproducción",
+        "trimmedText": "reproducción",
+        "charCount": 12,
+        "boundary": {
+          "start": 20,
+          "end": 32
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "ahora",
+        "trimmedText": "ahora",
+        "charCount": 5,
+        "boundary": {
+          "start": 33,
+          "end": 38
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "es",
+    "originalText": "Escucha la lista de reproducción de inmediato.",
+    "formattedMetrics": [
+      {
+        "text": "Escucha",
+        "trimmedText": "Escucha",
+        "charCount": 7,
+        "boundary": {
+          "start": 0,
+          "end": 7
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "la",
+        "trimmedText": "la",
+        "charCount": 2,
+        "boundary": {
+          "start": 8,
+          "end": 10
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "lista",
+        "trimmedText": "lista",
+        "charCount": 5,
+        "boundary": {
+          "start": 11,
+          "end": 16
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "de",
+        "trimmedText": "de",
+        "charCount": 2,
+        "boundary": {
+          "start": 17,
+          "end": 19
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "reproducción",
+        "trimmedText": "reproducción",
+        "charCount": 12,
+        "boundary": {
+          "start": 20,
+          "end": 32
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "de",
+        "trimmedText": "de",
+        "charCount": 2,
+        "boundary": {
+          "start": 33,
+          "end": 35
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "inmediato",
+        "trimmedText": "inmediato",
+        "charCount": 9,
+        "boundary": {
+          "start": 36,
+          "end": 45
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "es",
+    "originalText": "John Doe presenta Angry Birds.",
+    "formattedMetrics": [
+      {
+        "text": "John",
+        "trimmedText": "John",
+        "charCount": 4,
+        "boundary": {
+          "start": 0,
+          "end": 4
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Doe",
+        "trimmedText": "Doe",
+        "charCount": 3,
+        "boundary": {
+          "start": 5,
+          "end": 8
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "presenta",
+        "trimmedText": "presenta",
+        "charCount": 8,
+        "boundary": {
+          "start": 9,
+          "end": 17
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Angry",
+        "trimmedText": "Angry",
+        "charCount": 5,
+        "boundary": {
+          "start": 18,
+          "end": 23
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Birds",
+        "trimmedText": "Birds",
+        "charCount": 5,
+        "boundary": {
+          "start": 24,
+          "end": 29
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "es",
+    "originalText": "Un producto calidad-precio insuperable.",
+    "formattedMetrics": [
+      {
+        "text": "Un",
+        "trimmedText": "Un",
+        "charCount": 2,
+        "boundary": {
+          "start": 0,
+          "end": 2
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "producto",
+        "trimmedText": "producto",
+        "charCount": 8,
+        "boundary": {
+          "start": 3,
+          "end": 11
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "calidad",
+        "trimmedText": "calidad",
+        "charCount": 7,
+        "boundary": {
+          "start": 12,
+          "end": 19
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "precio",
+        "trimmedText": "precio",
+        "charCount": 6,
+        "boundary": {
+          "start": 20,
+          "end": 26
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "insuperable",
+        "trimmedText": "insuperable",
+        "charCount": 11,
+        "boundary": {
+          "start": 27,
+          "end": 38
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "es",
+    "originalText": "Disponible en App Store y Apple TV+.",
+    "formattedMetrics": [
+      {
+        "text": "Disponible",
+        "trimmedText": "Disponible",
+        "charCount": 10,
+        "boundary": {
+          "start": 0,
+          "end": 10
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "en",
+        "trimmedText": "en",
+        "charCount": 2,
+        "boundary": {
+          "start": 11,
+          "end": 13
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "App",
+        "trimmedText": "App",
+        "charCount": 3,
+        "boundary": {
+          "start": 14,
+          "end": 17
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Store",
+        "trimmedText": "Store",
+        "charCount": 5,
+        "boundary": {
+          "start": 18,
+          "end": 23
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "y",
+        "trimmedText": "y",
+        "charCount": 1,
+        "boundary": {
+          "start": 24,
+          "end": 25
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Apple",
+        "trimmedText": "Apple",
+        "charCount": 5,
+        "boundary": {
+          "start": 26,
+          "end": 31
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "TV",
+        "trimmedText": "TV",
+        "charCount": 2,
+        "boundary": {
+          "start": 32,
+          "end": 34
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "es",
+    "originalText": "Éxitos latinos y lanzamientos del mes.",
+    "formattedMetrics": [
+      {
+        "text": "Éxitos",
+        "trimmedText": "Éxitos",
+        "charCount": 6,
+        "boundary": {
+          "start": 0,
+          "end": 6
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "latinos",
+        "trimmedText": "latinos",
+        "charCount": 7,
+        "boundary": {
+          "start": 7,
+          "end": 14
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "y",
+        "trimmedText": "y",
+        "charCount": 1,
+        "boundary": {
+          "start": 15,
+          "end": 16
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "lanzamientos",
+        "trimmedText": "lanzamientos",
+        "charCount": 12,
+        "boundary": {
+          "start": 17,
+          "end": 29
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "del",
+        "trimmedText": "del",
+        "charCount": 3,
+        "boundary": {
+          "start": 30,
+          "end": 33
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "mes",
+        "trimmedText": "mes",
+        "charCount": 3,
+        "boundary": {
+          "start": 34,
+          "end": 37
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "es",
+    "originalText": "Lanzamientos del mes.",
+    "formattedMetrics": [
+      {
+        "text": "Lanzamientos",
+        "trimmedText": "Lanzamientos",
+        "charCount": 12,
+        "boundary": {
+          "start": 0,
+          "end": 12
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "del",
+        "trimmedText": "del",
+        "charCount": 3,
+        "boundary": {
+          "start": 13,
+          "end": 16
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "mes",
+        "trimmedText": "mes",
+        "charCount": 3,
+        "boundary": {
+          "start": 17,
+          "end": 20
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "es",
+    "originalText": "Éxitos virales: Pop.",
+    "formattedMetrics": [
+      {
+        "text": "Éxitos",
+        "trimmedText": "Éxitos",
+        "charCount": 6,
+        "boundary": {
+          "start": 0,
+          "end": 6
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "virales",
+        "trimmedText": "virales",
+        "charCount": 7,
+        "boundary": {
+          "start": 7,
+          "end": 14
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Pop",
+        "trimmedText": "Pop",
+        "charCount": 3,
+        "boundary": {
+          "start": 15,
+          "end": 18
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "es",
+    "originalText": "Disfruta el nuevo episodio hoy.",
+    "formattedMetrics": [
+      {
+        "text": "Disfruta",
+        "trimmedText": "Disfruta",
+        "charCount": 8,
+        "boundary": {
+          "start": 0,
+          "end": 8
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "el",
+        "trimmedText": "el",
+        "charCount": 2,
+        "boundary": {
+          "start": 9,
+          "end": 11
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "nuevo",
+        "trimmedText": "nuevo",
+        "charCount": 5,
+        "boundary": {
+          "start": 12,
+          "end": 17
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "episodio",
+        "trimmedText": "episodio",
+        "charCount": 8,
+        "boundary": {
+          "start": 18,
+          "end": 26
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "hoy",
+        "trimmedText": "hoy",
+        "charCount": 3,
+        "boundary": {
+          "start": 27,
+          "end": 30
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "es",
+    "originalText": "Descuento del 100 %, válido hasta mañana.",
+    "formattedMetrics": [
+      {
+        "text": "Descuento",
+        "trimmedText": "Descuento",
+        "charCount": 9,
+        "boundary": {
+          "start": 0,
+          "end": 9
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "del",
+        "trimmedText": "del",
+        "charCount": 3,
+        "boundary": {
+          "start": 10,
+          "end": 13
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "100",
+        "trimmedText": "100",
+        "charCount": 3,
+        "boundary": {
+          "start": 14,
+          "end": 17
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "válido",
+        "trimmedText": "válido",
+        "charCount": 6,
+        "boundary": {
+          "start": 18,
+          "end": 24
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "hasta",
+        "trimmedText": "hasta",
+        "charCount": 5,
+        "boundary": {
+          "start": 25,
+          "end": 30
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "mañana",
+        "trimmedText": "mañana",
+        "charCount": 6,
+        "boundary": {
+          "start": 31,
+          "end": 37
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "fr",
+    "originalText": "Hits viraux : pop",
+    "formattedMetrics": [
+      {
+        "text": "Hits",
+        "trimmedText": "Hits",
+        "charCount": 4,
+        "boundary": {
+          "start": 0,
+          "end": 4
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "viraux",
+        "trimmedText": "viraux",
+        "charCount": 6,
+        "boundary": {
+          "start": 5,
+          "end": 11
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "pop",
+        "trimmedText": "pop",
+        "charCount": 3,
+        "boundary": {
+          "start": 12,
+          "end": 15
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "fr",
+    "originalText": "Jean-Luc Godard revient avec un film culte.",
+    "formattedMetrics": [
+      {
+        "text": "Jean",
+        "trimmedText": "Jean",
+        "charCount": 4,
+        "boundary": {
+          "start": 0,
+          "end": 4
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Luc",
+        "trimmedText": "Luc",
+        "charCount": 3,
+        "boundary": {
+          "start": 5,
+          "end": 8
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Godard",
+        "trimmedText": "Godard",
+        "charCount": 6,
+        "boundary": {
+          "start": 9,
+          "end": 15
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "revient",
+        "trimmedText": "revient",
+        "charCount": 7,
+        "boundary": {
+          "start": 16,
+          "end": 23
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "avec",
+        "trimmedText": "avec",
+        "charCount": 4,
+        "boundary": {
+          "start": 24,
+          "end": 28
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "un",
+        "trimmedText": "un",
+        "charCount": 2,
+        "boundary": {
+          "start": 29,
+          "end": 31
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "film",
+        "trimmedText": "film",
+        "charCount": 4,
+        "boundary": {
+          "start": 32,
+          "end": 36
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "culte",
+        "trimmedText": "culte",
+        "charCount": 5,
+        "boundary": {
+          "start": 37,
+          "end": 42
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "fr",
+    "originalText": "Écoutez la nouvelle chanson maintenant.",
+    "formattedMetrics": [
+      {
+        "text": "Écoutez",
+        "trimmedText": "Écoutez",
+        "charCount": 7,
+        "boundary": {
+          "start": 0,
+          "end": 7
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "la",
+        "trimmedText": "la",
+        "charCount": 2,
+        "boundary": {
+          "start": 8,
+          "end": 10
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "nouvelle",
+        "trimmedText": "nouvelle",
+        "charCount": 8,
+        "boundary": {
+          "start": 11,
+          "end": 19
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "chanson",
+        "trimmedText": "chanson",
+        "charCount": 7,
+        "boundary": {
+          "start": 20,
+          "end": 27
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "maintenant",
+        "trimmedText": "maintenant",
+        "charCount": 10,
+        "boundary": {
+          "start": 28,
+          "end": 38
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "fr",
+    "originalText": "C'est un véritable casse-tête musical.",
+    "formattedMetrics": [
+      {
+        "text": "C'est",
+        "trimmedText": "C'est",
+        "charCount": 5,
+        "boundary": {
+          "start": 0,
+          "end": 5
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "un",
+        "trimmedText": "un",
+        "charCount": 2,
+        "boundary": {
+          "start": 6,
+          "end": 8
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "véritable",
+        "trimmedText": "véritable",
+        "charCount": 9,
+        "boundary": {
+          "start": 9,
+          "end": 18
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "casse",
+        "trimmedText": "casse",
+        "charCount": 5,
+        "boundary": {
+          "start": 19,
+          "end": 24
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "tête",
+        "trimmedText": "tête",
+        "charCount": 4,
+        "boundary": {
+          "start": 25,
+          "end": 29
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "musical",
+        "trimmedText": "musical",
+        "charCount": 7,
+        "boundary": {
+          "start": 30,
+          "end": 37
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "fr",
+    "originalText": "Le concert à Paris est complet.",
+    "formattedMetrics": [
+      {
+        "text": "Le",
+        "trimmedText": "Le",
+        "charCount": 2,
+        "boundary": {
+          "start": 0,
+          "end": 2
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "concert",
+        "trimmedText": "concert",
+        "charCount": 7,
+        "boundary": {
+          "start": 3,
+          "end": 10
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "à",
+        "trimmedText": "à",
+        "charCount": 1,
+        "boundary": {
+          "start": 11,
+          "end": 12
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Paris",
+        "trimmedText": "Paris",
+        "charCount": 5,
+        "boundary": {
+          "start": 13,
+          "end": 18
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "est",
+        "trimmedText": "est",
+        "charCount": 3,
+        "boundary": {
+          "start": 19,
+          "end": 22
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "complet",
+        "trimmedText": "complet",
+        "charCount": 7,
+        "boundary": {
+          "start": 23,
+          "end": 30
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "fr",
+    "originalText": "Nouveautés : electro pop",
+    "formattedMetrics": [
+      {
+        "text": "Nouveautés",
+        "trimmedText": "Nouveautés",
+        "charCount": 10,
+        "boundary": {
+          "start": 0,
+          "end": 10
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "electro",
+        "trimmedText": "electro",
+        "charCount": 7,
+        "boundary": {
+          "start": 11,
+          "end": 18
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "pop",
+        "trimmedText": "pop",
+        "charCount": 3,
+        "boundary": {
+          "start": 19,
+          "end": 22
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "fr",
+    "originalText": "Disponible sur Apple Arcade dès aujourd'hui.",
+    "formattedMetrics": [
+      {
+        "text": "Disponible",
+        "trimmedText": "Disponible",
+        "charCount": 10,
+        "boundary": {
+          "start": 0,
+          "end": 10
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "sur",
+        "trimmedText": "sur",
+        "charCount": 3,
+        "boundary": {
+          "start": 11,
+          "end": 14
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Apple",
+        "trimmedText": "Apple",
+        "charCount": 5,
+        "boundary": {
+          "start": 15,
+          "end": 20
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Arcade",
+        "trimmedText": "Arcade",
+        "charCount": 6,
+        "boundary": {
+          "start": 21,
+          "end": 27
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "dès",
+        "trimmedText": "dès",
+        "charCount": 3,
+        "boundary": {
+          "start": 28,
+          "end": 31
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "aujourd'hui",
+        "trimmedText": "aujourd'hui",
+        "charCount": 11,
+        "boundary": {
+          "start": 32,
+          "end": 43
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "fr",
+    "originalText": "Jouez à Monopoly Go maintenant.",
+    "formattedMetrics": [
+      {
+        "text": "Jouez",
+        "trimmedText": "Jouez",
+        "charCount": 5,
+        "boundary": {
+          "start": 0,
+          "end": 5
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "à",
+        "trimmedText": "à",
+        "charCount": 1,
+        "boundary": {
+          "start": 6,
+          "end": 7
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Monopoly",
+        "trimmedText": "Monopoly",
+        "charCount": 8,
+        "boundary": {
+          "start": 8,
+          "end": 16
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Go",
+        "trimmedText": "Go",
+        "charCount": 2,
+        "boundary": {
+          "start": 17,
+          "end": 19
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "maintenant",
+        "trimmedText": "maintenant",
+        "charCount": 10,
+        "boundary": {
+          "start": 20,
+          "end": 30
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "fr",
+    "originalText": "Apple Music Super Bowl : la performance.",
+    "formattedMetrics": [
+      {
+        "text": "Apple",
+        "trimmedText": "Apple",
+        "charCount": 5,
+        "boundary": {
+          "start": 0,
+          "end": 5
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Music",
+        "trimmedText": "Music",
+        "charCount": 5,
+        "boundary": {
+          "start": 6,
+          "end": 11
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Super",
+        "trimmedText": "Super",
+        "charCount": 5,
+        "boundary": {
+          "start": 12,
+          "end": 17
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Bowl",
+        "trimmedText": "Bowl",
+        "charCount": 4,
+        "boundary": {
+          "start": 18,
+          "end": 22
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "la",
+        "trimmedText": "la",
+        "charCount": 2,
+        "boundary": {
+          "start": 23,
+          "end": 25
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "performance",
+        "trimmedText": "performance",
+        "charCount": 11,
+        "boundary": {
+          "start": 26,
+          "end": 37
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "fr",
+    "originalText": "L'artiste pop se donne à 100 % dans son nouvel album.",
+    "formattedMetrics": [
+      {
+        "text": "L'artiste",
+        "trimmedText": "L'artiste",
+        "charCount": 9,
+        "boundary": {
+          "start": 0,
+          "end": 9
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "pop",
+        "trimmedText": "pop",
+        "charCount": 3,
+        "boundary": {
+          "start": 10,
+          "end": 13
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "se",
+        "trimmedText": "se",
+        "charCount": 2,
+        "boundary": {
+          "start": 14,
+          "end": 16
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "donne",
+        "trimmedText": "donne",
+        "charCount": 5,
+        "boundary": {
+          "start": 17,
+          "end": 22
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "à",
+        "trimmedText": "à",
+        "charCount": 1,
+        "boundary": {
+          "start": 23,
+          "end": 24
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "100",
+        "trimmedText": "100",
+        "charCount": 3,
+        "boundary": {
+          "start": 25,
+          "end": 28
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "dans",
+        "trimmedText": "dans",
+        "charCount": 4,
+        "boundary": {
+          "start": 29,
+          "end": 33
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "son",
+        "trimmedText": "son",
+        "charCount": 3,
+        "boundary": {
+          "start": 34,
+          "end": 37
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "nouvel",
+        "trimmedText": "nouvel",
+        "charCount": 6,
+        "boundary": {
+          "start": 38,
+          "end": 44
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "album",
+        "trimmedText": "album",
+        "charCount": 5,
+        "boundary": {
+          "start": 45,
+          "end": 50
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "de",
+    "originalText": "Angela Merkel spricht über neue Maßnahmen.",
+    "formattedMetrics": [
+      {
+        "text": "Angela",
+        "trimmedText": "Angela",
+        "charCount": 6,
+        "boundary": {
+          "start": 0,
+          "end": 6
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Merkel",
+        "trimmedText": "Merkel",
+        "charCount": 6,
+        "boundary": {
+          "start": 7,
+          "end": 13
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "spricht",
+        "trimmedText": "spricht",
+        "charCount": 7,
+        "boundary": {
+          "start": 14,
+          "end": 21
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "über",
+        "trimmedText": "über",
+        "charCount": 4,
+        "boundary": {
+          "start": 22,
+          "end": 26
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "neue",
+        "trimmedText": "neue",
+        "charCount": 4,
+        "boundary": {
+          "start": 27,
+          "end": 31
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Maßnahmen",
+        "trimmedText": "Maßnahmen",
+        "charCount": 9,
+        "boundary": {
+          "start": 32,
+          "end": 41
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "de",
+    "originalText": "Ein neues Angebot im App Store ist verfügbar.",
+    "formattedMetrics": [
+      {
+        "text": "Ein",
+        "trimmedText": "Ein",
+        "charCount": 3,
+        "boundary": {
+          "start": 0,
+          "end": 3
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "neues",
+        "trimmedText": "neues",
+        "charCount": 5,
+        "boundary": {
+          "start": 4,
+          "end": 9
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Angebot",
+        "trimmedText": "Angebot",
+        "charCount": 7,
+        "boundary": {
+          "start": 10,
+          "end": 17
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "im",
+        "trimmedText": "im",
+        "charCount": 2,
+        "boundary": {
+          "start": 18,
+          "end": 20
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "App",
+        "trimmedText": "App",
+        "charCount": 3,
+        "boundary": {
+          "start": 21,
+          "end": 24
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Store",
+        "trimmedText": "Store",
+        "charCount": 5,
+        "boundary": {
+          "start": 25,
+          "end": 30
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "ist",
+        "trimmedText": "ist",
+        "charCount": 3,
+        "boundary": {
+          "start": 31,
+          "end": 34
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "verfügbar",
+        "trimmedText": "verfügbar",
+        "charCount": 9,
+        "boundary": {
+          "start": 35,
+          "end": 44
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "de",
+    "originalText": "Jetzt erhältlich: Apple Books und mehr.",
+    "formattedMetrics": [
+      {
+        "text": "Jetzt",
+        "trimmedText": "Jetzt",
+        "charCount": 5,
+        "boundary": {
+          "start": 0,
+          "end": 5
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "erhältlich",
+        "trimmedText": "erhältlich",
+        "charCount": 10,
+        "boundary": {
+          "start": 6,
+          "end": 16
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Apple",
+        "trimmedText": "Apple",
+        "charCount": 5,
+        "boundary": {
+          "start": 17,
+          "end": 22
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Books",
+        "trimmedText": "Books",
+        "charCount": 5,
+        "boundary": {
+          "start": 23,
+          "end": 28
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "und",
+        "trimmedText": "und",
+        "charCount": 3,
+        "boundary": {
+          "start": 29,
+          "end": 32
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "mehr",
+        "trimmedText": "mehr",
+        "charCount": 4,
+        "boundary": {
+          "start": 33,
+          "end": 37
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "de",
+    "originalText": "Sende die Nachricht per E‑Mail noch heute.",
+    "formattedMetrics": [
+      {
+        "text": "Sende",
+        "trimmedText": "Sende",
+        "charCount": 5,
+        "boundary": {
+          "start": 0,
+          "end": 5
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "die",
+        "trimmedText": "die",
+        "charCount": 3,
+        "boundary": {
+          "start": 6,
+          "end": 9
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Nachricht",
+        "trimmedText": "Nachricht",
+        "charCount": 9,
+        "boundary": {
+          "start": 10,
+          "end": 19
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "per",
+        "trimmedText": "per",
+        "charCount": 3,
+        "boundary": {
+          "start": 20,
+          "end": 23
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "E",
+        "trimmedText": "E",
+        "charCount": 1,
+        "boundary": {
+          "start": 24,
+          "end": 25
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Mail",
+        "trimmedText": "Mail",
+        "charCount": 4,
+        "boundary": {
+          "start": 26,
+          "end": 30
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "noch",
+        "trimmedText": "noch",
+        "charCount": 4,
+        "boundary": {
+          "start": 31,
+          "end": 35
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "heute",
+        "trimmedText": "heute",
+        "charCount": 5,
+        "boundary": {
+          "start": 36,
+          "end": 41
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "de",
+    "originalText": "Er gewann 100 Punkte im Spiel.",
+    "formattedMetrics": [
+      {
+        "text": "Er",
+        "trimmedText": "Er",
+        "charCount": 2,
+        "boundary": {
+          "start": 0,
+          "end": 2
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "gewann",
+        "trimmedText": "gewann",
+        "charCount": 6,
+        "boundary": {
+          "start": 3,
+          "end": 9
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "100",
+        "trimmedText": "100",
+        "charCount": 3,
+        "boundary": {
+          "start": 10,
+          "end": 13
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Punkte",
+        "trimmedText": "Punkte",
+        "charCount": 6,
+        "boundary": {
+          "start": 14,
+          "end": 20
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "im",
+        "trimmedText": "im",
+        "charCount": 2,
+        "boundary": {
+          "start": 21,
+          "end": 23
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Spiel",
+        "trimmedText": "Spiel",
+        "charCount": 5,
+        "boundary": {
+          "start": 24,
+          "end": 29
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "de",
+    "originalText": "Sie trägt ein preis-leistungsstarkes Outfit.",
+    "formattedMetrics": [
+      {
+        "text": "Sie",
+        "trimmedText": "Sie",
+        "charCount": 3,
+        "boundary": {
+          "start": 0,
+          "end": 3
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "trägt",
+        "trimmedText": "trägt",
+        "charCount": 5,
+        "boundary": {
+          "start": 4,
+          "end": 9
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "ein",
+        "trimmedText": "ein",
+        "charCount": 3,
+        "boundary": {
+          "start": 10,
+          "end": 13
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "preis",
+        "trimmedText": "preis",
+        "charCount": 5,
+        "boundary": {
+          "start": 14,
+          "end": 19
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "leistungsstarkes",
+        "trimmedText": "leistungsstarkes",
+        "charCount": 16,
+        "boundary": {
+          "start": 20,
+          "end": 36
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Outfit",
+        "trimmedText": "Outfit",
+        "charCount": 6,
+        "boundary": {
+          "start": 37,
+          "end": 43
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "de",
+    "originalText": "Das neue Smart-home System ist da.",
+    "formattedMetrics": [
+      {
+        "text": "Das",
+        "trimmedText": "Das",
+        "charCount": 3,
+        "boundary": {
+          "start": 0,
+          "end": 3
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "neue",
+        "trimmedText": "neue",
+        "charCount": 4,
+        "boundary": {
+          "start": 4,
+          "end": 8
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Smart",
+        "trimmedText": "Smart",
+        "charCount": 5,
+        "boundary": {
+          "start": 9,
+          "end": 14
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "home",
+        "trimmedText": "home",
+        "charCount": 4,
+        "boundary": {
+          "start": 15,
+          "end": 19
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "System",
+        "trimmedText": "System",
+        "charCount": 6,
+        "boundary": {
+          "start": 20,
+          "end": 26
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "ist",
+        "trimmedText": "ist",
+        "charCount": 3,
+        "boundary": {
+          "start": 27,
+          "end": 30
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "da",
+        "trimmedText": "da",
+        "charCount": 2,
+        "boundary": {
+          "start": 31,
+          "end": 33
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "de",
+    "originalText": "Besuche die Autowerkstatt noch heute.",
+    "formattedMetrics": [
+      {
+        "text": "Besuche",
+        "trimmedText": "Besuche",
+        "charCount": 7,
+        "boundary": {
+          "start": 0,
+          "end": 7
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "die",
+        "trimmedText": "die",
+        "charCount": 3,
+        "boundary": {
+          "start": 8,
+          "end": 11
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Autowerkstatt",
+        "trimmedText": "Autowerkstatt",
+        "charCount": 13,
+        "boundary": {
+          "start": 12,
+          "end": 25
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "noch",
+        "trimmedText": "noch",
+        "charCount": 4,
+        "boundary": {
+          "start": 26,
+          "end": 30
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "heute",
+        "trimmedText": "heute",
+        "charCount": 5,
+        "boundary": {
+          "start": 31,
+          "end": 36
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "de",
+    "originalText": "Er spielt Beethoven Opus 27 und KV 255 a.",
+    "formattedMetrics": [
+      {
+        "text": "Er",
+        "trimmedText": "Er",
+        "charCount": 2,
+        "boundary": {
+          "start": 0,
+          "end": 2
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "spielt",
+        "trimmedText": "spielt",
+        "charCount": 6,
+        "boundary": {
+          "start": 3,
+          "end": 9
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Beethoven",
+        "trimmedText": "Beethoven",
+        "charCount": 9,
+        "boundary": {
+          "start": 10,
+          "end": 19
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Opus",
+        "trimmedText": "Opus",
+        "charCount": 4,
+        "boundary": {
+          "start": 20,
+          "end": 24
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "27",
+        "trimmedText": "27",
+        "charCount": 2,
+        "boundary": {
+          "start": 25,
+          "end": 27
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "und",
+        "trimmedText": "und",
+        "charCount": 3,
+        "boundary": {
+          "start": 28,
+          "end": 31
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "KV",
+        "trimmedText": "KV",
+        "charCount": 2,
+        "boundary": {
+          "start": 32,
+          "end": 34
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "255",
+        "trimmedText": "255",
+        "charCount": 3,
+        "boundary": {
+          "start": 35,
+          "end": 38
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "a",
+        "trimmedText": "a",
+        "charCount": 1,
+        "boundary": {
+          "start": 39,
+          "end": 40
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "de",
+    "originalText": "Ein kleiner Junge rannte über die Straße.",
+    "formattedMetrics": [
+      {
+        "text": "Ein",
+        "trimmedText": "Ein",
+        "charCount": 3,
+        "boundary": {
+          "start": 0,
+          "end": 3
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "kleiner",
+        "trimmedText": "kleiner",
+        "charCount": 7,
+        "boundary": {
+          "start": 4,
+          "end": 11
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Junge",
+        "trimmedText": "Junge",
+        "charCount": 5,
+        "boundary": {
+          "start": 12,
+          "end": 17
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "rannte",
+        "trimmedText": "rannte",
+        "charCount": 6,
+        "boundary": {
+          "start": 18,
+          "end": 24
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "über",
+        "trimmedText": "über",
+        "charCount": 4,
+        "boundary": {
+          "start": 25,
+          "end": 29
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "die",
+        "trimmedText": "die",
+        "charCount": 3,
+        "boundary": {
+          "start": 30,
+          "end": 33
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Straße",
+        "trimmedText": "Straße",
+        "charCount": 6,
+        "boundary": {
+          "start": 34,
+          "end": 40
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "de",
+    "originalText": "Die Möglichkeit war beeindruckend.",
+    "formattedMetrics": [
+      {
+        "text": "Die",
+        "trimmedText": "Die",
+        "charCount": 3,
+        "boundary": {
+          "start": 0,
+          "end": 3
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Möglichkeit",
+        "trimmedText": "Möglichkeit",
+        "charCount": 11,
+        "boundary": {
+          "start": 4,
+          "end": 15
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "war",
+        "trimmedText": "war",
+        "charCount": 3,
+        "boundary": {
+          "start": 16,
+          "end": 19
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "beeindruckend",
+        "trimmedText": "beeindruckend",
+        "charCount": 13,
+        "boundary": {
+          "start": 20,
+          "end": 33
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "de",
+    "originalText": "Vergiss nicht die Vergebung in dieser Zeit.",
+    "formattedMetrics": [
+      {
+        "text": "Vergiss",
+        "trimmedText": "Vergiss",
+        "charCount": 7,
+        "boundary": {
+          "start": 0,
+          "end": 7
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "nicht",
+        "trimmedText": "nicht",
+        "charCount": 5,
+        "boundary": {
+          "start": 8,
+          "end": 13
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "die",
+        "trimmedText": "die",
+        "charCount": 3,
+        "boundary": {
+          "start": 14,
+          "end": 17
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Vergebung",
+        "trimmedText": "Vergebung",
+        "charCount": 9,
+        "boundary": {
+          "start": 18,
+          "end": 27
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "in",
+        "trimmedText": "in",
+        "charCount": 2,
+        "boundary": {
+          "start": 28,
+          "end": 30
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "dieser",
+        "trimmedText": "dieser",
+        "charCount": 6,
+        "boundary": {
+          "start": 31,
+          "end": 37
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "Zeit",
+        "trimmedText": "Zeit",
+        "charCount": 4,
+        "boundary": {
+          "start": 38,
+          "end": 42
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": ".",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  },
+  {
+    "locale": "ja",
+    "originalText": "毎日が最高のゲーム日和。",
+    "formattedMetrics": [
+      {
+        "text": "毎日",
+        "trimmedText": "毎日",
+        "charCount": 2,
+        "boundary": {
+          "start": 0,
+          "end": 2
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "が",
+        "trimmedText": "が",
+        "charCount": 1,
+        "boundary": {
+          "start": 3,
+          "end": 4
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "最高",
+        "trimmedText": "最高",
+        "charCount": 2,
+        "boundary": {
+          "start": 5,
+          "end": 7
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "の",
+        "trimmedText": "の",
+        "charCount": 1,
+        "boundary": {
+          "start": 8,
+          "end": 9
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "ゲーム",
+        "trimmedText": "ゲーム",
+        "charCount": 3,
+        "boundary": {
+          "start": 10,
+          "end": 13
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "日",
+        "trimmedText": "日",
+        "charCount": 1,
+        "boundary": {
+          "start": 14,
+          "end": 15
+        },
+        "rect": null,
+        "lineBreaking": "allow",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      },
+      {
+        "text": "和",
+        "trimmedText": "和",
+        "charCount": 1,
+        "boundary": {
+          "start": 16,
+          "end": 17
+        },
+        "rect": null,
+        "lineBreaking": "avoid",
+        "separator": " ",
+        "separatorWidth": 0,
+        "separatorCharCount": 1
+      }
+    ]
+  }
+]

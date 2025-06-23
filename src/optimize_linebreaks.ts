@@ -1,4 +1,4 @@
-type LineCandidate = {
+export type LineCandidate = {
   breaks: number[];
   score: number;
   lines: string[][];
@@ -69,7 +69,7 @@ function scoreCandidate(
   };
 }
 
-function generateCandidates(
+export function generateCandidates(
   words: string[],
   wordWidths: number[],
   spaceWidth: number,
@@ -98,6 +98,40 @@ function generateCandidates(
       allCandidates.push({ breaks, score, lines, lineWidths, scoreBreakdown });
       return;
     }
+}
+
+// Function to compute line breaking options
+function computeBreaks(
+  words: string[],
+  wordWidths: number[],
+  spaceWidth: number,
+  targetWidth: number,
+  candidateCount: number,
+  debugElement?: HTMLElement,
+  balanceFactor = 0.5,
+  minFillRatio = 0.5,
+  mode: "fit" | "uniform" = "fit"
+) {
+  // Generate line breaking candidates
+  const candidates = generateCandidates(
+    words,
+    wordWidths,
+    spaceWidth,
+    targetWidth,
+    candidateCount,
+    mode,
+    balanceFactor,
+    minFillRatio
+  );
+  
+  // If debug element is provided, visualize the tree
+  if (debugElement) {
+    // Visualize tree structure (implementation would depend on your visualization code)
+    console.log("Generated candidates:", candidates);
+  }
+  
+  return candidates;
+}
 
     for (let end = start; end < totalWords; end++) {
       const width = calcWidth(words, wordWidths, spaceWidth, start, end);
