@@ -1,33 +1,63 @@
+/**
+ * German language line breaking rules
+ * Defines rules for German text segmentation and line breaking
+ */
 export default {
-    locale: "de",
+    locale: "de", // ISO language code for German
+    
+    /**
+     * Line breaking rules specific to German language
+     */
     rules: {
+      /**
+       * Avoid breaking lines before these elements
+       */
       avoidBreakBefore: [
         "punctuation",        // Avoid break before punctuation like ., :, etc.
         "articles",           // Articles like der, die, das, etc.
         "prepositions"        // Prepositions like auf, mit, von...
       ],
+      
+      /**
+       * Avoid breaking lines after these elements
+       */
       avoidBreakAfter: [
         "hyphen",             // Don't break after hyphen (Jean-Luc, Smart-home)
         "numeric"             // Don't break between number and units like 100 Punkte, 20%
       ],
+      
+      /**
+       * Avoid breaking between specific word sequences
+       */
       avoidBreakBetween: [
-        "properNounSequence", // First Last names
-        "appleServices",      // Apple Store, Apple Books, etc.
-        "fixedExpressions"    // Smart-home, Auto-werkstatt, Opus 23...
+        "properNounSequence", // First Last names should stay together
+        "appleServices",      // Brand names like Apple Store, Apple Books, etc.
+        "fixedExpressions"    // Fixed compounds like Smart-home, Auto-werkstatt, Opus 23...
       ],
-      removeColonAtLineEnd: true,
-      capitalizeSecondLineIfColonRemoved: true
+      
+      // Typography rules for German
+      removeColonAtLineEnd: true,                 // Remove colon at end of line
+      capitalizeSecondLineIfColonRemoved: true    // Capitalize first word after colon if moved to next line
     },
   
-    functionWords: [
+    /**
+   * German function words that should not be separated from their context
+   * These words typically have close semantic connections to adjacent words
+   */
+  functionWords: [
       // Articles
-      "der", "die", "das", "ein", "eine", "einen", "den",
+      "der", "die", "das", "ein", "eine", "einen", "dem", "den",
       // Conjunctions
       "und", "oder", "aber", "sondern", "denn", "doch",
       // Prepositions
-      "in", "auf", "über", "mit", "von", "an", "für", "bei", "aus", "zu", "nach", "unter", "vor", "hinter", "zwischen", "gegen", "ohne", "um"
+      "in", "auf", "über", "mit", "von", "an", "für", "bei", "aus", "zu", 
+      "nach", "unter", "vor", "hinter", "zwischen", "gegen", "ohne", "um"
     ],
   
+    /**
+     * Brand names and services that should remain intact
+     * These are treated as proper nouns that should not be broken
+     */
     appleServices: [
       "App Store",
       "Apple Books",
@@ -36,15 +66,22 @@ export default {
       "E‑Mail"
     ],
   
+    /**
+     * Fixed expressions and compounds that should remain intact
+     * Includes regular expressions for matching patterns like opus numbers
+     */
     fixedExpressions: [
       "Auto-werkstatt",
       "Smart-home",
-      "Opus \\d+[ a-z]*",
-      "KV \\d+",
-      "BWV \\d+",
-      "Nr\\. ?\\d+"
+      "Opus \\d+[ a-z]*",  // Musical opus numbers (Opus 23, Opus 45b)
+      "KV \\d+",           // Köchel-Verzeichnis numbers for Mozart compositions
+      "BWV \\d+",          // Bach-Werke-Verzeichnis numbers
+      "Nr\\. ?\\d+"        // Number indicators (Nr. 5, Nr.12)
     ],
   
+    /**
+     * Percentage symbols that should stay with their numbers
+     */
     percentSymbols: ["%"],
   
     unitsOfMeasure: [

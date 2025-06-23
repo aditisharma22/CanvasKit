@@ -10,6 +10,15 @@ This project integrates CanvasKit's line-breaking capabilities with a localizati
 - **Visual Testing**: Interactive UI to test line-breaking with different locales
 - **Rule Checking**: Automatic validation against language-specific constraints
 
+## Code Improvements
+
+The codebase has been enhanced with:
+
+- **Comprehensive Documentation**: Detailed JSDoc comments for all functions
+- **Removed Hardcoded Values**: Configuration values extracted to constants
+- **Better Organization**: Code structured for improved maintainability
+- **Improved Error Handling**: More robust checks and validations
+
 ## Project Structure
 
 ```

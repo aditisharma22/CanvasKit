@@ -1,10 +1,15 @@
+/**
+ * Text rendering module with optimized line breaking
+ * This module handles rendering text with optimized line breaking in CanvasKit
+ */
 import { computeBreaks } from './optimize_linebreaks.js';
 import { createLocalizedLineBreakOptimizer } from './localized_line_breaking.js';
 
-// Import CanvasKit globally
+// Import CanvasKit from global scope (loaded via script tag)
 const CanvasKitInit = window.CanvasKitInit;
 
-// Create a localization-aware optimizer
+// Create a localization-aware line breaking optimizer
+// This enhances the standard optimizer with locale-specific rules
 const localizedComputeBreaks = createLocalizedLineBreakOptimizer(computeBreaks);
 
 /**
@@ -15,6 +20,8 @@ const localizedComputeBreaks = createLocalizedLineBreakOptimizer(computeBreaks);
  * @returns {string} Formatted HTML
  */
 function formatCandidateJson(candidate, words, locale) {
+  const targetWidth = DEFAULT_CONFIG.targetWidth || 500; // Use default or fallback to 500px
+  
   const jsonData = {
     locale: locale || 'en',
     score: candidate.score.toFixed(2),
@@ -31,7 +38,7 @@ function formatCandidateJson(candidate, words, locale) {
         text: line.join(" "),
         words: line,
         width: Math.round(candidate.lineWidths[i]),
-        fillPercentage: Math.round((candidate.lineWidths[i] / 500) * 100) + "%",
+        fillPercentage: Math.round((candidate.lineWidths[i] / targetWidth) * 100) + "%",
         hasBreakAfter: candidate.breaks.includes(i),
         isProtectedBreak: candidate.breaks.includes(i) && 
                          isProtectedBreak(words, candidate.breaks[i])
@@ -89,33 +96,60 @@ function applyTreeOutputStyling(element) {
   element.style.whiteSpace = 'pre';
 }
 
-// Function to detect protected breaks
+/**
+ * Common function words by language that shouldn't be separated by line breaks
+ * @type {Object.<string, Set<string>>}
+ */
+const PROTECTED_WORDS_BY_LANGUAGE = {
+  en: new Set([
+    "the", "a", "an", "of", "in", "on", "with", "and", "but", "or", "for"
+  ]),
+  de: new Set([
+    "der", "die", "das", "ein", "eine", "zu", "für", "mit", "und", "oder"
+  ]),
+  fr: new Set([
+    "le", "la", "les", "un", "une", "des", "de", "à", "pour", "avec", "et", "ou"
+  ])
+};
+
+/**
+ * All protected words across all supported languages
+ * @type {Set<string>}
+ */
+const ALL_PROTECTED_WORDS = new Set([
+  ...PROTECTED_WORDS_BY_LANGUAGE.en,
+  ...PROTECTED_WORDS_BY_LANGUAGE.de,
+  ...PROTECTED_WORDS_BY_LANGUAGE.fr
+]);
+
+/**
+ * Determines if a break is at a protected position
+ * Protected breaks occur when breaking would harm readability or semantics
+ * 
+ * @param {string[]} words - Array of words in text
+ * @param {number} index - Break position to evaluate
+ * @returns {boolean} Whether the break is at a protected position
+ */
 function isProtectedBreak(words, index) {
+  // Invalid break position
   if (index <= 0 || index >= words.length) return false;
   
-  // Common function words that shouldn't be separated
-  const protectedWords = new Set([
-    "the", "a", "an", "of", "in", "on", "with", "and", "but", "or", "for",
-    // German function words
-    "der", "die", "das", "ein", "eine", "zu", "für", "mit", "und", "oder",
-    // French function words
-    "le", "la", "les", "un", "une", "des", "de", "à", "pour", "avec", "et", "ou"
-  ]);
-  
+  // Clean words for comparison
   const prev = words[index - 1].toLowerCase().replace(/[,.;:!?]$/, "");
   const next = words[index].toLowerCase();
   
-  // Check for protected words
-  if (protectedWords.has(prev) || protectedWords.has(next)) {
+  // Check for protected function words
+  if (ALL_PROTECTED_WORDS.has(prev) || ALL_PROTECTED_WORDS.has(next)) {
     return true;
   }
   
-  // Check for hyphenated compounds
+  // Check for hyphenated compounds that should stay together
   if (prev.endsWith("-")) {
     return true;
   }
   
-  // Check for numeric sequences (like dates, scores)
+  // Check for numeric sequences (like dates, scores, measurements)
+  // Numbers and their units should stay together
   if ((/^\d+$/.test(prev) && /^\d+$|^[A-Za-z]+[.,]?$/.test(next)) || 
       (/^\d+$/.test(next) && /^\d+$|^[A-Za-z]+[.,]?$/.test(prev))) {
     return true;
@@ -124,37 +158,65 @@ function isProtectedBreak(words, index) {
   return false;
 }
 
+/**
+ * Default font and rendering configuration
+ */
+const DEFAULT_CONFIG = {
+  fontSize: 40,
+  candidateCount: 5,
+  balanceFactor: 0.5,
+  minFillRatio: 0.5,
+  mode: 'fit',
+  locale: 'en',
+  lineSpacing: 1.6,
+  preventTruncation: true,
+  highlightViolations: true,
+  canvaskitVersion: '0.40.0',
+  primaryFont: 'New York Medium',
+  primaryFontPath: '/NewYorkMedium-Regular.woff2',
+  fallbackFont: 'SF Pro Display',
+  fallbackFontPath: '/sf-pro-display_regular.woff2',
+  targetWidth: 500, // Default target width in pixels
+  paragraphHeight: 1.2 // Default paragraph height multiplier
+};
+
+/**
+ * Render text as paragraph with optimized line breaking
+ * 
+ * @param {string} text - Text to render
+ * @param {number} targetWidth - Target width for rendering in pixels
+ * @param {Object} userOptions - User-specified rendering options
+ * @returns {Promise<void>} - Resolution when rendering completes
+ */
 export async function render(text, targetWidth, userOptions = {}) {
+  // Merge user options with defaults
   const options = {
-    fontSize: 40,
-    candidateCount: 5,
-    balanceFactor: 0.5,
-    minFillRatio: 0.5,
-    mode: 'fit',
-    locale: 'en', // Default locale
-    lineSpacing: 1.6, // Added line spacing factor
-    preventTruncation: true, // Flag to prevent text truncation
-    highlightViolations: true, // Flag to highlight protected word violations
+    ...DEFAULT_CONFIG,
     ...userOptions
   };
 
   console.log("RENDER OPTIONS:", options);
   const fontSize = options.fontSize;
 
+  // Initialize CanvasKit with configured version
   const CanvasKit = await CanvasKitInit({
     locateFile: (file) =>
-      `https://unpkg.com/canvaskit-wasm@0.40.0/bin/${file}`,
+      `https://unpkg.com/canvaskit-wasm@${options.canvaskitVersion}/bin/${file}`,
   });
 
-  const fontBytes = await fetch("/NewYorkMedium-Regular.woff2").then(res => res.arrayBuffer());
+  // Load primary font
+  const fontBytes = await fetch(options.primaryFontPath).then(res => res.arrayBuffer());
   const fontData = new Uint8Array(fontBytes);
   const typeface = CanvasKit.Typeface.MakeFreeTypeFaceFromData(fontData);
   const font = new CanvasKit.Font(typeface, fontSize);
 
-  const sfProFontData = await fetch("/sf-pro-display_regular.woff2").then(res => res.arrayBuffer());
+  // Load fallback font
+  const fallbackFontData = await fetch(options.fallbackFontPath).then(res => res.arrayBuffer());
+  
+  // Set up font provider with both fonts
   const fontProvider = CanvasKit.TypefaceFontProvider.Make();
-  fontProvider.registerFont(sfProFontData, 'TEST');
-  fontProvider.registerFont(fontBytes, 'New York Medium');
+  fontProvider.registerFont(fallbackFontData, options.fallbackFont);
+  fontProvider.registerFont(fontBytes, options.primaryFont);
 
   const words = text.split(/\s+/);
   const wordWidths = words.map(word => {
@@ -168,10 +230,15 @@ export async function render(text, targetWidth, userOptions = {}) {
     return widths[0] || 10;
   })();
 
+  // Get debug output element if specified
   const debugElement = document.getElementById('treeOutput');
-  // Apply styling to tree output before we begin
-  applyTreeOutputStyling(debugElement);
   
+  // Apply styling to debug output element if it exists
+  if (debugElement) {
+    applyTreeOutputStyling(debugElement);
+  }
+  
+  // Process text with localization-aware line breaking
   const candidates = await localizedComputeBreaks(
     words,
     wordWidths,
@@ -185,51 +252,65 @@ export async function render(text, targetWidth, userOptions = {}) {
     options.locale // Pass the locale for localization-aware line breaking
   );
 
+  // Calculate score range for relative scoring display
   const bestScore = candidates[0].score;
   const worstScore = candidates[candidates.length - 1].score;
-  const scoreRange = Math.max(1, worstScore - bestScore); 
+  const scoreRange = Math.max(1, worstScore - bestScore); // Avoid division by zero
 
+  // Get container element for rendering layouts
   const containerId = userOptions.containerId || "layoutContainer";
   const container = document.getElementById(containerId);
-  container.innerHTML = "";
+  
+  // Clear container before adding new content
+  if (container) {
+    container.innerHTML = "";
+  } else {
+    console.error(`Container element with ID "${containerId}" not found`);
+    return;
+  }
   
   // Display the first candidate's JSON in the treeOutput div
   if (debugElement && candidates.length > 0) {
     const bestCandidate = candidates[0];
+    // Pass targetWidth to formatCandidateJson through DEFAULT_CONFIG
+    DEFAULT_CONFIG.targetWidth = targetWidth;
     const formattedJson = formatCandidateJson(bestCandidate, words, options.locale);
     debugElement.innerHTML = formattedJson;
     applyTreeOutputStyling(debugElement);
   }
   
-  // Add CSS styles to prevent text truncation
-  const styleElement = document.createElement('style');
-  styleElement.textContent = `
-    .candidate-block {
-      margin-bottom: 25px;
-      padding: 10px;
-      border-radius: 5px;
-      overflow: visible;
-    }
-    .candidate-block canvas {
-      margin-top: 10px;
-      margin-bottom: 10px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    .violation-highlight {
-      background-color: rgba(255, 200, 200, 0.3);
-      padding: 2px 0;
-      border-bottom: 2px dotted red;
-    }
-    .violation-warning {
-      color: #d32f2f;
-      font-weight: bold;
-      margin: 5px 0;
-      padding: 5px;
-      border-left: 3px solid #d32f2f;
-      background-color: rgba(255, 200, 200, 0.2);
-    }
-  `;
-  document.head.appendChild(styleElement);
+  // Add styles to document head if not already present
+  if (!document.getElementById('layout-styles')) {
+    const styleElement = document.createElement('style');
+    styleElement.id = 'layout-styles';
+    styleElement.textContent = `
+      .candidate-block {
+        margin-bottom: 25px;
+        padding: 10px;
+        border-radius: 5px;
+        overflow: visible;
+      }
+      .candidate-block canvas {
+        margin-top: 10px;
+        margin-bottom: 10px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      }
+      .violation-highlight {
+        background-color: rgba(255, 200, 200, 0.3);
+        padding: 2px 0;
+        border-bottom: 2px dotted red;
+      }
+      .violation-warning {
+        color: #d32f2f;
+        font-weight: bold;
+        margin: 5px 0;
+        padding: 5px;
+        border-left: 3px solid #d32f2f;
+        background-color: rgba(255, 200, 200, 0.2);
+      }
+    `;
+    document.head.appendChild(styleElement);
+  }
 
   const dpr = window.devicePixelRatio || 1;
   const cssWidth = targetWidth + 20;
@@ -251,6 +332,7 @@ export async function render(text, targetWidth, userOptions = {}) {
       // Update the treeOutput div with JSON data for the selected layout
       const treeOutputDiv = document.getElementById('treeOutput');
       if (treeOutputDiv) {
+        // Use the already configured DEFAULT_CONFIG with proper targetWidth
         const formattedJson = formatCandidateJson(candidate, words, options.locale);
         treeOutputDiv.innerHTML = formattedJson;
         applyTreeOutputStyling(treeOutputDiv);
@@ -277,10 +359,15 @@ export async function render(text, targetWidth, userOptions = {}) {
 
     const canvas = document.createElement("canvas");
     const lineCount = candidate.lines.length;
-    // Increase canvas height to prevent text truncation
-    const canvasHeight = lineCount * (fontSize * 1.8); // Increased from 1.5 to 1.8
+    // Calculate canvas dimensions with proper scaling for text
+    const lineSpacingMultiplier = options.lineSpacing || DEFAULT_CONFIG.lineSpacing; // Use configured line spacing
+    const canvasHeight = lineCount * (fontSize * lineSpacingMultiplier);
+    
+    // Apply device pixel ratio for crisp rendering on high-DPI displays
     canvas.width = cssWidth * dpr;
     canvas.height = canvasHeight * dpr;
+    
+    // Set CSS dimensions
     canvas.style.width = `${cssWidth}px`;
     canvas.style.height = `${canvasHeight}px`;
 
@@ -292,8 +379,8 @@ export async function render(text, targetWidth, userOptions = {}) {
     const paragraphStyle = new CanvasKit.ParagraphStyle({
       textStyle: {
         fontSize,
-        fontFamilies: ['New York Medium'],
-        heightMultiplier: 1.2 // Improve line height for text rendering
+        fontFamilies: [options.primaryFont || DEFAULT_CONFIG.primaryFont],
+        heightMultiplier: options.paragraphHeight || 1.2 // Use configured paragraph height or default
       }
     });
 
@@ -407,7 +494,8 @@ export async function render(text, targetWidth, userOptions = {}) {
         }
       }
       
-      yOffset += fontSize * 1.6; // Increase line spacing to prevent truncation
+      // Use configured line spacing for consistent text layout
+      yOffset += fontSize * lineSpacingMultiplier;
     });
 
     surface.flush();
