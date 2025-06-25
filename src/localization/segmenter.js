@@ -58,13 +58,113 @@ export async function processTextForLineBreaking(text, locale = "en") {
   // Apply additional segmentation rules to identify line-breaking constraints
   wordMetricsArray = annotateLineBreakingWithSeparators(wordMetricsArray, rulesConfig);
   
-  // Check for rule violations (can be used for validation or debugging)
+  // Check for rule violations and update metrics accordingly
   if (rulesConfig.rules && typeof applySegmentationRules === "function") {
     const violations = applySegmentationRules(wordMetricsArray, rulesConfig);
     if (violations.length > 0) {
-      console.debug("Line breaking rule violations detected:", violations);
+      // Mark the break *after* the word at index as 'avoid' (i.e., for the break between index and index+1)
+      for (const [index, violatedPair, reason] of violations) {
+        // Mark the break after the word at index as 'avoid'
+        if (index >= 0 && index < wordMetricsArray.length - 1) {
+          wordMetricsArray[index].lineBreaking = 'avoid';
+          wordMetricsArray[index]._violationReason = reason;
+        }
+        
+        // Enhanced handling for multi-word Apple services
+        if (reason && (reason.includes('Apple service') || reason.includes('fixed expression'))) {
+          // First, handle the current violation by marking both words
+          // Mark the word at index as 'avoid'
+          if (index >= 0 && index < wordMetricsArray.length) {
+            wordMetricsArray[index].lineBreaking = 'avoid';
+            wordMetricsArray[index]._violationReason = reason;
+          }
+          
+          // Mark the next word as 'avoid' too
+          if (index + 1 < wordMetricsArray.length) {
+            wordMetricsArray[index + 1].lineBreaking = 'avoid';
+            wordMetricsArray[index + 1]._violationReason = reason;
+          }
+          
+          // Special handling for Apple service names like "Apple Music"
+          if (locale === 'fr' && 
+              index >= 0 && index < wordMetricsArray.length &&
+              index + 1 < wordMetricsArray.length &&
+              wordMetricsArray[index].text === 'Apple' && 
+              ['Music', 'Books', 'One', 'Arcade', 'TV+'].includes(wordMetricsArray[index + 1].text)) {
+              
+            console.log(`French Apple service detected: ${wordMetricsArray[index].text} ${wordMetricsArray[index + 1].text}`);
+            // Double ensure both words get marked as avoid
+            wordMetricsArray[index].lineBreaking = 'avoid';
+            wordMetricsArray[index + 1].lineBreaking = 'avoid';
+            wordMetricsArray[index]._violationReason = 'Apple service name (fr)';
+            wordMetricsArray[index + 1]._violationReason = 'Apple service name (fr)';
+          }
+        }
+      }
+    }
+    
+    // For French locale, do an extra pass to ensure all Apple Services are marked correctly
+    // but only if the rule is enabled in the fr.js config
+    if (locale === 'fr' && 
+        rulesConfig.rules?.avoidBreakBetween?.includes("appleServices") && 
+        rulesConfig.appleServices) {
+      
+      // Only proceed if this rule is actually defined for French
+      console.log("Applying French-specific Apple service rules");
+      
+      for (const service of rulesConfig.appleServices) {
+        const serviceWords = service.split(' ');
+        if (serviceWords.length < 2) continue;
+        
+        // Look for matches to the service name
+        for (let i = 0; i <= wordMetricsArray.length - serviceWords.length; i++) {
+          let foundMatch = true;
+          for (let j = 0; j < serviceWords.length; j++) {
+            if (i + j >= wordMetricsArray.length || 
+                wordMetricsArray[i + j].text.toLowerCase() !== serviceWords[j].toLowerCase()) {
+              foundMatch = false;
+              break;
+            }
+          }
+          
+          if (foundMatch) {
+            console.log(`Service match for ${service} at index ${i}`);
+            // Mark all words in the service name
+            for (let j = 0; j < serviceWords.length; j++) {
+              wordMetricsArray[i + j].lineBreaking = 'avoid';
+              wordMetricsArray[i + j]._violationReason = `Apple service name (${service})`;
+            }
+          }
+        }
+      }
+    }
+    
+    // Final pass to ensure punctuation is always marked as avoid
+    // but only if the punctuation rule is explicitly enabled for this locale
+    if (rulesConfig.punctuation && rulesConfig.rules?.avoidBreakBefore?.includes("punctuation")) {
+      console.log(`Applying punctuation rules for ${locale}`);
+      
+      for (let i = 0; i < wordMetricsArray.length; i++) {
+        const word = wordMetricsArray[i];
+        
+        // Check if this word is a punctuation mark
+        if (rulesConfig.punctuation.includes(word.text)) {
+          console.log(`[Segmenter] Found punctuation: "${word.text}" at position ${i}`);
+          // Force override any existing value
+          word.lineBreaking = 'avoid';
+          word._violationReason = 'Punctuation mark';
+        }
+        
+        // Also check for words before punctuation
+        if (i < wordMetricsArray.length - 1 && rulesConfig.punctuation.includes(wordMetricsArray[i + 1].text)) {
+          word.lineBreaking = 'avoid';
+          word._violationReason = 'Word before punctuation';
+        }
+      }
     }
   }
+  
+
   
   return wordMetricsArray;
 }

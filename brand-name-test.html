@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand Name Line Break Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2, h3 {
+            margin-top: 2em;
+        }
+        .result-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .result-box {
+            flex: 1;
+            min-width: 300px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .text-sample {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: white;
+        }
+        .break-opportunities {
+            margin-top: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .visualization {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #eef;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .control-panel {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+        select, textarea, button {
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 8px 16px;
+        }
+        button:hover {
+            background-color: #0055aa;
+        }
+        .brand-test-card {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .brand-test-card.pass {
+            border-left: 5px solid green;
+        }
+        .brand-test-card.fail {
+            border-left: 5px solid red;
+        }
+        .brand-test-card h4 {
+            margin-top: 0;
+        }
+        .status {
+            font-weight: bold;
+        }
+        .status.pass {
+            color: green;
+        }
+        .status.fail {
+            color: red;
+        }
+        .preset-button {
+            margin: 5px;
+            background-color: #e8f4ff;
+            color: #0066cc;
+            border: 1px solid #d1e1f5;
+        }
+        .preset-button:hover {
+            background-color: #d1e1f5;
+        }
+    </style>
+</head>
+<body>
+    <h1>Brand Name Line Break Test</h1>
+
+    <div class="control-panel">
+        <h3>Test Configuration</h3>
+        <div>
+            <label for="locale-select">Select Locale:</label>
+            <select id="locale-select">
+                <option value="en">English</option>
+                <option value="de">German</option>
+                <option value="fr">French</option>
+                <option value="es">Spanish</option>
+                <option value="ja">Japanese</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="custom-text">Custom Text (with brand names):</label><br>
+            <textarea id="custom-text" rows="4" cols="60">Use Apple Books or Apple Music to enjoy media content. Google Maps will help you navigate, while Microsoft Word is for document editing.</textarea>
+        </div>
+        
+        <div>
+            <h4>Predefined Test Cases:</h4>
+            <button id="test-german-french" class="preset-button">German text with French locale</button>
+            <button id="test-english-japanese" class="preset-button">English text with Japanese locale</button>
+        </div>
+
+        <button id="analyze-button">Analyze Text</button>
+    </div>
+
+    <div id="results-container">
+        <h2>Results</h2>
+        <div id="brand-tests">
+            <h3>Brand Name Protection Tests</h3>
+            <div id="brand-test-results"></div>
+        </div>
+
+        <h3>Complete Analysis</h3>
+        <div class="result-container">
+            <div class="result-box">
+                <h3>Text Analysis</h3>
+                <div id="text-analysis"></div>
+            </div>
+
+            <div class="result-box">
+                <h3>JSON Output</h3>
+                <pre id="json-output"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { localizedComputeBreaks } from './src/localized_line_breaking.js';
+
+        // Common brand names to test across all locales
+        const brandTests = [
+            "Apple Books",
+            "Apple Music",
+            "Apple TV+",
+            "Google Maps",
+            "Microsoft Word",
+            "Amazon Prime",
+            "Facebook Messenger",
+            "Adobe Photoshop",
+            "Netflix Premium",
+            "YouTube Premium",
+            "Spotify Premium",
+            "iPhone 14",
+            "iPad Pro",
+            "iOS 17",
+            "macOS Sonoma",
+            "Samsung Galaxy",
+            "TikTok Live"
+        ];
+
+        // Function to run the brand name tests
+        async function testBrandNames(locale) {
+            const resultsContainer = document.getElementById('brand-test-results');
+            resultsContainer.innerHTML = '';
+
+            for (const brand of brandTests) {
+                // Create test text with the brand name
+                const testText = `Here is ${brand} which should not have line breaks.`;
+                
+                // Get line break opportunities
+                try {
+                    const result = await localizedComputeBreaks(testText, locale);
+                    
+                    // Check if there are break opportunities within the brand name
+                    const words = brand.split(' ');
+                    let brandPassesTest = true;
+                    let brandStartIndex = testText.indexOf(brand);
+                    let brandEndIndex = brandStartIndex + brand.length;
+                    
+                    // Check if any break opportunities fall within the brand name
+                    for (let i = 0; i < result.length; i++) {
+                        const breakPoint = result[i];
+                        if (breakPoint > brandStartIndex && breakPoint < brandEndIndex) {
+                            brandPassesTest = false;
+                            break;
+                        }
+                    }
+
+                    // Create result card
+                    const card = document.createElement('div');
+                    card.className = `brand-test-card ${brandPassesTest ? 'pass' : 'fail'}`;
+                    
+                    card.innerHTML = `
+                        <h4>${brand}</h4>
+                        <p>Test text: "${testText}"</p>
+                        <p class="status ${brandPassesTest ? 'pass' : 'fail'}">
+                            Status: ${brandPassesTest ? 'PASS' : 'FAIL'} - 
+                            ${brandPassesTest ? 'No line breaks within brand name' : 'Line breaks found within brand name'}
+                        </p>
+                    `;
+
+                    resultsContainer.appendChild(card);
+                } catch (error) {
+                    console.error(`Error testing ${brand}:`, error);
+                    const card = document.createElement('div');
+                    card.className = 'brand-test-card fail';
+                    card.innerHTML = `
+                        <h4>${brand}</h4>
+                        <p>Test text: "${testText}"</p>
+                        <p class="status fail">Error: ${error.message}</p>
+                    `;
+                    resultsContainer.appendChild(card);
+                }
+            }
+        }
+
+        // Function to analyze custom text
+        async function analyzeText() {
+            const locale = document.getElementById('locale-select').value;
+            const text = document.getElementById('custom-text').value;
+            const textAnalysisContainer = document.getElementById('text-analysis');
+            const jsonOutputContainer = document.getElementById('json-output');
+
+            try {
+                // Run the brand name tests first
+                await testBrandNames(locale);
+
+                // Then analyze the custom text
+                const result = await localizedComputeBreaks(text, locale);
+                
+                // Create visualization with word breaks
+                let visualization = '';
+                let lastBreak = 0;
+                
+                for (let i = 0; i < result.length; i++) {
+                    const breakPoint = result[i];
+                    visualization += text.substring(lastBreak, breakPoint) + '︱'; // Using a visible separator
+                    lastBreak = breakPoint;
+                }
+                
+                // Add remaining text
+                visualization += text.substring(lastBreak);
+                
+                // Display results
+                textAnalysisContainer.innerHTML = `
+                    <p><strong>Input text:</strong></p>
+                    <div class="text-sample">${text}</div>
+                    
+                    <p><strong>Line break opportunities:</strong></p>
+                    <div class="break-opportunities">${result.join(', ')}</div>
+                    
+                    <p><strong>Visualization:</strong></p>
+                    <div class="visualization">${visualization}</div>
+                `;
+                
+                // Display JSON output
+                jsonOutputContainer.textContent = JSON.stringify({ 
+                    locale,
+                    text,
+                    breakOpportunities: result 
+                }, null, 2);
+                
+            } catch (error) {
+                console.error('Error analyzing text:', error);
+                textAnalysisContainer.innerHTML = `<p>Error: ${error.message}</p>`;
+                jsonOutputContainer.textContent = JSON.stringify({ error: error.message }, null, 2);
+            }
+        }
+
+        // Handle preset test cases
+        function setupPresetTests() {
+            // German text with French locale test
+            document.getElementById('test-german-french').addEventListener('click', () => {
+                document.getElementById('locale-select').value = 'fr';
+                document.getElementById('custom-text').value = 'Jetzt erhältlich: Apple Books und mehr.';
+                analyzeText();
+            });
+            
+            // English text with Japanese locale test
+            document.getElementById('test-english-japanese').addEventListener('click', () => {
+                document.getElementById('locale-select').value = 'ja';
+                document.getElementById('custom-text').value = 'Check out Apple Music and Google Maps for your devices.';
+                analyzeText();
+            });
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('analyze-button').addEventListener('click', analyzeText);
+            setupPresetTests();
+            analyzeText(); // Run initial analysis
+        });
+    </script>
+</body>
+</html>

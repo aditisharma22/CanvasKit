@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Line Break Analysis - Test Examples</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+      margin: 0px 40px;
+      color: #333;
+      line-height: 1.5;
+    }
+    
+    h1, h2, h3 {
+      color: #0078d7;
+      margin-top: 1em;
+      margin-bottom: 0.5em;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .panel {
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .control-group {
+      flex: 1;
+      min-width: 250px;
+    }
+    
+    select, input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: inherit;
+    }
+    
+    textarea {
+      min-height: 100px;
+      font-family: monospace;
+    }
+    
+    button {
+      background-color: #0078d7;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    button:hover {
+      background-color: #005fa9;
+    }
+    
+    .tab-container {
+      display: flex;
+      border-bottom: 1px solid #ccc;
+      margin-bottom: 20px;
+    }
+    
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      background: #f0f7fd;
+      border: 1px solid #ccc;
+      border-bottom: none;
+      border-radius: 5px 5px 0 0;
+      margin-right: 5px;
+    }
+    
+    .tab.active {
+      background: white;
+      border-bottom: 1px solid white;
+      margin-bottom: -1px;
+      font-weight: bold;
+      color: #0078d7;
+    }
+    
+    .tab-content {
+      display: none;
+      padding: 20px;
+      border: 1px solid #f0f0f0;
+      border-top: none;
+      background: white;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .visualization {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .word {
+      display: inline-block;
+      padding: 5px 10px;
+      margin: 3px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      position: relative;
+    }
+    
+    .word.allow {
+      background-color: rgba(0, 153, 0, 0.1);
+      border-color: #090;
+    }
+    
+    .word.avoid {
+      background-color: rgba(204, 0, 0, 0.1);
+      border-color: #c00;
+    }
+    
+    .word-info {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      padding: 5px;
+      border-radius: 3px;
+      font-size: 12px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      z-index: 100;
+      display: none;
+      white-space: nowrap;
+    }
+    
+    .word:hover .word-info {
+      display: block;
+    }
+    
+    .json-output {
+      background: #1e1e1e;
+      color: #f8f8f8;
+      font-family: 'Consolas', 'Monaco', monospace;
+      padding: 20px;
+      border-radius: 4px;
+      overflow: auto;
+      max-height: 500px;
+      white-space: pre-wrap;
+    }
+    
+    .json-key { color: #9cdcfe; }
+    .json-string { color: #ce9178; }
+    .json-number { color: #b5cea8; }
+    .json-boolean { color: #569cd6; }
+    .json-null { color: #999; }
+    
+    .layouts {
+      display: flex;
+      gap: 30px;
+      margin-top: 20px;
+    }
+    
+    .layout {
+      flex: 1;
+    }
+    
+    .back-link {
+      margin: 20px 0;
+      display: inline-block;
+      text-decoration: none;
+      color: #0078d7;
+      font-weight: bold;
+    }
+    
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="index.html" class="back-link">← Back to Line Breaking Tool</a>
+    
+    <h1>Line Break Analysis - Test Examples</h1>
+    
+    <div class="panel">
+      <h2>Select Test Case</h2>
+      
+      <div class="controls">
+        <div class="control-group">
+          <label for="localeSelect">Locale:</label>
+          <select id="localeSelect">
+            <option value="en">English (en)</option>
+            <option value="fr">French (fr)</option>
+            <option value="de">German (de)</option>
+            <option value="es">Spanish (es)</option>
+            <option value="ja">Japanese (ja)</option>
+            <option value="zh">Chinese (zh)</option>
+            <option value="th">Thai (th)</option>
+            <option value="ko">Korean (ko)</option>
+          </select>
+        </div>
+        
+        <div class="control-group">
+          <label for="testCaseSelect">Test Case:</label>
+          <select id="testCaseSelect">
+            <option value="">Select a locale first...</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <label for="customText">Or enter custom text:</label>
+        <textarea id="customText" placeholder="Type or paste your text here..."></textarea>
+      </div>
+      
+      <button id="analyzeButton">Analyze Line Breaks</button>
+    </div>
+    
+    <div class="tab-container">
+      <div class="tab active" data-tab="visualization-tab">Word Visualization</div>
+      <div class="tab" data-tab="layouts-tab">Layout Examples</div>
+      <div class="tab" data-tab="json-tab">JSON Output</div>
+    </div>
+    
+    <div id="visualization-tab" class="tab-content active">
+      <div class="panel">
+        <h2>Word Break Visualization</h2>
+        <p>Words in <span style="color: #090; font-weight: bold;">green</span> allow line breaks after them. Words in <span style="color: #c00; font-weight: bold;">red</span> should avoid line breaks. Hover over words for more details.</p>
+        
+        <div id="wordVisualization" class="visualization">
+          <div style="color: #666;">Select a test case or enter custom text and click "Analyze Line Breaks".</div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="layouts-tab" class="tab-content">
+      <div class="panel">
+        <h2>Layout Examples</h2>
+        <p>Visual representation of different layout strategies.</p>
+        
+        <div class="layouts">
+          <div class="layout">
+            <h3>Best Fit Layout</h3>
+            <div id="bestFitLayout">Select a test case and analyze first.</div>
+          </div>
+          
+          <div class="layout">
+            <h3>Most Uniform Layout</h3>
+            <div id="uniformLayout">Select a test case and analyze first.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="json-tab" class="tab-content">
+      <div class="panel">
+        <h2>JSON Output</h2>
+        <p>Raw data from the line break analysis.</p>
+        
+        <div id="jsonOutput" class="json-output">
+          // JSON output will appear here after analysis
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    // Import required modules with error handling
+    import { testCases } from './src/localization/testData.js';
+    
+    // Import all necessary functions and provide fallbacks for error cases
+    let enhanceWordMetricsWithLocalization;
+    let processTextForLineBreaking;
+    let createLocalizedLineBreakOptimizer;
+    let computeBreaks;
+    
+    try {
+      const localizationModule = await import('./src/localized_line_breaking.js');
+      enhanceWordMetricsWithLocalization = localizationModule.enhanceWordMetricsWithLocalization;
+      createLocalizedLineBreakOptimizer = localizationModule.createLocalizedLineBreakOptimizer;
+    } catch (error) {
+      console.error("Error loading localization module:", error);
+      // Fallback implementation
+      enhanceWordMetricsWithLocalization = async (words, locale) => {
+        return words.map(w => ({ ...w, lineBreaking: 'allow' }));
+      };
+      createLocalizedLineBreakOptimizer = (baseOptimizer) => baseOptimizer;
+    }
+    
+    try {
+      const segmenterModule = await import('./src/localization/segmenter.js');
+      processTextForLineBreaking = segmenterModule.processTextForLineBreaking;
+    } catch (error) {
+      console.error("Error loading segmenter module:", error);
+      // Fallback implementation
+      processTextForLineBreaking = async (text) => {
+        const words = text.split(/\s+/);
+        return {
+          words,
+          wordWidths: words.map(() => 20),
+          spaceWidth: 10
+        };
+      };
+    }
+    
+    try {
+      const optimizeModule = await import('./src/optimize_linebreaks.js');
+      computeBreaks = optimizeModule.computeBreaks;
+    } catch (error) {
+      console.error("Error loading optimize module:", error);
+      // Fallback implementation
+      computeBreaks = async () => ({ breaks: [], bestFitBreaks: [], mostUniformBreaks: [] });
+    }
+    
+    // Initialize the localized line break optimizer
+    const localizedComputeBreaks = createLocalizedLineBreakOptimizer(computeBreaks);
+    
+    // Cache for storing already analyzed test cases
+    const resultCache = new Map();
+    
+    // Elements
+    const localeSelect = document.getElementById('localeSelect');
+    const testCaseSelect = document.getElementById('testCaseSelect');
+    const customText = document.getElementById('customText');
+    const analyzeButton = document.getElementById('analyzeButton');
+    const wordVisualization = document.getElementById('wordVisualization');
+    const bestFitLayout = document.getElementById('bestFitLayout');
+    const uniformLayout = document.getElementById('uniformLayout');
+    const jsonOutput = document.getElementById('jsonOutput');
+    
+    // Tab functionality
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabId = tab.getAttribute('data-tab');
+        
+        // Hide all tab contents and deactivate all tabs
+        tabContents.forEach(content => content.classList.remove('active'));
+        tabs.forEach(t => t.classList.remove('active'));
+        
+        // Activate selected tab and content
+        document.getElementById(tabId).classList.add('active');
+        tab.classList.add('active');
+      });
+    });
+    
+    // Populate locale-specific test cases
+    localeSelect.addEventListener('change', () => {
+      const locale = localeSelect.value;
+      const filteredCases = testCases.filter(tc => tc.locale === locale);
+      
+      // Clear existing options
+      testCaseSelect.innerHTML = '';
+      
+      if (filteredCases.length === 0) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'No test cases available for this locale';
+        testCaseSelect.appendChild(option);
+        return;
+      }
+      
+      // Add new options
+      filteredCases.forEach((testCase, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = testCase.text.length > 50 ? 
+          testCase.text.substring(0, 50) + '...' : 
+          testCase.text;
+        option.setAttribute('data-text', testCase.text);
+        testCaseSelect.appendChild(option);
+      });
+      
+      // Add "All Test Cases" option
+      const allOption = document.createElement('option');
+      allOption.value = 'all';
+      allOption.textContent = `All ${locale.toUpperCase()} Test Cases (${filteredCases.length})`;
+      testCaseSelect.insertBefore(allOption, testCaseSelect.firstChild);
+      
+      testCaseSelect.value = 'all';
+    });
+    
+    // Sync test case selection with custom text
+    testCaseSelect.addEventListener('change', () => {
+      if (testCaseSelect.value === 'all') {
+        customText.value = '';
+        return;
+      }
+      
+      const selectedOption = testCaseSelect.options[testCaseSelect.selectedIndex];
+      const text = selectedOption.getAttribute('data-text');
+      customText.value = text || '';
+    });
+    
+    // Function to syntax highlight JSON
+    function syntaxHighlight(json) {
+      if (typeof json !== 'string') {
+        json = JSON.stringify(json, null, 2);
+      }
+      
+      json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      
+      return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, 
+        function (match) {
+          let cls = 'json-number';
+          if (/^"/.test(match)) {
+            if (/:$/.test(match)) {
+              cls = 'json-key';
+            } else {
+              cls = 'json-string';
+            }
+          } else if (/true|false/.test(match)) {
+            cls = 'json-boolean';
+          } else if (/null/.test(match)) {
+            cls = 'json-null';
+          }
+          return '<span class="' + cls + '">' + match + '</span>';
+        }
+      );
+    }
+    
+    // Function to visualize words with line breaking rules
+    function visualizeWords(words) {
+      wordVisualization.innerHTML = '';
+      
+      if (!words || words.length === 0) {
+        wordVisualization.innerHTML = '<div style="color: #666;">No words to visualize.</div>';
+        return;
+      }
+      
+      // Make a clean copy and ensure all required properties exist
+      const safeWords = words.map(word => {
+        if (!word) return { text: '[empty]', lineBreaking: 'allow' };
+        return {
+          text: word.text || '[no text]',
+          lineBreaking: word.lineBreaking || 'allow',
+          trimmedText: word.trimmedText || word.text || '',
+          separator: word.separator || '',
+          separatorCharCount: word.separatorCharCount || 0,
+          charCount: word.charCount || (word.text ? word.text.length : 0),
+          boundary: word.boundary || { start: 0, end: 0 }
+        };
+      });
+      
+      safeWords.forEach((word, index) => {
+        const wordEl = document.createElement('div');
+        wordEl.className = `word ${word.lineBreaking || 'allow'}`;
+        wordEl.textContent = word.text || '';
+        
+        const info = document.createElement('div');
+        info.className = 'word-info';
+        
+        // Build properties list
+        const properties = [];
+        properties.push(`<strong>Index:</strong> ${index}`);
+        properties.push(`<strong>Text:</strong> "${word.text || ''}"`);
+        properties.push(`<strong>Line Breaking:</strong> ${word.lineBreaking || 'allow'}`);
+        
+        if (word.trimmedText) {
+          properties.push(`<strong>Trimmed Text:</strong> "${word.trimmedText}"`);
+        }
+        
+        if (word.separator) {
+          properties.push(`<strong>Separator:</strong> "${word.separator}"`);
+        }
+        
+        if (word.separatorCharCount !== undefined) {
+          properties.push(`<strong>Separator Chars:</strong> ${word.separatorCharCount}`);
+        }
+        
+        if (word.charCount) {
+          properties.push(`<strong>Character Count:</strong> ${word.charCount}`);
+        }
+        
+        // Add boundary info if available
+        if (word.boundary) {
+          properties.push(`<strong>Boundary:</strong> ${word.boundary.start}-${word.boundary.end}`);
+        }
+        
+        info.innerHTML = properties.join('<br>');
+        wordEl.appendChild(info);
+        wordVisualization.appendChild(wordEl);
+      });
+    }
+    
+    // Function to visualize line breaks in a layout
+    function visualizeLayout(container, words, breaks) {
+      container.innerHTML = '';
+      
+      if (!words || !breaks) {
+        container.innerHTML = '<div style="color: #666;">No layout data available.</div>';
+        return;
+      }
+      
+      if (!Array.isArray(breaks)) {
+        container.innerHTML = `<div style="color: #c00;">Invalid breaks data: ${JSON.stringify(breaks)}</div>`;
+        return;
+      }
+      
+      // Create lines based on breaks
+      let lines = [];
+      let currentLine = [];
+      
+      // Make a safe copy of words to handle both arrays of strings and objects
+      const safeWords = words.map(word => {
+        if (typeof word === 'string') return word;
+        if (word && word.text) return word.text;
+        return '[empty]';
+      });
+      
+      safeWords.forEach((word, index) => {
+        currentLine.push(word);
+        
+        if (breaks.includes(index)) {
+          lines.push(currentLine.join(' '));
+          currentLine = [];
+        }
+      });
+      
+      // Add the last line if there's anything left
+      if (currentLine.length > 0) {
+        lines.push(currentLine.join(' '));
+      }
+      
+      // Create layout visualization
+      const layout = document.createElement('div');
+      layout.style.border = '1px solid #ddd';
+      layout.style.padding = '15px';
+      layout.style.borderRadius = '4px';
+      layout.style.backgroundColor = 'white';
+      
+      lines.forEach((line, i) => {
+        const lineDiv = document.createElement('div');
+        lineDiv.textContent = line;
+        lineDiv.style.margin = '5px 0';
+        lineDiv.style.padding = '5px';
+        lineDiv.style.borderBottom = i < lines.length - 1 ? '1px dashed #eee' : 'none';
+        layout.appendChild(lineDiv);
+      });
+      
+      container.appendChild(layout);
+    }
+    
+    // Main function to analyze text
+    async function analyzeText(text, locale) {
+      try {
+        // Check cache first
+        const cacheKey = `${locale}:${text}`;
+        if (resultCache.has(cacheKey)) {
+          const cachedResult = resultCache.get(cacheKey);
+          visualizeWords(cachedResult.wordMetrics);
+          visualizeLayout(bestFitLayout, cachedResult.wordMetrics, cachedResult.bestFitBreaks);
+          visualizeLayout(uniformLayout, cachedResult.wordMetrics, cachedResult.mostUniformBreaks);
+          jsonOutput.innerHTML = syntaxHighlight(cachedResult.wordMetrics);
+          return;
+        }
+        
+        // Set status messages
+        wordVisualization.innerHTML = '<div style="color: #666;">Processing...</div>';
+        bestFitLayout.innerHTML = '<div style="color: #666;">Processing...</div>';
+        uniformLayout.innerHTML = '<div style="color: #666;">Processing...</div>';
+        jsonOutput.innerHTML = 'Processing...';
+        
+        // Process text for basic tokenization first (fallback if processTextForLineBreaking fails)
+        const words = text.split(/\s+/);
+        const defaultProcessedText = {
+          words,
+          wordWidths: words.map(() => 20),
+          spaceWidth: 10
+        };
+        
+        // Try to process text for line breaking with proper segmentation
+        let processedText;
+        try {
+          processedText = await processTextForLineBreaking(text, locale);
+        } catch (err) {
+          console.error("Error in processTextForLineBreaking:", err);
+          processedText = defaultProcessedText;
+        }
+        
+        // If processedText doesn't have words property, use default
+        if (!processedText || !processedText.words) {
+          console.warn("Invalid processedText result, using fallback");
+          processedText = defaultProcessedText;
+        }
+        
+        // Create word objects with proper structure for enhancing
+        const wordObjects = processedText.words.map((word, index) => ({
+          text: typeof word === 'string' ? word : (word.text || '[empty]'),
+          trimmedText: typeof word === 'string' ? word.trim() : (word.text || '[empty]').trim(),
+          charCount: typeof word === 'string' ? word.length : ((word.text || '[empty]').length),
+          boundary: {
+            start: index,
+            end: index + 1
+          },
+          separator: index < processedText.words.length - 1 ? ' ' : '',
+          separatorCharCount: index < processedText.words.length - 1 ? 1 : 0,
+          separatorWidth: processedText.spaceWidth || 10,
+          lineBreaking: 'allow' // Default value
+        }));
+        
+        // Try to enhance with localization rules
+        let wordMetrics;
+        try {
+          wordMetrics = await enhanceWordMetricsWithLocalization(wordObjects, locale);
+        } catch (err) {
+          console.error("Error enhancing word metrics:", err);
+          wordMetrics = wordObjects; // Use unenhanced metrics as fallback
+        }
+        
+        // Build safe parameters for the optimizer function
+        const safeWords = Array.isArray(processedText.words) ? 
+          processedText.words.map(w => typeof w === 'string' ? w : (w.text || '[empty]')) : 
+          text.split(/\s+/);
+          
+        const safeWordWidths = Array.isArray(processedText.wordWidths) ? 
+          processedText.wordWidths : 
+          safeWords.map(() => 20);
+          
+        const safeSpaceWidth = processedText.spaceWidth || 10;
+          
+        // Compute breaks with locale-aware optimizer
+        let result;
+        try {
+          // Try with the regular function signature
+          result = await localizedComputeBreaks(
+            safeWords, 
+            safeWordWidths,
+            safeSpaceWidth,
+            300, // targetWidth
+            5,   // candidateCount
+            null, // debugElement
+            0.5, // balanceFactor
+            0.5, // minFillRatio
+            'fit', // mode
+            locale
+          );
+        } catch (err) {
+          console.error("Error computing breaks with positional params:", err);
+          try {
+            // Try with object parameter structure as fallback
+            result = await localizedComputeBreaks({
+              words: safeWords,
+              wordWidths: safeWordWidths,
+              spaceWidth: safeSpaceWidth,
+              targetWidth: 300,
+              candidateCount: 5,
+              balanceFactor: 0.5,
+              minFillRatio: 0.5,
+              locale: locale
+            });
+          } catch (err2) {
+            console.error("Error computing breaks with object params:", err2);
+            // Minimal fallback result
+            result = {
+              breaks: [],
+              bestFitBreaks: [],
+              mostUniformBreaks: []
+            };
+          }
+        }
+        
+        // Handle case where result might have either breaks array or named arrays
+        const bestFitBreaks = result.bestFitBreaks || result.breaks || [];
+        const mostUniformBreaks = result.mostUniformBreaks || result.breaks || [];
+        
+        // Add line breaking properties if not already present
+        wordMetrics = wordMetrics.map(word => ({
+          ...word,
+          lineBreaking: word.lineBreaking || 'allow'
+        }));
+        
+        // Save to cache
+        resultCache.set(cacheKey, {
+          wordMetrics,
+          bestFitBreaks,
+          mostUniformBreaks
+        });
+        
+        // Update UI
+        visualizeWords(wordMetrics);
+        visualizeLayout(bestFitLayout, processedText.words, bestFitBreaks);
+        visualizeLayout(uniformLayout, processedText.words, mostUniformBreaks);
+        jsonOutput.innerHTML = syntaxHighlight(wordMetrics);
+        
+      } catch (error) {
+        console.error("Error analyzing text:", error);
+        wordVisualization.innerHTML = `<div style="color: #c00;">Error: ${error.message}</div>`;
+        bestFitLayout.innerHTML = `<div style="color: #c00;">Error: ${error.message}</div>`;
+        uniformLayout.innerHTML = `<div style="color: #c00;">Error: ${error.message}</div>`;
+        jsonOutput.innerHTML = `Error: ${error.message}`;
+      }
+    }
+    
+    // Analyze button click handler
+    analyzeButton.addEventListener('click', async () => {
+      const locale = localeSelect.value;
+      let text = '';
+      
+      if (testCaseSelect.value === 'all') {
+        // Get all test cases for the selected locale
+        const filteredCases = testCases.filter(tc => tc.locale === locale);
+        
+        // Start with the first test case
+        if (filteredCases.length > 0) {
+          text = filteredCases[0].text;
+        } else {
+          wordVisualization.innerHTML = '<div style="color: #c00;">No test cases available for this locale.</div>';
+          return;
+        }
+      } else if (customText.value.trim()) {
+        // Use custom text if provided
+        text = customText.value.trim();
+      } else if (testCaseSelect.value) {
+        // Use selected test case
+        const selectedOption = testCaseSelect.options[testCaseSelect.selectedIndex];
+        text = selectedOption.getAttribute('data-text');
+      }
+      
+      if (!text) {
+        wordVisualization.innerHTML = '<div style="color: #c00;">Please enter some text or select a test case.</div>';
+        return;
+      }
+      
+      await analyzeText(text, locale);
+    });
+    
+    // Initialize with English locale
+    localeSelect.value = 'en';
+    localeSelect.dispatchEvent(new Event('change'));
+    
+    // Auto-load the first test case
+    setTimeout(() => {
+      if (testCaseSelect.options.length > 0) {
+        testCaseSelect.selectedIndex = 1; // Select the first actual test case (not "All")
+        testCaseSelect.dispatchEvent(new Event('change'));
+        analyzeButton.click();
+      }
+    }, 500);
+  </script>
+</body>
+</html>

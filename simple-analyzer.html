@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Line Break Analysis</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      margin: 20px;
+      padding: 0;
+      line-height: 1.6;
+      color: #333;
+    }
+    h1, h2, h3 {
+      margin-top: 0.5em;
+      color: #0078d7;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .panel {
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+    select, textarea, input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 20px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-family: inherit;
+      font-size: 14px;
+    }
+    textarea {
+      height: 100px;
+      resize: vertical;
+    }
+    button {
+      background-color: #0078d7;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 4px;
+      margin-right: 10px;
+    }
+    button:hover {
+      background-color: #0063b1;
+    }
+    .home-button {
+      background-color: #4CAF50;
+      display: inline-flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .home-button:hover {
+      background-color: #45a049;
+    }
+    .home-button i {
+      margin-right: 8px;
+    }
+    #results {
+      display: none;
+    }
+    pre {
+      background-color: #f0f0f0;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      border: 1px solid #ddd;
+    }
+    .word-display {
+      margin: 15px 0;
+    }
+    .word {
+      display: inline-block;
+      padding: 5px 10px;
+      margin: 3px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+    .word.allow {
+      background-color: rgba(0, 153, 0, 0.1);
+      border-color: #090;
+    }
+    .word.avoid {
+      background-color: rgba(204, 0, 0, 0.1);
+      border-color: #c00;
+    }
+    .error {
+      color: #c00;
+      background-color: #ffeeee;
+      padding: 10px;
+      border: 1px solid #c00;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button class="home-button" onclick="window.location.href='index.html'">
+      <i>←</i> Back to Home Page
+    </button>
+    
+    <h1>Line Break Analysis Tool</h1>
+    
+    <div class="panel">
+      <h2>Text Input</h2>
+      
+      <label for="locale">Locale:</label>
+      <select id="locale">
+        <option value="en">English (en)</option>
+        <option value="fr" selected>French (fr)</option>
+        <option value="de">German (de)</option>
+        <option value="es">Spanish (es)</option>
+        <option value="ja">Japanese (ja)</option>
+        <option value="zh">Chinese (zh)</option>
+      </select>
+      
+      <label for="text">Text to Analyze:</label>
+      <textarea id="text">Apple Music Super Bowl : la performance.</textarea>
+      
+      <button id="analyze">Analyze Line Breaks</button>
+      <div id="error-message" class="error" style="display: none;"></div>
+    </div>
+    
+    <div id="results" class="panel">
+      <h2>Analysis Results</h2>
+      
+      <h3>Word Segmentation</h3>
+      <div id="word-segmentation" class="word-display"></div>
+      
+      <h3>Line Breaking Opportunities</h3>
+      <div id="line-breaks" class="word-display"></div>
+      
+      <h3>Line Breaking Metrics</h3>
+      <pre id="metrics"></pre>
+      
+      <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
+        <button class="home-button" onclick="window.location.href='index.html'">
+          <i>←</i> Return to Home Page
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Variables to store imported modules
+    let ruleEngine, processTextForLineBreaking, enhanceWordMetricsWithLocalization;
+    
+    // Line breaking constants
+    const LINE_BREAK = {
+      ALLOW: 'allow',
+      AVOID: 'avoid'
+    };
+    
+    // Dynamically import modules
+    (async function loadModules() {
+      try {
+        const ruleEngineModule = await import('./src/localization/rules/ruleConfigs.js');
+        const segmenterModule = await import('./src/localization/segmenter.js');
+        const lineBreakingModule = await import('./src/localized_line_breaking.js');
+        
+        ruleEngine = ruleEngineModule.default;
+        processTextForLineBreaking = segmenterModule.processTextForLineBreaking;
+        enhanceWordMetricsWithLocalization = lineBreakingModule.enhanceWordMetricsWithLocalization;
+        
+        console.log("Modules loaded successfully");
+      } catch (error) {
+        console.error("Error loading modules:", error);
+      }
+    })();
+    
+    // DOM Elements
+    const localeSelect = document.getElementById('locale');
+    const textInput = document.getElementById('text');
+    const analyzeButton = document.getElementById('analyze');
+    const errorMessage = document.getElementById('error-message');
+    const results = document.getElementById('results');
+    const wordSegmentation = document.getElementById('word-segmentation');
+    const lineBreaks = document.getElementById('line-breaks');
+    const metrics = document.getElementById('metrics');
+    
+    // Improved segmenter for better punctuation handling
+    function segmentText(text) {
+      // Define punctuation characters we want to separate
+      const punctuationChars = [".", ":", ";", "!", "?", "…", ","];
+      
+      // First, add spaces around punctuation to ensure they're tokenized separately
+      let processedText = text;
+      punctuationChars.forEach(punct => {
+        processedText = processedText.replace(new RegExp(`\\${punct}`, 'g'), ` ${punct} `);
+      });
+      
+      // Clean up multiple spaces
+      processedText = processedText.replace(/\s+/g, ' ').trim();
+      
+      // Now tokenize
+      const words = processedText.match(/\S+\s*/g) || [];
+      
+      // Debug tokenization
+      console.log("Tokenized text:", words);
+      
+      return words.map(word => {
+        const trimmed = word.trim();
+        const separator = word.substring(trimmed.length);
+        return {
+          text: trimmed,
+          separator: separator,
+          width: trimmed.length * 10 // fake width for display
+        };
+      });
+    }
+
+    // Apply line breaking rules based on locale configuration
+    async function applyLineBreakingRules(words, locale) {
+      try {
+        // Basic word metrics
+        const basicWordMetrics = words.map(word => ({
+          text: word.text,
+          separator: word.separator,
+          width: word.width
+        }));
+        
+        const text = basicWordMetrics.map(w => w.text).join(' ');
+        console.log(`Analyzing text with locale ${locale}:`, text);
+        
+        if (!processTextForLineBreaking) {
+          console.error("Module not loaded yet! Falling back to basic rules");
+          return applySimpleRules(words, locale);
+        }
+        
+        // Check if we have rules for this locale
+        if (!ruleEngine || !ruleEngine[locale]) {
+          console.warn(`No rules found for locale ${locale} in ruleEngine`);
+          return applySimpleRules(words, locale);
+        }
+        
+        // Log the rules we're going to apply
+        console.log(`Rule configuration for ${locale}:`, ruleEngine[locale]);
+        
+        // Process using the line breaking system
+        const metrics = await processTextForLineBreaking(text, locale);
+        console.log("Metrics from processTextForLineBreaking:", metrics);
+        
+        // Apply locale-specific rules
+        return applyLocaleSpecificRules(metrics, words, locale);
+      } catch (error) {
+        console.error("Error applying line breaking rules:", error);
+        return applySimpleRules(words, locale);
+      }
+    }
+    
+    // Apply locale-specific rules
+    function applyLocaleSpecificRules(metrics, words, locale) {
+      // Get locale-specific configuration
+      const localeRules = ruleEngine?.[locale];
+      if (!localeRules) {
+        console.warn(`No rules found for locale ${locale}`);
+        return metrics.map((m, i) => ({
+          ...words[i],
+          lineBreaking: typeof m.lineBreaking === 'object' ? LINE_BREAK.ALLOW : m.lineBreaking || LINE_BREAK.ALLOW,
+          _violationReason: m._violationReason
+        }));
+      }
+      
+      console.log(`Applying ${locale} specific rules:`, localeRules);
+      
+      // Process with locale-specific rules
+      const result = metrics.map((metric, i) => {
+        // Normalize lineBreaking value - it could be an object in some cases
+        let lineBreaking = typeof metric.lineBreaking === 'object' ? LINE_BREAK.ALLOW : metric.lineBreaking || LINE_BREAK.ALLOW;
+        let violationReason = metric._violationReason;
+        
+        // Normalize text - use words[i].text which is more reliable
+        const currentText = words[i].text;
+        
+        // Apple Services rule (if enabled)
+        if (localeRules.rules?.avoidBreakBetween?.includes("appleServices") && 
+            localeRules.appleServices) {
+          for (const service of localeRules.appleServices) {
+            const serviceWords = service.split(' ');
+            if (serviceWords.length > 1) {
+              // Check if current word is part of a service name
+              for (let j = 0; j < serviceWords.length; j++) {
+                if (i + j < words.length && 
+                    i + serviceWords.length - 1 < words.length &&
+                    words[i + j].text.toLowerCase() === serviceWords[j].toLowerCase()) {
+                  // If all words match and we're at the end of the pattern, mark them all
+                  if (j === serviceWords.length - 1) {
+                    for (let k = 0; k < serviceWords.length; k++) {
+                      if (i + k < words.length) {
+                        // This is safer than modifying metrics directly
+                        if (i + k === i) {
+                          lineBreaking = LINE_BREAK.AVOID;
+                          violationReason = `Apple service name (${service})`;
+                        }
+                      }
+                    }
+                  }
+                } else {
+                  break;
+                }
+              }
+            }
+          }
+        }
+        
+        // Punctuation rule (if enabled)
+        if (localeRules.rules?.avoidBreakBefore?.includes("punctuation") &&
+            localeRules.punctuation) {
+          // If this is punctuation
+          if (localeRules.punctuation.includes(currentText)) {
+            lineBreaking = LINE_BREAK.AVOID;
+            violationReason = `Punctuation (${locale})`;
+          }
+          
+          // If next is punctuation
+          if (i < words.length - 1 && 
+              localeRules.punctuation.includes(words[i + 1].text)) {
+            lineBreaking = LINE_BREAK.AVOID;
+            violationReason = `Word before punctuation (${locale})`;
+          }
+        }
+        
+        // Return the combined result
+        return {
+          ...words[i],
+          lineBreaking: lineBreaking,
+          _violationReason: violationReason
+        };
+      });
+      
+      return result;
+    }
+    
+    // Display words with their segmentation
+    function displayWordSegmentation(words) {
+      wordSegmentation.innerHTML = '';
+      
+      words.forEach(word => {
+        const wordEl = document.createElement('span');
+        wordEl.className = 'word';
+        wordEl.textContent = word.text + (word.separator || '');
+        wordSegmentation.appendChild(wordEl);
+      });
+    }
+    
+    // Display words with line breaking information
+    function displayLineBreaks(words) {
+      lineBreaks.innerHTML = '';
+      
+      words.forEach(word => {
+        const wordEl = document.createElement('span');
+        
+        // Handle case where lineBreaking might be an object
+        let lineBreakClass = 'allow';
+        if (typeof word.lineBreaking === 'string') {
+          lineBreakClass = word.lineBreaking;
+        } else if (typeof word.lineBreaking === 'object' && word.lineBreaking !== null) {
+          // Get the lineBreaking value from the object if it exists
+          lineBreakClass = word.lineBreaking.lineBreaking || 'allow';
+        }
+        
+        wordEl.className = `word ${lineBreakClass}`;
+        wordEl.textContent = word.text + (word.separator || '');
+        
+        // Add reason as tooltip
+        const reason = word._violationReason ? ` (${word._violationReason})` : '';
+        wordEl.title = `Line break: ${lineBreakClass}${reason}`;
+        
+        lineBreaks.appendChild(wordEl);
+      });
+    }
+    
+    // Format JSON for display
+    function formatJSON(obj) {
+      return JSON.stringify(obj, null, 2);
+    }
+    
+    // Simple rules as fallback
+    function applySimpleRules(words, locale) {
+      // Get locale-specific configuration
+      const localeRules = ruleEngine?.[locale];
+      if (!localeRules) {
+        console.warn(`No rules found for locale ${locale}, using defaults`);
+        return words.map(word => ({
+          ...word,
+          lineBreaking: LINE_BREAK.ALLOW
+        }));
+      }
+      
+      console.log(`Applying simple rules for ${locale}:`, localeRules);
+      
+      return words.map((word, index) => {
+        let lineBreaking = LINE_BREAK.ALLOW;
+        let violationReason = null;
+        
+        // Apply only rules defined for this locale
+        
+        // Apple Services rule
+        if (localeRules.rules?.avoidBreakBetween?.includes("appleServices") &&
+            localeRules.appleServices) {
+          // Check Apple service pairs
+          for (const service of localeRules.appleServices) {
+            const serviceWords = service.split(' ');
+            if (serviceWords.length > 1 && 
+                index <= words.length - serviceWords.length) {
+              let match = true;
+              for (let i = 0; i < serviceWords.length; i++) {
+                if (index + i >= words.length || words[index + i].text.toLowerCase() !== 
+                    serviceWords[i].toLowerCase()) {
+                  match = false;
+                  break;
+                }
+              }
+              
+              if (match) {
+                lineBreaking = LINE_BREAK.AVOID;
+                violationReason = `Apple service (${service})`;
+                break;
+              }
+            }
+          }
+        }
+        
+        // Punctuation rule - needs special handling
+        if (localeRules.rules?.avoidBreakBefore?.includes("punctuation") &&
+            localeRules.punctuation) {
+          // If this is punctuation
+          if (localeRules.punctuation.includes(word.text)) {
+            lineBreaking = LINE_BREAK.AVOID;
+            violationReason = `Punctuation (${locale})`;
+          }
+          
+          // If next is punctuation
+          if (index < words.length - 1 && 
+              localeRules.punctuation.includes(words[index + 1].text)) {
+            lineBreaking = LINE_BREAK.AVOID;
+            violationReason = `Word before punctuation (${locale})`;
+          }
+        }
+        
+        return {
+          ...word,
+          lineBreaking: lineBreaking,
+          _violationReason: violationReason
+        };
+      });
+    }
+
+    // Main analyze function
+    async function analyzeText() {
+      errorMessage.style.display = 'none';
+      errorMessage.textContent = '';
+      
+      const text = textInput.value.trim();
+      const locale = localeSelect.value;
+      
+      if (!text) {
+        errorMessage.textContent = 'Please enter some text to analyze.';
+        errorMessage.style.display = 'block';
+        return;
+      }
+      
+      try {
+        // Ensure our modules are loaded
+        if (!ruleEngine) {
+          errorMessage.textContent = 'Modules are still loading. Please try again in a moment.';
+          errorMessage.style.display = 'block';
+          return;
+        }
+        
+        // Check if we have rules for this locale
+        if (!ruleEngine[locale]) {
+          console.warn(`No rules found for locale ${locale}`);
+        } else {
+          console.log(`Rules for ${locale}:`, ruleEngine[locale]);
+        }
+        
+        // Segment the text into words
+        const segmentedWords = segmentText(text);
+        console.log("Segmented words:", segmentedWords);
+        
+        // Process with line breaking rules
+        const wordMetrics = await applyLineBreakingRules(segmentedWords, locale);
+        console.log("Final word metrics:", wordMetrics);
+        
+        // Clean up any complex objects in the metrics for display
+        const cleanedMetrics = wordMetrics.map(metric => {
+          const cleaned = {...metric};
+          
+          // Normalize lineBreaking field
+          if (typeof cleaned.lineBreaking === 'object' && cleaned.lineBreaking !== null) {
+            cleaned.lineBreaking = cleaned.lineBreaking.lineBreaking || 'allow';
+          }
+          
+          return cleaned;
+        });
+        
+        // Display results
+        displayWordSegmentation(segmentedWords);
+        displayLineBreaks(cleanedMetrics);
+        metrics.textContent = formatJSON(cleanedMetrics);
+        
+        // Show results
+        results.style.display = 'block';
+      } catch (error) {
+        errorMessage.textContent = `Error: ${error.message}`;
+        errorMessage.style.display = 'block';
+        console.error('Analysis error:', error);
+      }
+    }
+    
+    // Event listeners
+    analyzeButton.addEventListener('click', analyzeText);
+    
+    // Auto-analyze on load
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(analyzeText, 500);
+    });
+  </script>
+</body>
+</html>

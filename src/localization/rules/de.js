@@ -61,8 +61,13 @@ export default {
     appleServices: [
       "App Store",
       "Apple Books",
+      "Apple Music", 
+      "Apple One",
+      "Apple Arcade",
+      "Apple TV+",
       "Apple‑ID",      // using non-breaking hyphen
       "Apple TV App",
+      "Fitness+",
       "E‑Mail"
     ],
   
@@ -77,6 +82,16 @@ export default {
       "KV \\d+",           // Köchel-Verzeichnis numbers for Mozart compositions
       "BWV \\d+",          // Bach-Werke-Verzeichnis numbers
       "Nr\\. ?\\d+"        // Number indicators (Nr. 5, Nr.12)
+    ],
+    
+    /**
+     * Popular game names that should not be broken across lines
+     */
+    appGameNames: [
+      "Candy Crush",
+      "Clash Royale",
+      "Temple Run",
+      "Monopoly Go"
     ],
   
     /**

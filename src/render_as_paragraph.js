@@ -177,7 +177,8 @@ const DEFAULT_CONFIG = {
   fallbackFont: 'SF Pro Display',
   fallbackFontPath: '/sf-pro-display_regular.woff2',
   targetWidth: 500, // Default target width in pixels
-  paragraphHeight: 1.2 // Default paragraph height multiplier
+  paragraphHeight: 1.2, // Default paragraph height multiplier
+  returnWordMetrics: false // Whether to return word metrics for visualization
 };
 
 /**
@@ -237,6 +238,24 @@ export async function render(text, targetWidth, userOptions = {}) {
   if (debugElement) {
     applyTreeOutputStyling(debugElement);
   }
+  
+  // Create word metrics for potential return
+  const wordMetrics = words.map((word, index) => {
+    return {
+      text: word,
+      trimmedText: word.trim(),
+      charCount: word.length,
+      boundary: {
+        start: index,
+        end: index + 1
+      },
+      rect: null,
+      lineBreaking: 'allow',
+      separator: index < words.length - 1 ? ' ' : '',
+      separatorWidth: index < words.length - 1 ? spaceWidth : 0,
+      separatorCharCount: index < words.length - 1 ? 1 : 0
+    };
+  });
   
   // Process text with localization-aware line breaking
   const candidates = await localizedComputeBreaks(
@@ -505,4 +524,13 @@ export async function render(text, targetWidth, userOptions = {}) {
     wrapper.appendChild(canvas);
     container.appendChild(wrapper);
   });
+  
+  // Return word metrics if requested
+  if (options.returnWordMetrics) {
+    return {
+      wordMetrics,
+      candidates: candidates,
+      words: words
+    };
+  }
 }

@@ -23,33 +23,33 @@ export async function enhanceWordMetricsWithLocalization(wordMetrics, locale) {
     return wordMetrics;
   }
   
+  console.log(`LOCALIZING FOR LOCALE: ${locale}`);
+  
   // Convert word metrics to a simple text string for processing
   const text = wordMetrics.map(w => w.text).join(' ');
   
-  // Process text with locale-specific line breaking rules
-  const localizedMetrics = await processTextForLineBreaking(text, locale);
-  
-  // Merge localization constraints back into the original word metrics
-  return wordMetrics.map((metric, index) => {
-    // Get line breaking constraint from localized metrics, default to 'allow' if not available
-    const localConstraint = index < localizedMetrics.length ? 
-      localizedMetrics[index].lineBreaking : LINE_BREAK.ALLOW;
-      
-    // Return enhanced metrics with line breaking constraint
-    return {
-      ...metric,
-      lineBreaking: localConstraint === LINE_BREAK.AVOID ? LINE_BREAK.AVOID : LINE_BREAK.ALLOW
-    };
-  });
+  try {
+    // Get the rule engine module for locale-specific rules
+    const ruleModule = await import("./localization/rules/ruleConfigs.js");
+    const ruleEngine = ruleModule.default;
+    
+    if (ruleEngine[locale]?.appleServices) {
+      console.log(`Found Apple services in rules for ${locale}:`, ruleEngine[locale].appleServices);
+    }
+    
+    // Process text with locale-specific line breaking rules
+    let localizedMetrics = await processTextForLineBreaking(text, locale);
+    
+    // Process text with locale-specific rules from the rule engine
+    // The rules are now handled by the segmenter module, no need for manual overrides
+    
+    return localizedMetrics;
+  } catch (error) {
+    console.error("Error in enhanceWordMetricsWithLocalization:", error);
+    return wordMetrics; // Return original metrics if there's an error
+  }
 }
 
-/**
- * Modify line breaking candidates based on localization rules
- * @param {Array} candidates - Line breaking candidates from Knuth-Plass algorithm
- * @param {Array} words - Original words array
- * @param {string} locale - Locale code
- * @returns {Array} - Filtered candidates that respect localization rules
- */
 /**
  * Filter line breaking candidates based on locale-specific rules
  * Removes candidates that violate language-specific line breaking conventions
