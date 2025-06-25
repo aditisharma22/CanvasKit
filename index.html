@@ -15,6 +15,53 @@
     h1 { margin: 20px; }
 
     #wrapper { display: flex; }
+    
+    /* Tab styling */
+    .tabs {
+      display: flex;
+      margin: 20px;
+    }
+    
+    .tab-button {
+      padding: 12px 24px;
+      border: 1px solid #ccc;
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      background-color: #f1f1f1;
+      margin-right: 5px;
+      transition: all 0.2s ease;
+      color: #555;
+      font-weight: 500;
+    }
+    
+    .tab-button:hover {
+      background-color: #e0e0e0;
+    }
+    
+    .tab-button.active {
+      background-color: #fff;
+      border-bottom: 3px solid #64b5f6;
+      font-weight: bold;
+      color: #333;
+    }
+    
+    .tab-content {
+      display: none;
+      padding: 25px;
+      border: 1px solid #ccc;
+      border-radius: 0 8px 8px 8px;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
 
     body {
       color: #999;
@@ -118,6 +165,44 @@
       justify-content: space-between;
       max-width: 500px;
     }
+    
+    /* Line Break Opportunities specific styles */
+    #opportunitiesWrapper {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+    
+    #opportunitiesText {
+      width: 90%;
+      height: 120px;
+      margin-bottom: 20px;
+    }
+    
+    #opportunitiesOutput {
+      width: 90%;
+      min-height: 400px;
+      margin-top: 20px;
+    }
+    
+    .word-segment {
+      display: inline-block;
+      padding: 2px 0;
+      margin: 0 1px;
+    }
+    
+    .allow-break {
+      color: #64b5f6;
+    }
+    
+    .avoid-break {
+      color: #ff5252;
+    }
+    
+    .separator {
+      color: #888;
+      opacity: 0.8;
+    }
 
       
   .candidate-block {
@@ -142,63 +227,100 @@
 </head>
 <body>
   <h1>Optimised Line Breaking</h1>
-  <div id="wrapper">
-    <div>
-      <label for="inputText">Input Text</label>
-      <textarea id="inputText" placeholder="Type your text here...">The quick brown fox jumps over the lazy dog</textarea>
+  
+  <!-- Tab Navigation -->
+  <div class="tabs">
+    <div class="tab-button active" data-tab="lineBreaking">Line Breaking</div>
+    <div class="tab-button" data-tab="lineBreakOpportunities">Line Break Opportunities</div>
+  </div>
+  
+  <!-- Line Breaking Tab -->
+  <div id="lineBreaking" class="tab-content active">
+    <div id="wrapper">
+      <div>
+        <label for="inputText">Input Text</label>
+        <textarea id="inputText" placeholder="Type your text here...">The quick brown fox jumps over the lazy dog</textarea>
 
-      <div class="controllerSet">
-        <label for="balanceFactor">Balance Factor: <span id="balanceFactorValue">0.5</span></label>
-        <input type="range" id="balanceFactor" min="0" max="1" step="0.01" value="0.5" />
-      </div>
-
-      <div class="controllerSet">
-        <label for="minFillRatio">Required Line Width %: <span id="minFillRatioValue">0.5</span></label>
-        <input type="range" id="minFillRatio" min="0.25" max="0.75" step="0.01" value="0.5" />
-      </div>
-
-      <div class="controllerSet">
-        <label for="modeSelect">Layout Mode:</label>
-        <select id="modeSelect">
-          <option value="fit">Best Fit</option>
-          <option value="uniform">Most Uniform</option>
-        </select>
-      </div>
-      
-      <div class="controllerSet">
-        <label for="localeSelect">Locale:</label>
-        <select id="localeSelect">
-          <option value="en">English</option>
-          <option value="fr">French</option>
-          <option value="de">German</option>
-          <option value="es">Spanish</option>
-          <option value="ja">Japanese</option>
-          <option value="zh">Chinese</option>
-          <option value="th">Thai</option>
-          <option value="ko">Korean</option>
-        </select>
-      </div>
-      
-      <button id="computeBtn">Compute Breaks</button>
-      <!--<canvas id="myCanvas" width="500" height="900"></canvas> -->
-      <!--<div id="layoutContainer"></div>-->
-      <div style="display: flex; gap: 40px;">
-        <div>
-          <h3>Best Fit</h3>
-          <div id="layoutFit"></div>
+        <div class="controllerSet">
+          <label for="balanceFactor">Balance Factor: <span id="balanceFactorValue">0.5</span></label>
+          <input type="range" id="balanceFactor" min="0" max="1" step="0.01" value="0.5" />
         </div>
-        <div>
-          <h3>Most Uniform</h3>
-          <div id="layoutUniform"></div>
+
+        <div class="controllerSet">
+          <label for="minFillRatio">Required Line Width %: <span id="minFillRatioValue">0.5</span></label>
+          <input type="range" id="minFillRatio" min="0.25" max="0.75" step="0.01" value="0.5" />
+        </div>
+
+        <div class="controllerSet">
+          <label for="modeSelect">Layout Mode:</label>
+          <select id="modeSelect">
+            <option value="fit">Best Fit</option>
+            <option value="uniform">Most Uniform</option>
+          </select>
+        </div>
+        
+        <div class="controllerSet">
+          <label for="localeSelect">Locale:</label>
+          <select id="localeSelect">
+            <option value="en">English</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="es">Spanish</option>
+            <option value="ja">Japanese</option>
+            <option value="zh">Chinese</option>
+            <option value="th">Thai</option>
+            <option value="ko">Korean</option>
+          </select>
+        </div>
+        
+        <button id="computeBtn">Compute Breaks</button>
+        <div style="display: flex; gap: 40px;">
+          <div>
+            <h3>Best Fit</h3>
+            <div id="layoutFit"></div>
+          </div>
+          <div>
+            <h3>Most Uniform</h3>
+            <div id="layoutUniform"></div>
+          </div>
+        </div>
+        
+      </div>
+      <div id="treeOutput" class="break-tree">
+        <div style="padding: 15px; color: #03DAC5;">
+          Waiting for layout data...
+          <br><br>
+          JSON representation of the selected layout will appear here.
         </div>
       </div>
-      
     </div>
-    <div id="treeOutput" class="break-tree">
-      <div style="padding: 15px; color: #03DAC5;">
-        Waiting for layout data...
-        <br><br>
-        JSON representation of the selected layout will appear here.
+  </div>
+  
+  <!-- Line Break Opportunities Tab -->
+  <div id="lineBreakOpportunities" class="tab-content">
+    <div id="opportunitiesWrapper">
+      <div>
+        <label for="opportunitiesText">Input Text</label>
+        <textarea id="opportunitiesText" placeholder="Type your text here to see line break opportunities...">The quick brown fox jumps over the lazy dog</textarea>
+
+        <div class="controllerSet">
+          <label for="opportunitiesLocaleSelect">Locale:</label>
+          <select id="opportunitiesLocaleSelect">
+            <option value="en">English</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="es">Spanish</option>
+            <option value="ja">Japanese</option>
+          </select>
+        </div>
+        
+        <button id="opportunitiesBtn">Show Line Break Opportunities</button>
+        
+        <div id="opportunitiesOutput" class="break-tree">
+          <div style="padding: 15px; color: #03DAC5;">
+            Enter text and click "Show Line Break Opportunities" to visualize line breaking rules.
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -207,7 +329,27 @@
     // Import the modules using relative paths
     import { buildGroupedTree, renderTree, renderSummary } from './src/break_tree_visualizer.js';
     import { render } from './src/render_as_paragraph.js';
+    import { processTextForLineBreaking } from './src/localization/segmenter.js';
 
+    // Tab switching functionality
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabId = button.getAttribute('data-tab');
+        
+        // Deactivate all tabs
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+        
+        // Activate the clicked tab
+        button.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+      });
+    });
+    
+    // Line Breaking Tab
     const go = document.getElementById('computeBtn');
     const inputText = document.getElementById('inputText');
     const container = document.getElementById('treeOutput');
@@ -258,9 +400,435 @@
         locale: locale, // Include the locale
         containerId: "layoutUniform"
       });
-  };
+    };
 
-  go.click();
+    // Line Break Opportunities Tab
+    const opportunitiesBtn = document.getElementById('opportunitiesBtn');
+    const opportunitiesText = document.getElementById('opportunitiesText');
+    const opportunitiesOutput = document.getElementById('opportunitiesOutput');
+    
+    function displayLineBreakOpportunities(wordMetrics) {
+      // Clear previous output
+      opportunitiesOutput.innerHTML = '';
+      
+      if (!wordMetrics || !wordMetrics.length) {
+        opportunitiesOutput.innerHTML = '<div style="padding: 15px; color: #ff5252;">No results found. Try another text or locale.</div>';
+        return;
+      }
+      
+      // Clean up any invalid word metrics
+      wordMetrics = wordMetrics.filter(metric => 
+        metric && typeof metric === 'object' && 
+        // Ensure the text property exists and is a string
+        typeof metric.text === 'string'
+      );
+      
+      // Get the selected locale
+      const locale = document.getElementById('opportunitiesLocaleSelect').value;
+      
+      // Special handling for French text with colons
+      if (locale === 'fr') {
+        // Check if text contains a colon
+        const hasColon = wordMetrics.some(metric => metric.text === ':');
+        if (hasColon) {
+          wordMetrics = handleFrenchColonRules(wordMetrics);
+        }
+      }
+      
+      // Create a container for the visualized text
+      const visualContainer = document.createElement('div');
+      visualContainer.style.padding = '15px';
+      visualContainer.style.fontSize = '16px';
+      visualContainer.style.lineHeight = '1.6';
+      visualContainer.style.color = '#f8f8f8';
+      
+      // Function to handle French colon rules
+      function handleFrenchColonRules(metrics) {
+        try {
+          // Find colon position
+          const colonIndex = metrics.findIndex(m => m && m.text === ':');
+          if (colonIndex < 0) return metrics;
+          
+          // Mark both before and after colon as avoid break
+          if (colonIndex > 0) {
+            metrics[colonIndex-1].lineBreaking = 'avoid';
+          }
+          if (colonIndex < metrics.length - 1) {
+            metrics[colonIndex+1].lineBreaking = 'avoid';
+          }
+          
+          // Special handling for Apple services or brand names
+          // Safely build the text before colon
+          const beforeColon = metrics
+            .slice(0, colonIndex)
+            .filter(m => m && typeof m.text === 'string') // Filter out invalid entries
+            .map(m => m.text)
+            .join(' ');
+          
+          // Check if before colon text is "Apple Music Super Bowl"
+          if (beforeColon.includes('Apple Music') || 
+              beforeColon.includes('Apple TV+') ||
+              beforeColon.includes('Apple Arcade')) {
+            // Mark all words in the Apple service name as avoid break
+            for (let i = 0; i < colonIndex; i++) {
+              if (metrics[i] && metrics[i].text && 
+                  beforeColon.split(' ').includes(metrics[i].text)) {
+                metrics[i].lineBreaking = 'avoid';
+              }
+            }
+          }
+          
+          return metrics;
+        } catch (error) {
+          console.error('Error in handleFrenchColonRules:', error);
+          return metrics; // Return original metrics on error
+        }
+      }
+      
+      // Specialized function to apply additional French rules
+      function applyAdditionalFrenchRules(wordMetrics) {
+        const locale = document.getElementById('opportunitiesLocaleSelect').value;
+        if (locale !== 'fr') return wordMetrics;
+        
+        const frenchArticles = ['le', 'la', 'les', 'un', 'une', 'des', 'l\'', 'du', 'de'];
+        const frenchPrepositions = ['à', 'de', 'pour', 'par', 'en', 'dans', 'sans', 'avec', 'parmi', 'sous', 'chez', 'sur'];
+        
+        // Make a copy to avoid modifying the original
+        const enhancedMetrics = [...wordMetrics];
+        
+        // Apply French rules
+        for (let i = 0; i < enhancedMetrics.length - 1; i++) {
+          // Guard against undefined text values
+          if (!enhancedMetrics[i].text || typeof enhancedMetrics[i].text !== 'string') {
+            console.warn('Found undefined or non-string text in word metrics at index', i, enhancedMetrics[i]);
+            continue;
+          }
+          
+          const currentWord = enhancedMetrics[i].text.toLowerCase();
+          
+          // Safely get next word if it exists
+          let nextWord = '';
+          if (enhancedMetrics[i+1] && enhancedMetrics[i+1].text && typeof enhancedMetrics[i+1].text === 'string') {
+            nextWord = enhancedMetrics[i+1].text.toLowerCase();
+          }
+          
+          // Rule: Articles should not be at the end of a line
+          if (frenchArticles.includes(currentWord)) {
+            enhancedMetrics[i].lineBreaking = 'avoid';
+          }
+          
+          // Rule: Prepositions are not followed by a line break
+          if (frenchPrepositions.includes(currentWord)) {
+            enhancedMetrics[i].lineBreaking = 'avoid';
+          }
+          
+          // Rule: Don't separate numeric value from percent symbol
+          if (i < enhancedMetrics.length - 1 && 
+              /\d+/.test(currentWord) && 
+              nextWord === '%') {
+            enhancedMetrics[i].lineBreaking = 'avoid';
+            // Also mark the percent symbol to avoid break
+            if (i+1 < enhancedMetrics.length) {
+              enhancedMetrics[i+1].lineBreaking = 'avoid';
+            }
+          }
+          
+          // Rule: Check for Apple brands or services
+          // Safely build possible service name with null checks
+          let possibleServiceName = '';
+          try {
+            possibleServiceName = enhancedMetrics.slice(i, Math.min(i+3, enhancedMetrics.length))
+                                   .filter(m => m && m.text) // Filter out any undefined values
+                                   .map(m => m.text)
+                                   .join(' ')
+                                   .trim();
+          } catch (error) {
+            console.warn('Error creating service name:', error);
+          }
+                                   
+          if (possibleServiceName.includes('Apple Music') || 
+              possibleServiceName.includes('Apple TV+') ||
+              possibleServiceName.includes('Super Bowl')) {
+            enhancedMetrics[i].lineBreaking = 'avoid';
+            if (i+1 < enhancedMetrics.length) {
+              enhancedMetrics[i+1].lineBreaking = 'avoid';
+            }
+          }
+        }
+        
+        return enhancedMetrics;
+      }
+      
+      // Apply additional French rules
+      wordMetrics = applyAdditionalFrenchRules(wordMetrics);
+      
+      // Process each segment to show line break opportunities
+      wordMetrics.forEach((segment, index) => {
+        // Create span for the text segment
+        const wordSpan = document.createElement('span');
+        wordSpan.className = 'word-segment';
+        
+        // Guard against undefined text values
+        const segmentText = segment.text || '';
+        const isValidText = typeof segmentText === 'string';
+        
+        // Handle space visualization
+        const isSpaceSegment = isValidText && /^\s+$/.test(segmentText);
+        if (isSpaceSegment) {
+          wordSpan.innerHTML = '&nbsp;'; // Visualize spaces with non-breaking spaces
+          wordSpan.style.backgroundColor = '#444';
+          wordSpan.style.opacity = '0.3';
+          wordSpan.title = 'Space';
+        } else {
+          wordSpan.textContent = segmentText;
+        }
+        
+        // Special handling for percent symbol and other special characters
+        const isSpecialChar = isValidText && ['%', '€', '$', '°'].includes(segmentText);
+        if (isSpecialChar) {
+          wordSpan.style.fontWeight = 'bold';
+        }
+        
+        // Add reason for line breaking rule in the title
+        let reason = "";
+        const locale = document.getElementById('opportunitiesLocaleSelect').value;
+        
+        if (segment.lineBreaking === 'avoid') {
+          // Try to determine reason based on text and locale
+          if (locale === 'fr') {
+            if (isValidText && ['le', 'la', 'les', 'un', 'une', 'des', 'l\''].includes(segmentText.toLowerCase())) {
+              reason = "French rule: Article should stay with following word";
+            } else if (isValidText && ['à', 'de', 'pour', 'par', 'en', 'dans'].includes(segmentText.toLowerCase())) {
+              reason = "French rule: Preposition should stay with following word";
+            } else if (isValidText && segmentText === ':') {
+              reason = "French rule: Colon shouldn't be at line end or start";
+            } else if (isValidText && /Apple|Music|TV\+|Super Bowl/.test(segmentText)) {
+              reason = "French rule: Brand name should stay together";
+            } else if (isValidText && segmentText === '%') {
+              reason = "French rule: Percent symbol should stay with preceding number";
+            } else {
+              reason = "French rule: Avoid break here";
+            }
+          } else {
+            reason = "Rule: Avoid break here";
+          }
+        } else {
+          reason = "Line break allowed here";
+        }
+        
+        wordSpan.title = reason;
+        
+        // Style based on line breaking opportunity
+        if (segment.lineBreaking === 'allow') {
+          wordSpan.classList.add('allow-break');
+        } else {
+          wordSpan.classList.add('avoid-break');
+        }
+        
+        // Add the segment to the container
+        visualContainer.appendChild(wordSpan);
+        
+        // Add separator if not the last segment
+        if (index < wordMetrics.length - 1) {
+          const separatorSpan = document.createElement('span');
+          separatorSpan.className = 'separator';
+          separatorSpan.textContent = segment.separator || '';
+          
+          // Add a visual indicator for line break opportunity
+          if (segment.lineBreaking === 'allow') {
+            const breakIndicator = document.createElement('span');
+            breakIndicator.className = 'break-indicator';
+            breakIndicator.innerHTML = '&#9475;'; // Vertical line to indicate break point
+            breakIndicator.title = 'Line break allowed here';
+            breakIndicator.style.color = '#64b5f6';
+            breakIndicator.style.margin = '0 2px';
+            breakIndicator.style.fontSize = '16px';
+            separatorSpan.appendChild(breakIndicator);
+          }
+          
+          visualContainer.appendChild(separatorSpan);
+        }
+      });
+      
+      // Create a summary section
+      const summaryDiv = document.createElement('div');
+      summaryDiv.className = 'summary';
+      
+      // Count opportunities
+      const allowedBreaks = wordMetrics.filter(w => w.lineBreaking === 'allow').length;
+      const avoidedBreaks = wordMetrics.filter(w => w.lineBreaking === 'avoid').length;
+      
+      summaryDiv.innerHTML = `
+        <div class="score">Total segments: ${wordMetrics.length}</div>
+        <div class="breaks" style="color: #64b5f6;">Allowed break points: ${allowedBreaks}</div>
+        <div class="rank" style="color: #ff5252;">Avoided break points: ${avoidedBreaks}</div>
+      `;
+      
+      // Show detailed explanation
+      const detailDiv = document.createElement('div');
+      detailDiv.style.marginTop = '20px';
+      detailDiv.style.borderTop = '1px solid #444';
+      detailDiv.style.paddingTop = '10px';
+      
+      // Add an explanation about line break opportunities
+      const explanationDiv = document.createElement('div');
+      explanationDiv.style.marginBottom = '15px';
+      
+      // Get selected locale
+      const selectedLocale = document.getElementById('opportunitiesLocaleSelect').value;
+      
+      // Create base explanation
+      let explanationHTML = `
+        <h3 style="color: #80cbc4;">Line Break Explanation</h3>
+        <p style="color: #f8f8f8;">
+          <span style="color: #64b5f6;">&#9475; Blue indicators</span> show where line breaks are <strong>allowed</strong> according to the language rules.
+          <br>Words in <span style="color: #ff5252;">red</span> indicate segments where line breaks should be <strong>avoided</strong>.
+        </p>
+      `;
+      
+      // Add language-specific explanation
+      if (selectedLocale === 'fr') {
+        explanationHTML += `
+          <h4 style="color: #80cbc4; margin-top: 15px;">French (FR) Specific Rules:</h4>
+          <ul style="color: #f8f8f8; margin-top: 5px;">
+            <li>Articles (le, la, les, un, une, l') stay with the following word</li>
+            <li>Prepositions (à, de, pour, sur, etc.) stay with the following word</li>
+            <li>Brand names (Apple Music, Apple TV+) remain on a single line</li>
+            <li>Colons (:) should not be at the end of a line</li>
+            <li>Units of measurement and percent symbols stay with preceding numbers</li>
+          </ul>
+        `;
+      } else if (selectedLocale === 'de') {
+        explanationHTML += `
+          <h4 style="color: #80cbc4; margin-top: 15px;">German (DE) Specific Rules:</h4>
+          <ul style="color: #f8f8f8; margin-top: 5px;">
+            <li>Compound words with hyphens should not be broken</li>
+            <li>Numbers stay with their units</li>
+          </ul>
+        `;
+      } else if (selectedLocale === 'es') {
+        explanationHTML += `
+          <h4 style="color: #80cbc4; margin-top: 15px;">Spanish (ES) Specific Rules:</h4>
+          <ul style="color: #f8f8f8; margin-top: 5px;">
+            <li>Articles stay with the following word</li>
+            <li>Compound words should stay together</li>
+          </ul>
+        `;
+      } else if (selectedLocale === 'ja') {
+        explanationHTML += `
+          <h4 style="color: #80cbc4; margin-top: 15px;">Japanese (JA) Specific Rules:</h4>
+          <ul style="color: #f8f8f8; margin-top: 5px;">
+            <li>Characters are broken differently than Latin-based languages</li>
+            <li>Certain punctuation should stay with preceding text</li>
+          </ul>
+        `;
+      }
+      
+      explanationHTML += `
+        <p style="color: #f8f8f8; margin-top: 10px;">
+          These rules are based on linguistic patterns of the selected language (${selectedLocale.toUpperCase()}).
+        </p>
+      `;
+      
+      explanationDiv.innerHTML = explanationHTML;
+      detailDiv.appendChild(explanationDiv);
+      
+      // Add detailed metrics header
+      const metricsHeader = document.createElement('h3');
+      metricsHeader.style.color = '#80cbc4';
+      metricsHeader.textContent = 'Detailed Word Metrics';
+      detailDiv.appendChild(metricsHeader);
+      
+      // Create toggle button for JSON data
+      const toggleButton = document.createElement('button');
+      toggleButton.textContent = 'Show JSON Data';
+      toggleButton.style.marginBottom = '10px';
+      toggleButton.style.padding = '5px 10px';
+      toggleButton.style.backgroundColor = '#333';
+      toggleButton.style.color = '#fff';
+      toggleButton.style.border = '1px solid #555';
+      toggleButton.style.borderRadius = '4px';
+      toggleButton.style.cursor = 'pointer';
+      
+      // Create a collapsible container for the JSON
+      const jsonContainer = document.createElement('pre');
+      jsonContainer.style.maxHeight = '300px';
+      jsonContainer.style.overflow = 'auto';
+      jsonContainer.style.backgroundColor = '#2d2d2d';
+      jsonContainer.style.padding = '10px';
+      jsonContainer.style.borderRadius = '5px';
+      jsonContainer.style.fontSize = '12px';
+      jsonContainer.style.display = 'none'; // Hidden by default
+      
+      // Format the JSON data
+      jsonContainer.textContent = JSON.stringify(wordMetrics, null, 2);
+      
+      // Toggle JSON visibility
+      toggleButton.onclick = () => {
+        const isVisible = jsonContainer.style.display !== 'none';
+        jsonContainer.style.display = isVisible ? 'none' : 'block';
+        toggleButton.textContent = isVisible ? 'Show JSON Data' : 'Hide JSON Data';
+      };
+      
+      detailDiv.appendChild(toggleButton);
+      detailDiv.appendChild(jsonContainer);
+      
+      // Add everything to the output container
+      opportunitiesOutput.appendChild(visualContainer);
+      opportunitiesOutput.appendChild(summaryDiv);
+      opportunitiesOutput.appendChild(detailDiv);
+    }
+    
+    opportunitiesBtn.onclick = async () => {
+      // Show loading state
+      opportunitiesOutput.innerHTML = '<div style="padding: 15px; color: #03DAC5;">Processing text, please wait...</div>';
+      
+      const text = opportunitiesText.value.trim();
+      if (!text) {
+        opportunitiesOutput.innerHTML = '<div style="padding: 15px; color: #ff5252;">Please enter some text.</div>';
+        return;
+      }
+      
+      // Get the selected locale
+      const localeSelect = document.getElementById('opportunitiesLocaleSelect');
+      const locale = localeSelect.value;
+      
+      try {
+        // Process the text for line breaking
+        const wordMetrics = await processTextForLineBreaking(text, locale);
+        
+        // Validate the word metrics before visualization
+        if (!wordMetrics || !Array.isArray(wordMetrics) || wordMetrics.length === 0) {
+          throw new Error('No valid word metrics returned from processing');
+        }
+        
+        // Ensure each word metric has necessary properties
+        const validatedMetrics = wordMetrics
+          .filter(metric => metric && typeof metric === 'object')
+          .map(metric => ({
+            text: typeof metric.text === 'string' ? metric.text : '',
+            lineBreaking: metric.lineBreaking || 'allow',
+            separator: typeof metric.separator === 'string' ? metric.separator : ' ',
+            boundary: metric.boundary || { start: 0, end: 0 },
+            separatorCharCount: metric.separatorCharCount || 0
+          }));
+        
+        // Display the line break opportunities with validated metrics
+        displayLineBreakOpportunities(validatedMetrics);
+      } catch (error) {
+        console.error('Error processing text:', error);
+        opportunitiesOutput.innerHTML = `<div style="padding: 15px; color: #ff5252;">
+          <p>Error: ${error.message}</p>
+          <p>Please try again with a different text or locale.</p>
+          <details>
+            <summary>Technical details</summary>
+            <pre style="white-space: pre-wrap;">${error.stack || 'No stack trace available'}</pre>
+          </details>
+        </div>`;
+      }
+    };
+
+    go.click();
   </script>
 </body>
 </html>

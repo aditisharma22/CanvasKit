@@ -31,8 +31,8 @@ const REGEX_PATTERNS = {
  * @returns {Array} - Updated word metrics with line breaking annotations
  */
 export function annotateLineBreakingWithSeparators(wordMetricsArray, ruleConfig) {
-  // Extract rules and periods from the rule configuration
-  const { rules, periods } = ruleConfig || {};
+  // Extract rules and configuration from the rule configuration
+  const { rules, periods, functionWords, appleServices, appGameNames, punctuation } = ruleConfig || {};
   
   // Process each token in the word metrics array
   return wordMetricsArray.map((token, i, arr) => {
@@ -46,6 +46,84 @@ export function annotateLineBreakingWithSeparators(wordMetricsArray, ruleConfig)
       (token.separator === SEPARATORS.HYPHEN || token.separator === SEPARATORS.NON_BREAKING_HYPHEN)
     ) {
       lineBreaking = LINE_BREAK.AVOID;
+    }
+    
+    // Rule: Avoid breaking before punctuation (especially for French)
+    if (
+      i < arr.length - 1 &&
+      rules?.avoidBreakBefore?.includes("punctuation") &&
+      punctuation && 
+      arr[i + 1] && typeof arr[i + 1].text === 'string' &&
+      punctuation.includes(arr[i + 1].text)
+    ) {
+      lineBreaking = LINE_BREAK.AVOID;
+    }
+    
+    // Rule: Avoid breaking after punctuation (especially for French)
+    if (
+      i > 0 &&
+      rules?.avoidBreakBefore?.includes("punctuation") &&
+      punctuation && 
+      arr[i - 1] && typeof arr[i - 1].text === 'string' &&
+      punctuation.includes(arr[i - 1].text)
+    ) {
+      lineBreaking = LINE_BREAK.AVOID;
+    }
+    
+    // Rule: Avoid breaking before function words (articles, prepositions)
+    if (
+      i < arr.length - 1 &&
+      rules?.avoidBreakBefore?.includes("articles") &&
+      functionWords && 
+      arr[i + 1] && typeof arr[i + 1].text === 'string' &&
+      functionWords.includes(arr[i + 1].text.toLowerCase())
+    ) {
+      lineBreaking = LINE_BREAK.AVOID;
+    }
+    
+    // Rule: Avoid breaking between Apple brand services
+    if (
+      i > 0 && i < arr.length - 1 &&
+      rules?.avoidBreakBetween?.includes("appleServices") &&
+      appleServices
+    ) {
+      try {
+        // Check if current sequence of words forms an Apple service
+        const serviceName = arr
+          .slice(Math.max(0, i-2), Math.min(arr.length, i+2))
+          .filter(item => item && typeof item.text === 'string') // Filter out invalid items
+          .map(item => item.text)
+          .join(' ')
+          .trim();
+        
+        if (serviceName) {
+          for (const service of appleServices) {
+            if (serviceName.includes(service)) {
+              lineBreaking = LINE_BREAK.AVOID;
+              break;
+            }
+          }
+        }
+      } catch (error) {
+        console.warn('Error checking Apple services:', error);
+        // Continue processing without changing line breaking
+      }
+    }
+    
+    // Special rule for percent symbol and units of measurement
+    // Don't break between a number and a percent symbol or unit
+    if (
+      i > 0 && 
+      // Check if current token is a percent symbol or unit of measurement
+      ((token.text === '%' || token.segment === '%') || 
+       (ruleConfig.unitsOfMeasure && ruleConfig.unitsOfMeasure.includes(token.text || token.segment)))
+    ) {
+      // Check if previous token is numeric
+      const prevToken = arr[i-1];
+      const prevText = prevToken?.text || prevToken?.segment;
+      if (prevToken && typeof prevText === 'string' && /^\d+$/.test(prevText)) {
+        lineBreaking = LINE_BREAK.AVOID;
+      }
     }
 
     // Rule: Avoid breaking before periods in specific contexts

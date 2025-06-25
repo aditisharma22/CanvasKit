@@ -33,6 +33,7 @@ export const testCases = [
   { locale: "fr", text: "Jouez à Monopoly Go maintenant." },
   { locale: "fr", text: "Apple Music Super Bowl : la performance." },
   { locale: "fr", text: "L'artiste pop se donne à 100 % dans son nouvel album." },
+  { locale: "fr", text: "Test avec double pourcentage: 100 %% de réussite." },
 
   // German line break rule test cases
   { locale: "de", text: "Angela Merkel spricht über neue Maßnahmen." },

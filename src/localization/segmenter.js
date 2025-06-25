@@ -13,28 +13,82 @@ import ruleEngine from "./rules/ruleConfigs.js";
 export async function segmentText(text, locale = "en") {
   try {
     // Use the browser's built-in Intl.Segmenter if available
-    const segmenter = new Intl.Segmenter(locale, { granularity: "word" });
-    return [...segmenter.segment(text)];
+    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+      const segmenter = new Intl.Segmenter(locale, { granularity: "word" });
+      const segments = [...segmenter.segment(text)];
+      
+      // Special handling for percent symbols and other special characters
+      // that might not be properly segmented
+      const enhancedSegments = [];
+      let lastEnd = 0;
+      let processedSpecialChars = new Set();
+      
+      for (const seg of segments) {
+        enhancedSegments.push(seg);
+        
+        // Check if we need to add a special character segment
+        if (seg.index + seg.segment.length < text.length) {
+          const nextChar = text[seg.index + seg.segment.length];
+          // If the next character is a percent symbol or other special char, add it as a separate segment
+          // but only if we haven't already processed this specific character at this position
+          const specialCharPosition = seg.index + seg.segment.length;
+          const charKey = `${nextChar}-${specialCharPosition}`;
+          
+          if ((nextChar === '%' || nextChar === '°' || nextChar === '€' || nextChar === '$') && 
+              !processedSpecialChars.has(charKey)) {
+            processedSpecialChars.add(charKey);
+            enhancedSegments.push({
+              segment: nextChar,
+              index: specialCharPosition,
+              isWordLike: true, // Treat as word-like to ensure it's processed
+              input: text
+            });
+            lastEnd = specialCharPosition + 1;
+          }
+        }
+      }
+      
+      return enhancedSegments;
+    } else {
+      throw new Error('Intl.Segmenter not available');
+    }
   } catch (err) {
-    console.warn(`Segmentation failed for ${locale}, falling back to default`, err);
+    console.warn(`Segmentation failed for ${locale}, falling back to improved default`, err);
     
-    // Fallback to basic space-based segmentation if Intl.Segmenter fails
+    // Enhanced fallback segmentation that handles special characters and preserves spaces
     const segments = [];
     let currentPos = 0;
-    const words = text.split(/\s+/);
+    let processedPositions = new Set();
     
-    for (const word of words) {
-      if (!word) continue;
+    // Pattern that preserves special characters and spaces
+    // This regex finds word boundaries but keeps special characters as separate tokens
+    const pattern = /([^\s%°€$\w]|[\w]+|[\s]+|[%°€$])/g;
+    let match;
+    
+    while ((match = pattern.exec(text)) !== null) {
+      const segment = match[0];
+      const index = match.index;
       
-      const index = text.indexOf(word, currentPos);
-      if (index !== -1) {
-        segments.push({
-          segment: word,
-          index,
-          isWordLike: true
-        });
-        currentPos = index + word.length;
-      }
+      // Skip empty segments or already processed positions
+      if (!segment || processedPositions.has(index)) continue;
+      
+      // Mark this position as processed
+      processedPositions.add(index);
+      
+      // Determine if it's a word, space, or special character
+      const isWordLike = /\w/.test(segment);
+      const isSpace = /^\s+$/.test(segment);
+      const isSpecialChar = /^[%°€$]$/.test(segment);
+      
+      segments.push({
+        segment,
+        index,
+        isWordLike: isWordLike || isSpecialChar, // Treat special chars as word-like
+        isSpace,
+        input: text
+      });
+      
+      currentPos = index + segment.length;
     }
     
     return segments;
@@ -48,15 +102,59 @@ export async function segmentText(text, locale = "en") {
  * @returns {Array} - Array of word metrics with line breaking annotations
  */
 export async function processTextForLineBreaking(text, locale = "en") {
-  const segments = await segmentText(text, locale);
-  const rulesConfig = ruleEngine[locale] || {};
+  try {
+    // Input validation
+    if (!text || typeof text !== 'string') {
+      console.warn('Invalid text input for processTextForLineBreaking:', text);
+      return [];
+    }
+    
+    // Get text segments
+    const segments = await segmentText(text, locale);
+    
+    // Validate segments
+    if (!segments || !Array.isArray(segments) || segments.length === 0) {
+      console.warn('No valid segments returned from segmentText');
+      return [];
+    }
+    
+    // Get locale-specific rules
+    const rulesConfig = ruleEngine[locale] || {};
 
-  // Apply line breaking rules and get annotations
-  const lineBreakingAnnotations = annotateLineBreakingWithSeparators(segments, rulesConfig);
-  let wordMetricsArray = segmentsToWordMetrics(segments, text, lineBreakingAnnotations);
-  
-  // Apply additional segmentation rules to identify line-breaking constraints
-  wordMetricsArray = annotateLineBreakingWithSeparators(wordMetricsArray, rulesConfig);
+    // Filter out invalid segments before processing
+    const validSegments = segments.filter(seg => 
+      seg && typeof seg === 'object' && 
+      (seg.isWordLike !== undefined || seg.segment !== undefined)
+    );
+    
+    if (validSegments.length === 0) {
+      console.warn('No valid segments found after filtering');
+      return [];
+    }
+
+    // Apply line breaking rules and get annotations
+    const lineBreakingAnnotations = annotateLineBreakingWithSeparators(validSegments, rulesConfig);
+    let wordMetricsArray = segmentsToWordMetrics(validSegments, text, lineBreakingAnnotations);
+    
+    // Validate before applying additional rules
+    if (!wordMetricsArray || !Array.isArray(wordMetricsArray)) {
+      console.warn('Invalid word metrics array after initial processing');
+      return [];
+    }
+    
+    // Filter out any invalid metrics
+    wordMetricsArray = wordMetricsArray.filter(
+      metric => metric && typeof metric === 'object' && typeof metric.text === 'string'
+    );
+    
+    // Apply additional segmentation rules to identify line-breaking constraints
+    wordMetricsArray = annotateLineBreakingWithSeparators(wordMetricsArray, rulesConfig);
+    
+    return wordMetricsArray;
+  } catch (error) {
+    console.error('Error in processTextForLineBreaking:', error);
+    return [];
+  }
   
   // Check for rule violations (can be used for validation or debugging)
   if (rulesConfig.rules && typeof applySegmentationRules === "function") {
