@@ -587,6 +587,8 @@
         const isSpecialChar = isValidText && ['%', '€', '$', '°'].includes(segmentText);
         if (isSpecialChar) {
           wordSpan.style.fontWeight = 'bold';
+          // Ensure the display text is exactly what's in the segment
+          wordSpan.textContent = segmentText;
         }
         
         // Add reason for line breaking rule in the title
@@ -803,8 +805,23 @@
         }
         
         // Ensure each word metric has necessary properties
+        // Also deduplicate metrics that have the same position and text
+        const seenPositions = new Set();
         const validatedMetrics = wordMetrics
-          .filter(metric => metric && typeof metric === 'object')
+          .filter(metric => {
+            if (!metric || typeof metric !== 'object') return false;
+            
+            // Create a unique key based on position and text (if available)
+            const positionKey = metric.boundary ? 
+              `${metric.boundary.start}-${metric.boundary.end}-${metric.text}` : 
+              (metric.index !== undefined ? `${metric.index}-${metric.text}` : null);
+              
+            // Skip duplicates
+            if (positionKey && seenPositions.has(positionKey)) return false;
+            if (positionKey) seenPositions.add(positionKey);
+            
+            return true;
+          })
           .map(metric => ({
             text: typeof metric.text === 'string' ? metric.text : '',
             lineBreaking: metric.lineBreaking || 'allow',

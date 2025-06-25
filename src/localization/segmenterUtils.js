@@ -98,6 +98,18 @@ export function segmentsToWordMetrics(
         seg.isWordLike = true;
       }
       
+      // Process percent symbols and special characters with extra care
+      if (isSpecialChar) {
+        // Ensure we don't already have this special character at this position
+        const alreadyHasSpecialChar = tokens.some(token => 
+          token.text === segmentText && 
+          token.boundary && 
+          token.boundary.start === seg.index
+        );
+        
+        if (alreadyHasSpecialChar) continue;
+      }
+      
       // Skip spaces unless we specifically want to keep them
       if (seg.isWordLike === false && !isSpace && !isSpecialChar) continue;
 

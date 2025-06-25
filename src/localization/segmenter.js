@@ -17,33 +17,48 @@ export async function segmentText(text, locale = "en") {
       const segmenter = new Intl.Segmenter(locale, { granularity: "word" });
       const segments = [...segmenter.segment(text)];
       
-      // Special handling for percent symbols and other special characters
-      // that might not be properly segmented
+      // Create a map of all characters already included in segments to avoid duplicates
+      const processedCharPositions = new Map();
+      
+      segments.forEach(seg => {
+        if (seg && seg.segment && typeof seg.segment === 'string' && seg.index !== undefined) {
+          for (let i = 0; i < seg.segment.length; i++) {
+            processedCharPositions.set(seg.index + i, true);
+          }
+        }
+      });
+      
+      // Now create enhanced segments with special character handling
       const enhancedSegments = [];
-      let lastEnd = 0;
-      let processedSpecialChars = new Set();
       
       for (const seg of segments) {
         enhancedSegments.push(seg);
         
-        // Check if we need to add a special character segment
-        if (seg.index + seg.segment.length < text.length) {
-          const nextChar = text[seg.index + seg.segment.length];
-          // If the next character is a percent symbol or other special char, add it as a separate segment
-          // but only if we haven't already processed this specific character at this position
-          const specialCharPosition = seg.index + seg.segment.length;
-          const charKey = `${nextChar}-${specialCharPosition}`;
+        // Check if we need to add a special character segment, but only if not already included
+        if (seg.index !== undefined && seg.segment && 
+            seg.index + seg.segment.length < text.length) {
           
-          if ((nextChar === '%' || nextChar === '°' || nextChar === '€' || nextChar === '$') && 
-              !processedSpecialChars.has(charKey)) {
-            processedSpecialChars.add(charKey);
+          const specialCharPosition = seg.index + seg.segment.length;
+          
+          // Skip if this position has already been processed
+          if (processedCharPositions.has(specialCharPosition)) {
+            continue;
+          }
+          
+          const nextChar = text[specialCharPosition];
+          
+          // If the next character is a special character and not already processed
+          if (nextChar === '%' || nextChar === '°' || nextChar === '€' || nextChar === '$') {
+            // Mark this position as processed
+            processedCharPositions.set(specialCharPosition, true);
+            
+            // Add the special character as its own segment
             enhancedSegments.push({
               segment: nextChar,
               index: specialCharPosition,
               isWordLike: true, // Treat as word-like to ensure it's processed
               input: text
             });
-            lastEnd = specialCharPosition + 1;
           }
         }
       }
@@ -57,25 +72,31 @@ export async function segmentText(text, locale = "en") {
     
     // Enhanced fallback segmentation that handles special characters and preserves spaces
     const segments = [];
-    let currentPos = 0;
-    let processedPositions = new Set();
+    let processedPositions = new Map();
     
-    // Pattern that preserves special characters and spaces
-    // This regex finds word boundaries but keeps special characters as separate tokens
+    // First pass: Use a regex that properly handles all character types
     const pattern = /([^\s%°€$\w]|[\w]+|[\s]+|[%°€$])/g;
+    
+    // Create a non-overlapping segmentation
+    let prevEnd = 0;
     let match;
     
     while ((match = pattern.exec(text)) !== null) {
       const segment = match[0];
       const index = match.index;
       
-      // Skip empty segments or already processed positions
+      // Skip invalid segments or already processed positions
       if (!segment || processedPositions.has(index)) continue;
       
-      // Mark this position as processed
-      processedPositions.add(index);
+      // Track all positions in this segment to avoid duplicates
+      for (let i = 0; i < segment.length; i++) {
+        processedPositions.set(index + i, true);
+      }
       
-      // Determine if it's a word, space, or special character
+      // Update prevEnd to ensure no gaps or overlaps
+      prevEnd = index + segment.length;
+      
+      // Classify the segment
       const isWordLike = /\w/.test(segment);
       const isSpace = /^\s+$/.test(segment);
       const isSpecialChar = /^[%°€$]$/.test(segment);
