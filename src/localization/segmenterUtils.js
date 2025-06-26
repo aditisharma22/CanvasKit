@@ -164,3 +164,178 @@ export function segmentsToWordMetrics(
   
   return tokens;
 }
+
+/**
+ * Checks if a character is a special character like % € $ °
+ * @param {string} char Character to check
+ * @return {boolean} true if special character
+ */
+export function isSpecialCharacter(char) {
+  return char === '%' || char === '€' || char === '$' || char === '°';
+}
+
+/**
+ * Properly handle consecutive special characters by ensuring they are correctly segmented
+ * @param {Array} segments Array of segments
+ * @param {string} text Original text
+ * @return {Array} Enhanced segments with proper handling of consecutive special chars
+ */
+export function handleConsecutiveSpecialChars(segments, text) {
+  if (!segments || !Array.isArray(segments) || segments.length === 0 || !text) {
+    return segments || [];
+  }
+
+  // Already processed positions
+  const processedPositions = new Map();
+  const enhancedSegments = [...segments];
+  
+  // First, mark all existing segment positions
+  enhancedSegments.forEach(seg => {
+    if (seg && seg.index !== undefined && seg.segment) {
+      for (let i = 0; i < seg.segment.length; i++) {
+        processedPositions.set(seg.index + i, true);
+      }
+    }
+  });
+  
+  // Look for consecutive special characters
+  for (let i = 0; i < text.length - 1; i++) {
+    if (isSpecialCharacter(text[i]) && isSpecialCharacter(text[i+1])) {
+      // If we have consecutive special characters
+      if (!processedPositions.has(i+1)) {
+        // Mark as processed
+        processedPositions.set(i+1, true);
+        
+        // Add as a new segment
+        enhancedSegments.push({
+          segment: text[i+1],
+          index: i+1,
+          isWordLike: true,
+          input: text
+        });
+      }
+    }
+  }
+  
+  // Sort segments by index to maintain proper order
+  return enhancedSegments.sort((a, b) => (a.index || 0) - (b.index || 0));
+}
+
+/**
+ * Detects sequences of special characters and returns information about them
+ * @param {string} text - The text to analyze
+ * @returns {Array} Array of objects with information about special character sequences
+ */
+export function detectSpecialCharSequences(text) {
+  if (!text || typeof text !== 'string') return [];
+  
+  const sequences = [];
+  let inSequence = false;
+  let currentSequence = {
+    start: -1,
+    chars: [],
+    type: ''
+  };
+  
+  try {
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      
+      if (isSpecialCharacter(char)) {
+        if (!inSequence) {
+          // Start a new sequence
+          inSequence = true;
+          currentSequence = {
+            start: i,
+            chars: [char],
+            type: char
+          };
+        } else if (currentSequence.type === char) {
+          // Continue the current sequence
+          currentSequence.chars.push(char);
+        } else {
+          // Different special character - end current sequence and start new one
+          sequences.push({...currentSequence});
+          currentSequence = {
+            start: i,
+            chars: [char],
+            type: char
+          };
+        }
+      } else if (inSequence) {
+        // End of a sequence
+        sequences.push({...currentSequence});
+        inSequence = false;
+      }
+    }
+    
+    // Add the final sequence if we ended while in a sequence
+    if (inSequence) {
+      sequences.push({...currentSequence});
+    }
+  } catch (error) {
+    console.warn('Error detecting special character sequences:', error);
+  }
+  
+  return sequences;
+}
+
+/**
+ * Specifically processes text with consecutive percent symbols
+ * to ensure they are properly segmented and will be displayed correctly
+ * 
+ * @param {string} text The original text to process
+ * @returns {object} Object with processed text and special character positions
+ */
+export function processConsecutivePercentSymbols(text) {
+  if (!text || typeof text !== 'string') {
+    return { 
+      processedText: text, 
+      specialCharPositions: new Map() 
+    };
+  }
+  
+  try {
+    // Track positions of special characters
+    const specialCharPositions = new Map();
+    
+    // Find consecutive percent symbols
+    const regex = /(%{2,})/g;
+    let match;
+    
+    while ((match = regex.exec(text)) !== null) {
+      // Mark all positions
+      for (let i = 0; i < match[0].length; i++) {
+        specialCharPositions.set(match.index + i, {
+          isConsecutive: true,
+          position: i,
+          totalCount: match[0].length
+        });
+      }
+    }
+    
+    // Find single percent symbols
+    const singleRegex = /(?<![%])%(?![%])/g;
+    
+    while ((match = singleRegex.exec(text)) !== null) {
+      if (!specialCharPositions.has(match.index)) {
+        specialCharPositions.set(match.index, {
+          isConsecutive: false,
+          position: 0,
+          totalCount: 1
+        });
+      }
+    }
+    
+    return {
+      processedText: text,
+      specialCharPositions
+    };
+  } catch (error) {
+    console.warn('Error processing consecutive percent symbols:', error);
+    return { 
+      processedText: text, 
+      specialCharPositions: new Map() 
+    };
+  }
+}

@@ -1,5 +1,10 @@
 import { testCases } from "./testData.js";
-import { segmentsToWordMetrics } from "./segmenterUtils.js";
+import { 
+  segmentsToWordMetrics, 
+  handleConsecutiveSpecialChars, 
+  isSpecialCharacter, 
+  processConsecutivePercentSymbols 
+} from "./segmenterUtils.js";
 import { annotateLineBreakingWithSeparators, applySegmentationRules } from "./ruleEngine.js";
 import ruleEngine from "./rules/ruleConfigs.js";
 
@@ -12,6 +17,9 @@ import ruleEngine from "./rules/ruleConfigs.js";
  */
 export async function segmentText(text, locale = "en") {
   try {
+    // Pre-process the text to handle consecutive percent symbols
+    const { processedText, specialCharPositions } = processConsecutivePercentSymbols(text);
+    
     // Use the browser's built-in Intl.Segmenter if available
     if (typeof Intl !== 'undefined' && Intl.Segmenter) {
       const segmenter = new Intl.Segmenter(locale, { granularity: "word" });
@@ -20,43 +28,47 @@ export async function segmentText(text, locale = "en") {
       // Create a map of all characters already included in segments to avoid duplicates
       const processedCharPositions = new Map();
       
-      segments.forEach(seg => {
-        if (seg && seg.segment && typeof seg.segment === 'string' && seg.index !== undefined) {
-          for (let i = 0; i < seg.segment.length; i++) {
-            processedCharPositions.set(seg.index + i, true);
-          }
-        }
-      });
-      
-      // Now create enhanced segments with special character handling
+      // Enhanced segments with special handling for % symbols
       const enhancedSegments = [];
       
+      // First, add all regular segments
       for (const seg of segments) {
-        enhancedSegments.push(seg);
-        
-        // Check if we need to add a special character segment, but only if not already included
-        if (seg.index !== undefined && seg.segment && 
-            seg.index + seg.segment.length < text.length) {
+        if (seg && seg.segment && typeof seg.segment === 'string' && seg.index !== undefined) {
+          // Check if this segment contains special characters
+          let hasSpecialChars = false;
           
-          const specialCharPosition = seg.index + seg.segment.length;
-          
-          // Skip if this position has already been processed
-          if (processedCharPositions.has(specialCharPosition)) {
-            continue;
+          for (let i = 0; i < seg.segment.length; i++) {
+            const position = seg.index + i;
+            // Mark this position as processed
+            processedCharPositions.set(position, true);
+            
+            // Check if this position has a special character
+            if (specialCharPositions.has(position)) {
+              hasSpecialChars = true;
+            }
           }
           
-          const nextChar = text[specialCharPosition];
-          
-          // If the next character is a special character and not already processed
-          if (nextChar === '%' || nextChar === '°' || nextChar === '€' || nextChar === '$') {
-            // Mark this position as processed
-            processedCharPositions.set(specialCharPosition, true);
-            
-            // Add the special character as its own segment
+          // If the segment contains special characters, we need to handle them specially
+          if (hasSpecialChars) {
+            // Split the segment into individual characters
+            for (let i = 0; i < seg.segment.length; i++) {
+              const char = seg.segment[i];
+              const position = seg.index + i;
+              
+              enhancedSegments.push({
+                segment: char,
+                index: position,
+                isWordLike: isSpecialCharacter(char) || /\w/.test(char),
+                isSpace: /\s/.test(char),
+                input: text
+              });
+            }
+          } else {
+            // Regular segment
             enhancedSegments.push({
-              segment: nextChar,
-              index: specialCharPosition,
-              isWordLike: true, // Treat as word-like to ensure it's processed
+              segment: seg.segment,
+              index: seg.index,
+              isWordLike: seg.isWordLike,
               input: text
             });
           }
@@ -112,6 +124,9 @@ export async function segmentText(text, locale = "en") {
       currentPos = index + segment.length;
     }
     
+    // Process consecutive special characters
+    segments = handleConsecutiveSpecialChars(segments, text);
+    
     return segments;
   }
 }
@@ -124,6 +139,8 @@ export async function segmentText(text, locale = "en") {
  */
 export async function processTextForLineBreaking(text, locale = "en") {
   try {
+    console.log(`[processTextForLineBreaking] Starting with locale ${locale}, text: "${text?.substring(0, 20)}${text?.length > 20 ? '...' : ''}"`);
+    
     // Input validation
     if (!text || typeof text !== 'string') {
       console.warn('Invalid text input for processTextForLineBreaking:', text);
@@ -131,7 +148,9 @@ export async function processTextForLineBreaking(text, locale = "en") {
     }
     
     // Get text segments
+    console.log(`[processTextForLineBreaking] Getting segments...`);
     const segments = await segmentText(text, locale);
+    console.log(`[processTextForLineBreaking] Got ${segments?.length || 0} segments`);
     
     // Validate segments
     if (!segments || !Array.isArray(segments) || segments.length === 0) {
@@ -139,14 +158,21 @@ export async function processTextForLineBreaking(text, locale = "en") {
       return [];
     }
     
+    // Process consecutive special characters
+    console.log(`[processTextForLineBreaking] Handling consecutive special characters...`);
+    const enhancedSegments = handleConsecutiveSpecialChars(segments, text);
+    console.log(`[processTextForLineBreaking] Enhanced segments count: ${enhancedSegments?.length || 0}`);
+    
     // Get locale-specific rules
     const rulesConfig = ruleEngine[locale] || {};
+    console.log(`[processTextForLineBreaking] Using rules for locale: ${rulesConfig.locale || locale}`);
 
     // Filter out invalid segments before processing
-    const validSegments = segments.filter(seg => 
+    const validSegments = enhancedSegments.filter(seg => 
       seg && typeof seg === 'object' && 
       (seg.isWordLike !== undefined || seg.segment !== undefined)
     );
+    console.log(`[processTextForLineBreaking] Valid segments after filtering: ${validSegments.length}`);
     
     if (validSegments.length === 0) {
       console.warn('No valid segments found after filtering');
@@ -154,8 +180,87 @@ export async function processTextForLineBreaking(text, locale = "en") {
     }
 
     // Apply line breaking rules and get annotations
+    console.log(`[processTextForLineBreaking] Applying line breaking rules...`);
     const lineBreakingAnnotations = annotateLineBreakingWithSeparators(validSegments, rulesConfig);
+    console.log(`[processTextForLineBreaking] Converting to word metrics...`);
     let wordMetricsArray = segmentsToWordMetrics(validSegments, text, lineBreakingAnnotations);
+    console.log(`[processTextForLineBreaking] Word metrics array length: ${wordMetricsArray?.length || 0}`);
+    
+    // Apply special handling for Apple service names in French text
+    if (locale === 'fr' && rulesConfig.appleServices) {
+      console.log(`[processTextForLineBreaking] Special handling for Apple service names in French`);
+      
+      // Detect Apple service names in text
+      const fullText = wordMetricsArray.map(m => m.text).join('');
+      
+      for (const appleService of rulesConfig.appleServices) {
+        // Case-insensitive search
+        const serviceLower = appleService.toLowerCase();
+        const textLower = fullText.toLowerCase();
+        
+        // Check if the service name appears in the text
+        if (textLower.includes(serviceLower)) {
+          console.log(`[processTextForLineBreaking] Found Apple service "${appleService}" in text`);
+          
+          // Find the starting position of the service name in the text
+          const servicePos = textLower.indexOf(serviceLower);
+          const serviceEndPos = servicePos + serviceLower.length;
+          
+          // Mark all word metrics that overlap with the service name position
+          for (let i = 0; i < wordMetricsArray.length; i++) {
+            const metric = wordMetricsArray[i];
+            
+            // Check if this metric is within the service name range
+            if (metric.boundary) {
+              if ((metric.boundary.start >= servicePos && metric.boundary.start < serviceEndPos) || 
+                  (metric.boundary.end > servicePos && metric.boundary.end <= serviceEndPos)) {
+                console.log(`[processTextForLineBreaking] Marking word "${metric.text}" as part of Apple service name`);
+                wordMetricsArray[i].lineBreaking = 'avoid';
+                wordMetricsArray[i]._partOfAppleService = appleService;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // Apply special handling for game names in French text
+    if (locale === 'fr' && rulesConfig.appGameNames) {
+      console.log(`[processTextForLineBreaking] Special handling for game names in French`);
+      
+      // Detect game names in text
+      const fullText = wordMetricsArray.map(m => m.text).join('');
+      
+      for (const gameName of rulesConfig.appGameNames) {
+        // Case-insensitive search
+        const gameLower = gameName.toLowerCase();
+        const textLower = fullText.toLowerCase();
+        
+        // Check if the game name appears in the text
+        if (textLower.includes(gameLower)) {
+          console.log(`[processTextForLineBreaking] Found game name "${gameName}" in text`);
+          
+          // Find the starting position of the game name in the text
+          const gamePos = textLower.indexOf(gameLower);
+          const gameEndPos = gamePos + gameLower.length;
+          
+          // Mark all word metrics that overlap with the game name position
+          for (let i = 0; i < wordMetricsArray.length; i++) {
+            const metric = wordMetricsArray[i];
+            
+            // Check if this metric is within the game name range
+            if (metric.boundary) {
+              if ((metric.boundary.start >= gamePos && metric.boundary.start < gameEndPos) || 
+                  (metric.boundary.end > gamePos && metric.boundary.end <= gameEndPos)) {
+                console.log(`[processTextForLineBreaking] Marking word "${metric.text}" as part of game name`);
+                wordMetricsArray[i].lineBreaking = 'avoid';
+                wordMetricsArray[i]._partOfGameName = gameName;
+              }
+            }
+          }
+        }
+      }
+    }
     
     // Validate before applying additional rules
     if (!wordMetricsArray || !Array.isArray(wordMetricsArray)) {
@@ -273,4 +378,306 @@ export async function runTestCases() {
   }
   
   return allResults;
+}
+
+/**
+ * Tests the percent symbol handling specifically
+ */
+export async function testPercentSymbolHandling() {
+  const tests = [
+    "Basic test with a percent symbol: 100%",
+    "Test with a percent symbol with space: 100 %",
+    "Test with double percent: 100%%",
+    "Test with triple percent: 100%%%",
+    "Multiple test: 10% and 20% and 30%",
+    "L'artiste pop se donne à 100 % dans son nouvel album."
+  ];
+  
+  console.log("RUNNING PERCENT SYMBOL TESTS");
+  
+  for (const test of tests) {
+    console.log(`\n====== TESTING: "${test}" ======`);
+    
+    // First, check percent symbol detection
+    const { processedText, specialCharPositions } = processConsecutivePercentSymbols(test);
+    console.log("✅ Special Characters Found:", specialCharPositions.size);
+    Array.from(specialCharPositions.entries()).forEach(([pos, info]) => {
+      console.log(`  Position ${pos}: ${test[pos]} (${info.isConsecutive ? 'consecutive' : 'single'})`);
+    });
+    
+    // Test segmentation
+    const segments = await segmentText(test, "fr");
+    console.log("\n✅ Segmentation Results:");
+    console.log(`  Total segments: ${segments.length}`);
+    
+    // Log important segments (numbers, percent signs, and adjacent tokens)
+    const importantSegments = [];
+    segments.forEach((seg, i) => {
+      if (seg.segment === "%" || /\d+/.test(seg.segment) || 
+          (i > 0 && (segments[i-1].segment === "%" || /\d+/.test(segments[i-1].segment)))) {
+        importantSegments.push(i);
+        console.log(`  ${i}: "${seg.segment}" at ${seg.index} (wordLike: ${seg.isWordLike})`);
+      }
+    });
+    
+    // Test word metrics
+    const metrics = await processTextForLineBreaking(test, "fr");
+    console.log("\n✅ Word Metrics Results:");
+    console.log(`  Total metrics: ${metrics.length}`);
+    
+    console.log("  Key metrics (numbers and percent symbols):");
+    metrics.forEach((m, i) => {
+      if (m.text === "%" || /\d+/.test(m.text) || 
+          (i > 0 && (metrics[i-1].text === "%" || /\d+/.test(metrics[i-1].text)))) {
+        console.log(`  ${i}: "${m.text}" (lineBreaking: ${m.lineBreaking})`);
+      }
+    });
+    
+    // Special focus on "100 %" sequence
+    const hundred = test.indexOf("100");
+    if (hundred >= 0) {
+      console.log("\n✅ Analysis of '100 %' sequence:");
+      const context = test.substring(Math.max(0, hundred - 10), Math.min(test.length, hundred + 15));
+      console.log(`  Context: "${context}"`);
+      
+      // Find corresponding metrics
+      const hundredMetric = metrics.findIndex(m => m.text === "100");
+      if (hundredMetric >= 0) {
+        console.log(`  "100" is at index ${hundredMetric} with lineBreaking: ${metrics[hundredMetric].lineBreaking}`);
+        
+        if (hundredMetric < metrics.length - 1) {
+          const nextMetric = metrics[hundredMetric + 1];
+          console.log(`  Next token: "${nextMetric.text}" with lineBreaking: ${nextMetric.lineBreaking}`);
+          
+          if (nextMetric.text === "%") {
+            console.log("  ✓ CORRECT: Percent symbol directly follows number");
+          } else if (nextMetric.text === " " && hundredMetric < metrics.length - 2) {
+            const percentMetric = metrics[hundredMetric + 2];
+            console.log(`  Space followed by: "${percentMetric.text}" with lineBreaking: ${percentMetric.lineBreaking}`);
+          }
+        }
+      } else {
+        console.log("  Could not find '100' in metrics");
+      }
+    }
+  }
+  
+  return true;
+}
+
+/**
+ * Tests percent symbol handling with a specific French text example
+ * @param {string} text - The text to test, defaults to "L'artiste pop se donne à 100 % dans son nouvel album."
+ */
+export async function testSpecificFrenchPercent(text = "L'artiste pop se donne à 100 % dans son nouvel album.") {
+  console.log(`\n=== DETAILED TEST: "${text}" ===\n`);
+  
+  // 1. Test the segmentation
+  console.log("STEP 1: SEGMENTATION");
+  const segments = await segmentText(text, "fr");
+  console.log(`Got ${segments.length} segments:`);
+  
+  segments.forEach((seg, i) => {
+    console.log(`  Segment ${i}: "${seg.segment}" at index ${seg.index} (wordLike: ${seg.isWordLike})`);
+  });
+  
+  // Find the important segments
+  const numberIndex = segments.findIndex(seg => seg.segment === "100");
+  const percentIndex = segments.findIndex(seg => seg.segment === "%");
+  
+  if (numberIndex >= 0) {
+    console.log(`\nFound number "100" at segment index ${numberIndex}`);
+  } else {
+    console.log(`\nCould not find number "100" in segments`);
+  }
+  
+  if (percentIndex >= 0) {
+    console.log(`Found percent symbol "%" at segment index ${percentIndex}`);
+  } else {
+    console.log(`Could not find percent symbol "%" in segments`);
+  }
+  
+  // 2. Process for line breaking
+  console.log("\nSTEP 2: LINE BREAKING");
+  const wordMetrics = await processTextForLineBreaking(text, "fr");
+  console.log(`Got ${wordMetrics.length} word metrics:`);
+  
+  wordMetrics.forEach((metric, i) => {
+    console.log(`  Metric ${i}: "${metric.text}" (lineBreaking: ${metric.lineBreaking})`);
+  });
+  
+  // Find the important metrics
+  const numberMetricIndex = wordMetrics.findIndex(m => m.text === "100");
+  const percentMetricIndex = wordMetrics.findIndex(m => m.text === "%");
+  
+  if (numberMetricIndex >= 0) {
+    console.log(`\nFound number "100" at metric index ${numberMetricIndex} with lineBreaking: ${wordMetrics[numberMetricIndex].lineBreaking}`);
+    
+    // Check what comes next
+    if (numberMetricIndex < wordMetrics.length - 1) {
+      const nextMetric = wordMetrics[numberMetricIndex + 1];
+      console.log(`Next metric is "${nextMetric.text}" with lineBreaking: ${nextMetric.lineBreaking}`);
+      
+      if (nextMetric.text === "%") {
+        console.log("CORRECT: Percent symbol directly follows number");
+      } else if (nextMetric.text === " " && numberMetricIndex < wordMetrics.length - 2) {
+        const afterSpace = wordMetrics[numberMetricIndex + 2];
+        console.log(`After space: "${afterSpace.text}" with lineBreaking: ${afterSpace.lineBreaking}`);
+        
+        if (afterSpace.text === "%") {
+          console.log("CORRECT: Space then percent symbol follows number");
+        }
+      }
+    }
+  }
+  
+  if (percentMetricIndex >= 0) {
+    console.log(`\nFound percent "%" at metric index ${percentMetricIndex} with lineBreaking: ${wordMetrics[percentMetricIndex].lineBreaking}`);
+    
+    // Check what comes before
+    if (percentMetricIndex > 0) {
+      const prevMetric = wordMetrics[percentMetricIndex - 1];
+      console.log(`Previous metric is "${prevMetric.text}" with lineBreaking: ${prevMetric.lineBreaking}`);
+    }
+  }
+  
+  // 3. Check for specific rule application
+  console.log("\nSTEP 3: RULE VERIFICATION");
+  console.log("Verifying French rule: Units must stay with the number");
+  
+  // Check if the rule is correctly applied
+  if (numberMetricIndex >= 0 && percentMetricIndex >= 0) {
+    if (Math.abs(numberMetricIndex - percentMetricIndex) <= 2) { // Allow for space between
+      if (wordMetrics[numberMetricIndex].lineBreaking === 'avoid') {
+        console.log("✅ Number correctly marked as 'avoid' for line breaking");
+      } else {
+        console.log("❌ NUMBER NOT PROPERLY MARKED FOR LINE BREAKING");
+      }
+      
+      if (percentMetricIndex >= 0 && wordMetrics[percentMetricIndex].lineBreaking === 'avoid') {
+        console.log("✅ Percent symbol correctly marked as 'avoid' for line breaking");
+      } else {
+        console.log("❌ PERCENT SYMBOL NOT PROPERLY MARKED FOR LINE BREAKING");
+      }
+    }
+  }
+  
+  return {
+    segments,
+    wordMetrics,
+    numberIndex,
+    percentIndex,
+    numberMetricIndex,
+    percentMetricIndex
+  };
+}
+
+/**
+ * Test function to verify Apple service name recognition
+ * @param {string} text - Text to test, defaults to a sample with Apple Music Super Bowl
+ */
+export async function testAppleServiceHandling(text = "Apple Music Super Bowl : la performance.") {
+  console.log(`Testing Apple service recognition for: "${text}"`);
+  
+  // Get the French rule configuration
+  const locale = "fr";
+  const ruleConfig = ruleEngine[locale];
+  
+  if (!ruleConfig) {
+    console.error(`No rule configuration found for locale: ${locale}`);
+    return;
+  }
+  
+  // Log the configured Apple services
+  console.log("Configured Apple services:", ruleConfig.appleServices);
+  
+  // Segment the text
+  const segments = await segmentText(text, locale);
+  console.log("Text segmentation:", segments);
+  
+  // Convert to word metrics
+  const wordMetrics = segmentsToWordMetrics(segments);
+  
+  // Apply line breaking rules including Apple service detection
+  const annotatedMetrics = annotateLineBreakingWithSeparators(wordMetrics, ruleConfig);
+  
+  // Log the results with focus on line breaking settings
+  console.log("Annotated metrics with line breaking:");
+  annotatedMetrics.forEach((metric, i) => {
+    console.log(`[${i}] "${metric.text || metric.segment}" - lineBreaking: ${metric.lineBreaking}, _partOfAppleService: ${metric._partOfAppleService || "none"}`);
+  });
+  
+  // Calculate statistics
+  const totalSegments = annotatedMetrics.length;
+  const avoidBreakCount = annotatedMetrics.filter(m => m.lineBreaking === 'avoid').length;
+  const allowBreakCount = totalSegments - avoidBreakCount;
+  
+  console.log(`\nSummary:`);
+  console.log(`Total segments: ${totalSegments}`);
+  console.log(`Avoid break segments: ${avoidBreakCount}`);
+  console.log(`Allow break segments: ${allowBreakCount}`);
+  
+  return {
+    segments: annotatedMetrics,
+    stats: {
+      totalSegments,
+      avoidBreakCount,
+      allowBreakCount
+    }
+  };
+}
+
+/**
+ * Test function to verify game name recognition
+ * @param {string} text - Text to test, defaults to a sample with Monopoly Go
+ */
+export async function testGameNameHandling(text = "Jouez à Monopoly Go maintenant.") {
+  console.log(`Testing game name recognition for: "${text}"`);
+  
+  // Get the French rule configuration
+  const locale = "fr";
+  const ruleConfig = ruleEngine[locale];
+  
+  if (!ruleConfig) {
+    console.error(`No rule configuration found for locale: ${locale}`);
+    return;
+  }
+  
+  // Log the configured game names
+  console.log("Configured game names:", ruleConfig.appGameNames);
+  
+  // Segment the text
+  const segments = await segmentText(text, locale);
+  console.log("Text segmentation:", segments);
+  
+  // Convert to word metrics
+  const wordMetrics = segmentsToWordMetrics(segments);
+  
+  // Apply line breaking rules including game name detection
+  const annotatedMetrics = annotateLineBreakingWithSeparators(wordMetrics, ruleConfig);
+  
+  // Log the results with focus on line breaking settings
+  console.log("Annotated metrics with line breaking:");
+  annotatedMetrics.forEach((metric, i) => {
+    console.log(`[${i}] "${metric.text || metric.segment}" - lineBreaking: ${metric.lineBreaking}, _partOfGameName: ${metric._partOfGameName || "none"}`);
+  });
+  
+  // Calculate statistics
+  const totalSegments = annotatedMetrics.length;
+  const avoidBreakCount = annotatedMetrics.filter(m => m.lineBreaking === 'avoid').length;
+  const allowBreakCount = totalSegments - avoidBreakCount;
+  
+  console.log(`\nSummary:`);
+  console.log(`Total segments: ${totalSegments}`);
+  console.log(`Avoid break segments: ${avoidBreakCount}`);
+  console.log(`Allow break segments: ${allowBreakCount}`);
+  
+  return {
+    segments: annotatedMetrics,
+    stats: {
+      totalSegments,
+      avoidBreakCount,
+      allowBreakCount
+    }
+  };
 }

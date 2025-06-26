@@ -1,0 +1,10 @@
+| **Rule**                                                                 | **Explanation/Example**                                                                                     |
+|--------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
+| **Remove colon on multiple lines**                                       | If text is split across 2 lines, remove the colon if it's at the end of the first line. <br> Example:<br> ✅ One line: *Monarch : l'héritage des monstres*<br> ✅ Two lines:<br>*Monarch*<br>*L'héritage des monstres* |
+| **Don't separate names**                                                 | Names of people, teams, or albums must stay on the same line.                                                |
+| **Articles should not end a line**                                       | "le", "la", "un", "une", "l'" must be on the same line as the following word.                                |
+| **Adjective with noun**                                                  | Adjectives should remain on the same line as the noun they describe.                                        |
+| **No line break after prepositions**                                     | "à", "de", "pour", "par", "en", "dans", "sans", "avec", "parmi", "sous", "chez", "sur" stay with next word.  |
+| **Apple service names on one line**                                      | Always keep together:<br>• Apple One<br>• Apple Arcade<br>• Fitness+<br>• Apple TV+                          |
+| **Game and app names stay on one line**                                  | Example: *Monopoly Go*                                                                                       |
+| **Units must stay with the number**                                      | Units (km, mo, l, cl, kg, g, %) must follow the number without a line break. <br> Example:<br> ✅ *L'artiste pop se donne à 100 % ⏎ dans son nouvel album.* |

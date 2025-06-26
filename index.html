@@ -199,6 +199,18 @@
       color: #ff5252;
     }
     
+    .apple-service-part {
+      border-bottom: 2px solid #64b5f6 !important;
+      background-color: rgba(100, 181, 246, 0.1) !important;
+      padding: 1px 0 !important;
+    }
+    
+    .game-name-part {
+      border-bottom: 2px solid #9ccc65 !important;
+      background-color: rgba(156, 204, 101, 0.1) !important;
+      padding: 1px 0 !important;
+    }
+    
     .separator {
       color: #888;
       opacity: 0.8;
@@ -314,7 +326,20 @@
           </select>
         </div>
         
-        <button id="opportunitiesBtn">Show Line Break Opportunities</button>
+        <button id="opportunitiesBtn" class="action-button">
+          <span class="material-symbols-outlined">
+            text_fields
+          </span>
+          Show Line Break Opportunities
+        </button>
+        
+        <button id="testPercentSymbolsBtn" class="action-button" style="background-color: #9f7aea; font-size: 0.8em;">
+          Test Percent Symbols
+        </button>
+        
+        <button id="testAppleServicesBtn" class="action-button" style="background-color: #4299e1; font-size: 0.8em;">
+          Test Apple Services
+        </button>
         
         <div id="opportunitiesOutput" class="break-tree">
           <div style="padding: 15px; color: #03DAC5;">
@@ -329,7 +354,13 @@
     // Import the modules using relative paths
     import { buildGroupedTree, renderTree, renderSummary } from './src/break_tree_visualizer.js';
     import { render } from './src/render_as_paragraph.js';
-    import { processTextForLineBreaking } from './src/localization/segmenter.js';
+    import { 
+      processTextForLineBreaking, 
+      testPercentSymbolHandling,
+      testSpecificFrenchPercent,
+      testAppleServiceHandling,
+      testGameNameHandling
+    } from './src/localization/segmenter.js';
 
     // Tab switching functionality
     const tabButtons = document.querySelectorAll('.tab-button');
@@ -449,6 +480,9 @@
           const colonIndex = metrics.findIndex(m => m && m.text === ':');
           if (colonIndex < 0) return metrics;
           
+          // Mark the colon itself with special property for visualization
+          metrics[colonIndex]._specialColon = true;
+          
           // Mark both before and after colon as avoid break
           if (colonIndex > 0) {
             metrics[colonIndex-1].lineBreaking = 'avoid';
@@ -457,24 +491,68 @@
             metrics[colonIndex+1].lineBreaking = 'avoid';
           }
           
-          // Special handling for Apple services or brand names
-          // Safely build the text before colon
+          // Get text before colon
           const beforeColon = metrics
             .slice(0, colonIndex)
             .filter(m => m && typeof m.text === 'string') // Filter out invalid entries
             .map(m => m.text)
             .join(' ');
           
-          // Check if before colon text is "Apple Music Super Bowl"
+          // Get text after colon
+          const afterColon = metrics
+            .slice(colonIndex + 1)
+            .filter(m => m && typeof m.text === 'string')
+            .map(m => m.text)
+            .join(' ');
+            
+          // Rule: When text spans multiple lines, remove colon at end of first line
+          // We mark the colon with a special property so it can be styled differently
+          metrics[colonIndex].colonRule = {
+            removeAtLineEnd: true,
+            beforeText: beforeColon,
+            afterText: afterColon
+          };
+          
+          // Check for special cases like Apple brand services
+          const fullText = beforeColon + ' ' + afterColon;
+          
+          // Check if before colon text is an Apple service
           if (beforeColon.includes('Apple Music') || 
               beforeColon.includes('Apple TV+') ||
-              beforeColon.includes('Apple Arcade')) {
+              beforeColon.includes('Apple Arcade') ||
+              beforeColon.includes('Fitness+') ||
+              beforeColon.includes('Apple One')) {
             // Mark all words in the Apple service name as avoid break
             for (let i = 0; i < colonIndex; i++) {
-              if (metrics[i] && metrics[i].text && 
-                  beforeColon.split(' ').includes(metrics[i].text)) {
+              if (metrics[i] && metrics[i].text) {
                 metrics[i].lineBreaking = 'avoid';
               }
+            }
+          }
+          
+          // Check if there's a person name that should stay together
+          const namePrefixes = ['M.', 'Mme', 'Mlle', 'Dr', 'Prof'];
+          for (const prefix of namePrefixes) {
+            if (fullText.includes(prefix)) {
+              // Find the index of the name prefix
+              const prefixIndex = metrics.findIndex(m => m && m.text === prefix);
+              if (prefixIndex >= 0 && prefixIndex < metrics.length - 1) {
+                // Keep the name together
+                metrics[prefixIndex].lineBreaking = 'avoid';
+              }
+            }
+          }
+          
+          // Handle "Monarch : l'héritage des monstres" type patterns
+          if (colonIndex > 0 && colonIndex < metrics.length - 1) {
+            // If this might be a title: subtitle pattern, make special handling
+            if (afterColon.startsWith("l'") || 
+                afterColon.startsWith("la ") || 
+                afterColon.startsWith("le ") || 
+                afterColon.startsWith("les ")) {
+              
+              // Mark that this colon might need visual transformation
+              metrics[colonIndex].colonTransformation = "titleSubtitle";
             }
           }
           
@@ -485,18 +563,25 @@
         }
       }
       
-      // Specialized function to apply additional French rules
+      // Specialized function to apply French typography rules from FrenchRule.md
       function applyAdditionalFrenchRules(wordMetrics) {
         const locale = document.getElementById('opportunitiesLocaleSelect').value;
         if (locale !== 'fr') return wordMetrics;
         
-        const frenchArticles = ['le', 'la', 'les', 'un', 'une', 'des', 'l\'', 'du', 'de'];
-        const frenchPrepositions = ['à', 'de', 'pour', 'par', 'en', 'dans', 'sans', 'avec', 'parmi', 'sous', 'chez', 'sur'];
+        console.log("Applying French rules from FrenchRule.md");
+        
+        // Import rules from our French rules module
+        const frenchRules = {
+          articles: ['le', 'la', 'les', 'un', 'une', 'des', 'l\'', 'du', 'de'],
+          prepositions: ['à', 'de', 'pour', 'par', 'en', 'dans', 'sans', 'avec', 'parmi', 'sous', 'chez', 'sur'],
+          appleServices: ['apple one', 'apple arcade', 'apple music', 'apple tv+', 'apple news+', 'fitness+', 'apple one super bowl', 'apple music super bowl'],
+          appGameNames: ['monopoly go', 'candy crush', 'clash royale', 'temple run']
+        };
         
         // Make a copy to avoid modifying the original
         const enhancedMetrics = [...wordMetrics];
         
-        // Apply French rules
+        // Apply French rules based on FrenchRule.md
         for (let i = 0; i < enhancedMetrics.length - 1; i++) {
           // Guard against undefined text values
           if (!enhancedMetrics[i].text || typeof enhancedMetrics[i].text !== 'string') {
@@ -512,46 +597,153 @@
             nextWord = enhancedMetrics[i+1].text.toLowerCase();
           }
           
-          // Rule: Articles should not be at the end of a line
-          if (frenchArticles.includes(currentWord)) {
+          // Rule 1: Remove colon on multiple lines
+          if (currentWord === ':') {
+            enhancedMetrics[i].lineBreaking = 'avoid';
+            enhancedMetrics[i].shouldRemoveIfAtLineEnd = true;
+          }
+          
+          // Rule 2: Don't separate names
+          // This is handled by the personNames rule in ruleEngine.js
+          
+          // Rule 3: Articles should not end a line
+          if (frenchRules.articles.includes(currentWord)) {
             enhancedMetrics[i].lineBreaking = 'avoid';
           }
           
-          // Rule: Prepositions are not followed by a line break
-          if (frenchPrepositions.includes(currentWord)) {
+          // Rule 4: Adjective with noun
+          // This is handled by the adjectiveNoun rule in ruleEngine.js
+          
+          // Rule 5: No line break after prepositions
+          if (frenchRules.prepositions.includes(currentWord)) {
             enhancedMetrics[i].lineBreaking = 'avoid';
           }
           
-          // Rule: Don't separate numeric value from percent symbol
+          // Rule 8: Units must stay with the number
           if (i < enhancedMetrics.length - 1 && 
-              /\d+/.test(currentWord) && 
-              nextWord === '%') {
+              (/\d+/.test(currentWord) || currentWord === '%') && 
+              (nextWord === '%' || /^(km|m|cm|mm|mo|ko|go|to|cl|ml|l|dl|kg|g|mg|h|min|s|ms|°|°c|°f)$/.test(nextWord))) {
             enhancedMetrics[i].lineBreaking = 'avoid';
-            // Also mark the percent symbol to avoid break
+            
+            // Also mark the unit/percent to avoid break
             if (i+1 < enhancedMetrics.length) {
               enhancedMetrics[i+1].lineBreaking = 'avoid';
             }
           }
           
-          // Rule: Check for Apple brands or services
-          // Safely build possible service name with null checks
-          let possibleServiceName = '';
-          try {
-            possibleServiceName = enhancedMetrics.slice(i, Math.min(i+3, enhancedMetrics.length))
-                                   .filter(m => m && m.text) // Filter out any undefined values
-                                   .map(m => m.text)
-                                   .join(' ')
-                                   .trim();
-          } catch (error) {
-            console.warn('Error creating service name:', error);
+          // Apple service names check
+          // More robust check for Apple service names - handle compound service names
+          for (const appleService of frenchRules.appleServices) {
+            const serviceLower = appleService.toLowerCase();
+            const serviceWords = serviceLower.split(' ');
+            
+            // Check if current word starts a service name
+            if (currentWord.toLowerCase() === serviceWords[0] && i + serviceWords.length <= enhancedMetrics.length) {
+              // Attempt to match the entire service name
+              let isFullMatch = true;
+              
+              // Check if following words match the service name pattern
+              for (let j = 1; j < serviceWords.length; j++) {
+                const nextWordIndex = i + j;
+                
+                // Skip spaces when matching
+                if (enhancedMetrics[nextWordIndex] && 
+                    enhancedMetrics[nextWordIndex].text && 
+                    enhancedMetrics[nextWordIndex].text.trim() === "") {
+                  continue;
+                }
+                
+                // Check if the word matches or contains the expected service word
+                if (!enhancedMetrics[nextWordIndex] || 
+                    !enhancedMetrics[nextWordIndex].text || 
+                    !enhancedMetrics[nextWordIndex].text.toLowerCase().includes(serviceWords[j])) {
+                  isFullMatch = false;
+                  break;
+                }
+              }
+              
+              // If we found a full match
+              if (isFullMatch) {
+                console.log(`Found Apple service match: "${serviceLower}" starting at position ${i}`);
+                
+                // Mark all words in the service name to avoid breaks, including spaces between them
+                // First mark the current word
+                enhancedMetrics[i].lineBreaking = 'avoid';
+                
+                // Then mark all words and spaces until the end of the service name
+                let wordsFound = 1;
+                let j = 1;
+                while (wordsFound < serviceWords.length && i + j < enhancedMetrics.length) {
+                  enhancedMetrics[i + j].lineBreaking = 'avoid';
+                  
+                  // Only count non-space segments as words
+                  if (enhancedMetrics[i + j].text && enhancedMetrics[i + j].text.trim() !== "") {
+                    wordsFound++;
+                  }
+                  
+                  j++;
+                }
+                
+                break; // Found a match, no need to check other services
+              }
+            }
           }
-                                   
-          if (possibleServiceName.includes('Apple Music') || 
-              possibleServiceName.includes('Apple TV+') ||
-              possibleServiceName.includes('Super Bowl')) {
-            enhancedMetrics[i].lineBreaking = 'avoid';
-            if (i+1 < enhancedMetrics.length) {
-              enhancedMetrics[i+1].lineBreaking = 'avoid';
+          
+          // Game names check - similar approach as Apple services for robustness
+          for (const gameName of frenchRules.appGameNames) {
+            const gameLower = gameName.toLowerCase();
+            const gameWords = gameLower.split(' ');
+            
+            // Check if current word starts a game name
+            if (currentWord.toLowerCase() === gameWords[0] && i + gameWords.length <= enhancedMetrics.length) {
+              // Attempt to match the entire game name
+              let isFullMatch = true;
+              
+              // Check if following words match the game name pattern
+              for (let j = 1; j < gameWords.length; j++) {
+                const nextWordIndex = i + j;
+                
+                // Skip spaces when matching
+                if (enhancedMetrics[nextWordIndex] && 
+                    enhancedMetrics[nextWordIndex].text && 
+                    enhancedMetrics[nextWordIndex].text.trim() === "") {
+                  continue;
+                }
+                
+                // Check if the word matches the expected game word
+                if (!enhancedMetrics[nextWordIndex] || 
+                    !enhancedMetrics[nextWordIndex].text || 
+                    !enhancedMetrics[nextWordIndex].text.toLowerCase().includes(gameWords[j])) {
+                  isFullMatch = false;
+                  break;
+                }
+              }
+              
+              // If we found a full match
+              if (isFullMatch) {
+                console.log(`Found game name match: "${gameLower}" starting at position ${i}`);
+                
+                // Mark all words in the game name to avoid breaks
+                enhancedMetrics[i].lineBreaking = 'avoid';
+                enhancedMetrics[i]._partOfGameName = gameName;
+                
+                // Then mark all words and spaces until the end of the game name
+                let wordsFound = 1;
+                let j = 1;
+                while (wordsFound < gameWords.length && i + j < enhancedMetrics.length) {
+                  enhancedMetrics[i + j].lineBreaking = 'avoid';
+                  enhancedMetrics[i + j]._partOfGameName = gameName;
+                  
+                  // Only count non-space segments as words
+                  if (enhancedMetrics[i + j].text && enhancedMetrics[i + j].text.trim() !== "") {
+                    wordsFound++;
+                  }
+                  
+                  j++;
+                }
+                
+                break; // Found a match, no need to check other games
+              }
             }
           }
         }
@@ -572,6 +764,17 @@
         const segmentText = segment.text || '';
         const isValidText = typeof segmentText === 'string';
         
+        // Ensure lineBreaking is properly set
+        if (typeof segment.lineBreaking === 'object') {
+          // Handle case where lineBreaking is incorrectly an object
+          if (segment.lineBreaking.lineBreaking) {
+            segment.lineBreaking = segment.lineBreaking.lineBreaking;
+          } else {
+            // Default to 'allow' if we can't determine
+            segment.lineBreaking = 'allow';
+          }
+        }
+        
         // Handle space visualization
         const isSpaceSegment = isValidText && /^\s+$/.test(segmentText);
         if (isSpaceSegment) {
@@ -591,6 +794,34 @@
           wordSpan.textContent = segmentText;
         }
         
+        // Special handling for French colon rules
+        if (isValidText && segmentText === ':' && segment._specialColon) {
+          wordSpan.style.color = '#FFC107'; // Amber color to highlight colon
+          wordSpan.style.position = 'relative';
+          
+          // Add visual indicator that colon may be removed if at end of line
+          if (segment.colonRule && segment.colonRule.removeAtLineEnd) {
+            const colonNote = document.createElement('span');
+            colonNote.style.position = 'absolute';
+            colonNote.style.bottom = '-15px';
+            colonNote.style.left = '0';
+            colonNote.style.fontSize = '10px';
+            colonNote.style.color = '#FFC107';
+            colonNote.textContent = '⚠ Removed at line end';
+            colonNote.style.width = '80px';
+            wordSpan.appendChild(colonNote);
+            
+            // Add more detailed information in the title
+            wordSpan.title = "French typography rule: When a colon is at the end of a line, " +
+                            "it should be removed, and the next line may be capitalized.";
+          }
+          
+          // Handle special title-subtitle pattern
+          if (segment.colonTransformation === "titleSubtitle") {
+            wordSpan.style.border = '1px dashed #FFC107';
+          }
+        }
+        
         // Add reason for line breaking rule in the title
         let reason = "";
         const locale = document.getElementById('opportunitiesLocaleSelect').value;
@@ -599,17 +830,25 @@
           // Try to determine reason based on text and locale
           if (locale === 'fr') {
             if (isValidText && ['le', 'la', 'les', 'un', 'une', 'des', 'l\''].includes(segmentText.toLowerCase())) {
-              reason = "French rule: Article should stay with following word";
+              reason = "FrenchRule.md: Article should stay with following word";
             } else if (isValidText && ['à', 'de', 'pour', 'par', 'en', 'dans'].includes(segmentText.toLowerCase())) {
-              reason = "French rule: Preposition should stay with following word";
+              reason = "FrenchRule.md: No line break after prepositions";
             } else if (isValidText && segmentText === ':') {
-              reason = "French rule: Colon shouldn't be at line end or start";
-            } else if (isValidText && /Apple|Music|TV\+|Super Bowl/.test(segmentText)) {
-              reason = "French rule: Brand name should stay together";
+              reason = "FrenchRule.md: Remove colon on multiple lines";
+            } else if (isValidText && /Apple|Music|TV\+|Super Bowl|Arcade|One|Fitness\+/.test(segmentText)) {
+              reason = "FrenchRule.md: Apple service names on one line";
+              // Add visual indication that this is part of an Apple service name
+              wordSpan.style.borderBottom = '1px solid #64b5f6';
+            } else if (isValidText && /Monopoly|Go|Candy|Crush/.test(segmentText)) {
+              reason = "FrenchRule.md: Game and app names stay on one line";
             } else if (isValidText && segmentText === '%') {
-              reason = "French rule: Percent symbol should stay with preceding number";
+              reason = "FrenchRule.md: Units must stay with the number";
+            } else if (isValidText && /^(km|m|cm|mm|mo|ko|go|to|cl|ml|l|dl|kg|g|mg|h|min|s|ms|°|°c|°f)$/.test(segmentText.toLowerCase())) {
+              reason = "FrenchRule.md: Units must stay with the number";
+            } else if (isValidText && /^(M\.|Mme|Mlle|Dr|Prof)$/.test(segmentText)) {
+              reason = "FrenchRule.md: Don't separate names";
             } else {
-              reason = "French rule: Avoid break here";
+              reason = "FrenchRule.md rule: Avoid break here";
             }
           } else {
             reason = "Rule: Avoid break here";
@@ -625,6 +864,31 @@
           wordSpan.classList.add('allow-break');
         } else {
           wordSpan.classList.add('avoid-break');
+          
+          // Special styling for Apple service name parts
+          if (segment._partOfAppleService || 
+              (isValidText && /Apple|Music|Super|Bowl|Arcade|One|Fitness\+|TV\+|News\+/.test(segmentText))) {
+            wordSpan.style.borderBottom = '2px solid #64b5f6';
+            wordSpan.style.backgroundColor = 'rgba(100, 181, 246, 0.1)';
+            
+            // Add tooltip with specific Apple service information
+            if (segment._partOfAppleService) {
+              wordSpan.title = `Part of Apple service: ${segment._partOfAppleService}`;
+            } else {
+              wordSpan.title = "FrenchRule.md: Apple service names on one line";
+            }
+          }
+          
+          // Special styling for game name parts
+          if (segment._partOfGameName) {
+            wordSpan.style.borderBottom = '2px solid #9ccc65';
+            wordSpan.style.backgroundColor = 'rgba(156, 204, 101, 0.1)';
+            wordSpan.title = `FrenchRule.md: Game name "${segment._partOfGameName}" must stay on one line`;
+          } else if (isValidText && /Monopoly|Go|Candy|Crush|Clash|Royale|Temple|Run/.test(segmentText)) {
+            wordSpan.style.borderBottom = '2px solid #9ccc65';
+            wordSpan.style.backgroundColor = 'rgba(156, 204, 101, 0.1)';
+            wordSpan.title = "FrenchRule.md: Game names stay on one line";
+          }
         }
         
         // Add the segment to the container
@@ -691,14 +955,7 @@
       // Add language-specific explanation
       if (selectedLocale === 'fr') {
         explanationHTML += `
-          <h4 style="color: #80cbc4; margin-top: 15px;">French (FR) Specific Rules:</h4>
-          <ul style="color: #f8f8f8; margin-top: 5px;">
-            <li>Articles (le, la, les, un, une, l') stay with the following word</li>
-            <li>Prepositions (à, de, pour, sur, etc.) stay with the following word</li>
-            <li>Brand names (Apple Music, Apple TV+) remain on a single line</li>
-            <li>Colons (:) should not be at the end of a line</li>
-            <li>Units of measurement and percent symbols stay with preceding numbers</li>
-          </ul>
+          <h4 style="color: #80cbc4; margin-top: 15px;">French (FR) Specific Rules</h4>
         `;
       } else if (selectedLocale === 'de') {
         explanationHTML += `
@@ -728,7 +985,7 @@
       
       explanationHTML += `
         <p style="color: #f8f8f8; margin-top: 10px;">
-          These rules are based on linguistic patterns of the selected language (${selectedLocale.toUpperCase()}).
+          &nbsp;
         </p>
       `;
       
@@ -796,12 +1053,24 @@
       const locale = localeSelect.value;
       
       try {
+        console.log(`Processing text: "${text}" with locale: ${locale}`);
+        
         // Process the text for line breaking
         const wordMetrics = await processTextForLineBreaking(text, locale);
         
+        console.log("Word metrics returned:", wordMetrics);
+        
         // Validate the word metrics before visualization
-        if (!wordMetrics || !Array.isArray(wordMetrics) || wordMetrics.length === 0) {
-          throw new Error('No valid word metrics returned from processing');
+        if (!wordMetrics) {
+          throw new Error('No word metrics returned from processing');
+        }
+        
+        if (!Array.isArray(wordMetrics)) {
+          throw new Error('Word metrics is not an array');
+        }
+        
+        if (wordMetrics.length === 0) {
+          throw new Error('Word metrics array is empty');
         }
         
         // Ensure each word metric has necessary properties
@@ -822,28 +1091,235 @@
             
             return true;
           })
-          .map(metric => ({
-            text: typeof metric.text === 'string' ? metric.text : '',
-            lineBreaking: metric.lineBreaking || 'allow',
-            separator: typeof metric.separator === 'string' ? metric.separator : ' ',
-            boundary: metric.boundary || { start: 0, end: 0 },
-            separatorCharCount: metric.separatorCharCount || 0
-          }));
+          .map(metric => {
+            // Fix the issue with lineBreaking property containing an object instead of a string
+            let lineBreakingValue = 'allow';
+            
+            // Handle case when lineBreaking is an object with its own lineBreaking property
+            if (metric.lineBreaking && typeof metric.lineBreaking === 'object' && metric.lineBreaking.lineBreaking) {
+              lineBreakingValue = metric.lineBreaking.lineBreaking;
+            } 
+            // Handle normal case where lineBreaking is a string
+            else if (typeof metric.lineBreaking === 'string') {
+              lineBreakingValue = metric.lineBreaking;
+            }
+            
+            // Special case for numeric values followed by percent symbols
+            if (metric.text && /^\d+$/.test(metric.text)) {
+              // Check if the next token is a percent symbol
+              const nextIndex = wordMetrics.findIndex(m => 
+                m && m.text === '%' && 
+                m.index === (metric.index + metric.text.length)
+              );
+              
+              if (nextIndex !== -1) {
+                lineBreakingValue = 'avoid';
+              }
+            }
+            
+            return {
+              text: typeof metric.text === 'string' ? metric.text : '',
+              lineBreaking: lineBreakingValue,
+              separator: typeof metric.separator === 'string' ? metric.separator : ' ',
+              boundary: metric.boundary || { start: 0, end: 0 },
+              separatorCharCount: metric.separatorCharCount || 0
+            };
+          });
         
         // Display the line break opportunities with validated metrics
         displayLineBreakOpportunities(validatedMetrics);
       } catch (error) {
         console.error('Error processing text:', error);
+        
+        // Get more debug information
+        let debugInfo = '';
+        try {
+          debugInfo = `
+            Text length: ${text.length}
+            Locale: ${locale}
+            Special characters: ${text.match(/[%°€$]/g)?.join(', ') || 'none'}
+            Time: ${new Date().toISOString()}
+          `;
+        } catch (e) {
+          debugInfo = 'Unable to collect debug information: ' + e.message;
+        }
+        
         opportunitiesOutput.innerHTML = `<div style="padding: 15px; color: #ff5252;">
           <p>Error: ${error.message}</p>
           <p>Please try again with a different text or locale.</p>
           <details>
             <summary>Technical details</summary>
             <pre style="white-space: pre-wrap;">${error.stack || 'No stack trace available'}</pre>
+            <hr/>
+            <h4>Debug Information:</h4>
+            <pre style="white-space: pre-wrap;">${debugInfo}</pre>
           </details>
         </div>`;
       }
     };
+
+    // Debug button for testing percent symbol handling
+    const testPercentSymbolsBtn = document.getElementById('testPercentSymbolsBtn');
+    if (testPercentSymbolsBtn) {
+      testPercentSymbolsBtn.onclick = async () => {
+        opportunitiesOutput.innerHTML = '<div style="padding: 15px; color: #03DAC5;">Running percent symbol tests, check console...</div>';
+        
+        try {
+          // Run the tests and capture console output
+          const originalConsoleLog = console.log;
+          let testResults = [];
+          
+          console.log = function() {
+            testResults.push(Array.from(arguments).join(' '));
+            originalConsoleLog.apply(console, arguments);
+          };
+          
+          // Run general tests
+          await testPercentSymbolHandling();
+          
+          // Run specific test for the French example
+          console.log("\n\n==========================");
+          console.log("DETAILED FRENCH TEXT TEST");
+          console.log("==========================");
+          await testSpecificFrenchPercent();
+          
+          // Also test with the current input text if it contains a percent sign
+          const currentText = opportunitiesText.value.trim();
+          if (currentText && currentText.includes('%')) {
+            console.log("\n\n===========================");
+            console.log("TESTING CURRENT INPUT TEXT");
+            console.log("===========================");
+            await testSpecificFrenchPercent(currentText);
+          }
+          
+          // Restore original console
+          console.log = originalConsoleLog;
+          
+          // Display results in the UI
+          opportunitiesOutput.innerHTML = `
+            <div style="padding: 15px;">
+              <h3 style="color: #4ade80;">Percent Symbol Tests Completed</h3>
+              <div style="margin-top: 10px; color: #f8f8f8;">See console for full logs</div>
+              
+              <details open>
+                <summary style="color: #80cbc4; cursor: pointer; margin: 10px 0;">Test Results</summary>
+                <pre style="white-space: pre-wrap; background: #2d2d2d; padding: 10px; border-radius: 5px; max-height: 500px; overflow: auto; font-size: 0.9em;">${testResults.join('\n')}</pre>
+              </details>
+            </div>
+          `;
+        } catch (error) {
+          console.error('Error running percent symbol tests:', error);
+          opportunitiesOutput.innerHTML = `<div style="padding: 15px; color: #ff5252;">
+            <p>Error testing percent symbols: ${error.message}</p>
+            <pre style="white-space: pre-wrap;">${error.stack || 'No stack trace available'}</pre>
+          </div>`;
+        }
+      };
+    }
+
+    // Debug button for testing Apple service and game name handling
+    const testAppleServicesBtn = document.getElementById('testAppleServicesBtn');
+    if (testAppleServicesBtn) {
+      testAppleServicesBtn.onclick = async () => {
+        opportunitiesOutput.innerHTML = '<div style="padding: 15px; color: #03DAC5;">Running named entity tests, check console...</div>';
+        
+        try {
+          // Run the tests and capture console output
+          const originalConsoleLog = console.log;
+          let testResults = [];
+          
+          console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            testResults.push(args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg).join(' '));
+          };
+          
+          // Import the test functions dynamically
+          const module = await import('./src/localization/segmenter.js');
+          
+          // Test Apple Service names
+          const apple1 = await module.testAppleServiceHandling("Apple One : abonnement premium.");
+          const apple2 = await module.testAppleServiceHandling("Apple Music Super Bowl : la performance.");
+          const apple3 = await module.testAppleServiceHandling("Profitez de Apple Arcade pendant un mois gratuit.");
+          
+          // Test Game names
+          const game1 = await module.testGameNameHandling("Jouez à Monopoly Go maintenant.");
+          const game2 = await module.testGameNameHandling("Candy Crush est très populaire.");
+          const game3 = await module.testGameNameHandling("Temple Run est un jeu mobile.");
+          
+          // Restore original console
+          console.log = originalConsoleLog;
+          
+          // Display the test results in the UI
+          opportunitiesOutput.innerHTML = `
+            <div style="padding: 15px; color: #03DAC5;">
+              <h3>French Named Entity Tests</h3>
+              <div style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;">
+                <pre style="color: #b3e5fc; font-size: 0.8em;">${testResults.join('\n')}</pre>
+              </div>
+              
+              <h4>Apple Service Name Test Results:</h4>
+              <table style="border-collapse: collapse; width: 100%; color: #e3f2fd;">
+                <tr style="border-bottom: 1px solid #424242;">
+                  <th style="text-align: left; padding: 8px;">Test Case</th>
+                  <th style="text-align: center; padding: 8px;">Total Segments</th>
+                  <th style="text-align: center; padding: 8px;">Avoid Break</th>
+                  <th style="text-align: center; padding: 8px;">Allow Break</th>
+                </tr>
+                <tr>
+                  <td style="padding: 8px;">Apple One : abonnement premium.</td>
+                  <td style="text-align: center; padding: 8px;">${apple1?.stats?.totalSegments || 'N/A'}</td>
+                  <td style="text-align: center; padding: 8px;">${apple1?.stats?.avoidBreakCount || 'N/A'}</td>
+                  <td style="text-align: center; padding: 8px;">${apple1?.stats?.allowBreakCount || 'N/A'}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px;">Apple Music Super Bowl : la performance.</td>
+                  <td style="text-align: center; padding: 8px;">${apple2?.stats?.totalSegments || 'N/A'}</td>
+                  <td style="text-align: center; padding: 8px;">${apple2?.stats?.avoidBreakCount || 'N/A'}</td>
+                  <td style="text-align: center; padding: 8px;">${apple2?.stats?.allowBreakCount || 'N/A'}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px;">Profitez de Apple Arcade pendant un mois gratuit.</td>
+                  <td style="text-align: center; padding: 8px;">${apple3?.stats?.totalSegments || 'N/A'}</td>
+                  <td style="text-align: center; padding: 8px;">${apple3?.stats?.avoidBreakCount || 'N/A'}</td>
+                  <td style="text-align: center; padding: 8px;">${apple3?.stats?.allowBreakCount || 'N/A'}</td>
+                </tr>
+              </table>
+              
+              <h4>Game Name Test Results:</h4>
+              <table style="border-collapse: collapse; width: 100%; color: #e3f2fd; margin-top: 20px;">
+                <tr style="border-bottom: 1px solid #424242;">
+                  <th style="text-align: left; padding: 8px;">Test Case</th>
+                  <th style="text-align: center; padding: 8px;">Total Segments</th>
+                  <th style="text-align: center; padding: 8px;">Avoid Break</th>
+                  <th style="text-align: center; padding: 8px;">Allow Break</th>
+                </tr>
+                <tr>
+                  <td style="padding: 8px;">Jouez à Monopoly Go maintenant.</td>
+                  <td style="text-align: center; padding: 8px;">${game1?.stats?.totalSegments || 'N/A'}</td>
+                  <td style="text-align: center; padding: 8px;">${game1?.stats?.avoidBreakCount || 'N/A'}</td>
+                  <td style="text-align: center; padding: 8px;">${game1?.stats?.allowBreakCount || 'N/A'}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px;">Candy Crush est très populaire.</td>
+                  <td style="text-align: center; padding: 8px;">${game2?.stats?.totalSegments || 'N/A'}</td>
+                  <td style="text-align: center; padding: 8px;">${game2?.stats?.avoidBreakCount || 'N/A'}</td>
+                  <td style="text-align: center; padding: 8px;">${game2?.stats?.allowBreakCount || 'N/A'}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px;">Temple Run est un jeu mobile.</td>
+                  <td style="text-align: center; padding: 8px;">${game3?.stats?.totalSegments || 'N/A'}</td>
+                  <td style="text-align: center; padding: 8px;">${game3?.stats?.avoidBreakCount || 'N/A'}</td>
+                  <td style="text-align: center; padding: 8px;">${game3?.stats?.allowBreakCount || 'N/A'}</td>
+                </tr>
+              </table>
+            </div>
+          `;
+        } catch (error) {
+          console.error('Error running entity tests:', error);
+          opportunitiesOutput.innerHTML = `<div style="padding: 15px; color: #ff5252;">Error running tests: ${error.message}</div>`;
+        }
+      };
+    }
 
     go.click();
   </script>
