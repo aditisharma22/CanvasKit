@@ -83,7 +83,7 @@ export async function segmentText(text, locale = "en") {
     console.warn(`Segmentation failed for ${locale}, falling back to improved default`, err);
     
     // Enhanced fallback segmentation that handles special characters and preserves spaces
-    const segments = [];
+    let segments = [];
     let processedPositions = new Map();
     
     // First pass: Use a regex that properly handles all character types
@@ -125,6 +125,7 @@ export async function segmentText(text, locale = "en") {
     }
     
     // Process consecutive special characters
+    // Use let instead of const for segments so we can reassign
     segments = handleConsecutiveSpecialChars(segments, text);
     
     return segments;
