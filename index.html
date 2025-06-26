@@ -32,7 +32,7 @@
     }
     
     .container {
-      max-width: 1200px;
+      width: 98%;
       margin: 0 auto;
       padding: 0 20px;
     }
@@ -70,8 +70,9 @@
 
     #wrapper { 
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       width: 100%;
+      gap: 20px;
     }
     
     /* Tab styling */
@@ -157,9 +158,8 @@
     .break-tree {
       background: #1e1e1e !important;
       white-space: pre;
-      max-width: 800px;
-      min-width: 460px;
-      margin: 20px;
+      width: 32%;
+      margin: 20px 0;
       padding: 20px;
       overflow: auto;
       resize: both;
@@ -167,8 +167,7 @@
       font-family: 'Consolas', 'Monaco', monospace;
       font-size: 13px;
       line-height: 1.4;
-      max-height: 800px;
-      min-height: 400px;
+      height: calc(100vh - 150px);
       border: 1px solid #333 !important;
       box-sizing: border-box;
     }
@@ -348,7 +347,7 @@
     
     /* Full width layout styles */
     .controls-section {
-      width: 100%;
+      width: 66%;
       margin-bottom: 20px;
     }
     
@@ -400,6 +399,16 @@
     #opportunitiesWrapper {
       display: flex;
       flex-direction: column;
+      width: 100%;
+    }
+    
+    /* Make sure the line opportunities tab uses a different layout */
+    #lineBreakOpportunities #wrapper {
+      flex-direction: column;
+      width: 100%;
+    }
+    
+    #lineBreakOpportunities .controls-section {
       width: 100%;
     }
     
