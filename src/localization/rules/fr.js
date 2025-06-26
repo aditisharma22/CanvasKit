@@ -55,8 +55,8 @@ export default {
     "Apple TV+",
     "Apple News+",
     "Fitness+", 
-    "Apple Music Super Bowl",
-    "Apple One Super Bowl"
+    "Apple Music",
+    "Apple One"
   ],
   
   // Game and app names stay on one line
@@ -64,7 +64,11 @@ export default {
     "Monopoly Go",
     "Candy Crush",
     "Clash Royale",
-    "Temple Run"
+    "Temple Run",
+    "Call of Duty",
+    "Minecraft",
+    "Fortnite",
+    "Among Us"
   ],
   
   // Units must stay with the number
