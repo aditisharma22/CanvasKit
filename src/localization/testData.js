@@ -7,6 +7,20 @@ export const testCases = [
   { locale: "en", text: "This is a well-known issue with browser-specific behavior." },
   { locale: "de", text: "Die Entscheidung war eine wohlüberlegte, aber nicht leicht-zu-treffende." },
   { locale: "fr", text: "C'est une situation socio-économique bien connue." },
+  
+  // English line break rule test cases
+  { locale: "en", text: "The quick brown fox jumps over the lazy dog." },
+  { locale: "en", text: "Please visit Apple Music for new releases today." },
+  { locale: "en", text: "Download the latest version of iOS from the Settings app." },
+  { locale: "en", text: "You can play Candy Crush Saga on your mobile device." },
+  { locale: "en", text: "Mr. Smith went to the store for some T-shirts." },
+  { locale: "en", text: "The product costs $19.99 and is 50% off today." },
+  { locale: "en", text: "The temperature is 72°F in New York today." },
+  { locale: "en", text: "The project requires a real-time monitoring system." },
+  { locale: "en", text: "She is an expert in user-friendly interface design." },
+  { locale: "en", text: "This is a state-of-the-art facility for research." },
+  { locale: "en", text: "The article discusses the socio-economic impact of climate change." },
+  { locale: "en", text: "Please refer to page 42 for more information." },
 
   // Spanish line break rule test cases
   { locale: "es", text: "Evita dividir la palabra reproducción incorrectamente." },

@@ -281,7 +281,17 @@ class LocaleConfigManager {
 
       case 'articles':
       case 'prepositions':
-        const ruleList = this.getRuleList(config, rule === 'articles' ? 'functionWords' : 'prepositions');
+      case 'functionWords':
+        // Handle all types of word lists
+        let listName;
+        if (rule === 'articles') {
+          listName = config.articles && config.articles.length > 0 ? 'articles' : 'functionWords';
+        } else if (rule === 'functionWords') {
+          listName = 'functionWords';
+        } else {
+          listName = 'prepositions';
+        }
+        const ruleList = this.getRuleList(config, listName);
         const checkWord = context === 'before' ? next : current;
         return checkWord && this.matchesList(checkWord.text, ruleList);
 

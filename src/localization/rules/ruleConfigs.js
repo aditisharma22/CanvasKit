@@ -5,6 +5,7 @@
 
 // Import language-specific rule configurations
 import deRules from "./de.js";  // German rules
+import enRules from "./en.js";  // English rules
 import esRules from "./es.js";  // Spanish rules
 import frRules from "./fr.js";  // French rules
 import jaRules from "./ja.js";  // Japanese rules
@@ -15,6 +16,7 @@ import jaRules from "./ja.js";  // Japanese rules
  */
 export default {
   de: deRules,  // German
+  en: enRules,  // English
   es: esRules,  // Spanish
   fr: frRules,  // French
   ja: jaRules,  // Japanese
