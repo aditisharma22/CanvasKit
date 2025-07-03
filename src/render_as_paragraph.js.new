@@ -326,6 +326,7 @@ const DEFAULT_CONFIG = {
 
 /**
  * Render text as paragraph with optimized line breaking
+ * Single column layout for candidate blocks
  * 
  * @param {string} text - Text to render
  * @param {number} targetWidth - Target width for rendering in pixels

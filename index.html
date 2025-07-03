@@ -770,12 +770,8 @@
           
           <div class="results-section">
             <div class="layout-results">
-              <h3>Best Fit</h3>
-              <div id="layoutFit"></div>
-            </div>
-            <div class="layout-results">
-              <h3>Most Uniform</h3>
-              <div id="layoutUniform"></div>
+              <h3>Candidate Layouts</h3>
+              <div id="layoutContainer"></div>
             </div>
           </div>
         </div>
@@ -914,70 +910,53 @@
       const localeSelect = document.getElementById('localeSelect');
       const locale = localeSelect.value;
 
-      // Clear any existing layouts first
-      document.getElementById("layoutFit").innerHTML = "";
-      document.getElementById("layoutUniform").innerHTML = "";
+      // Clear any existing layouts
+      document.getElementById("layoutContainer").innerHTML = "";
 
-      // Render the layouts with async functions
-      const renderFit = async () => {
+      // Render the single column layout with async function
+      const renderLayout = async () => {
         await render(text, 500, {
           fontSize: 40,
           candidateCount: 5,
           balanceFactor,
           minFillRatio,
-          mode: "fit",
+          mode: "fit", // Using "fit" as the default mode
           locale: locale, // Include the locale
-          containerId: "layoutFit"
-        });
-      };
-      
-      const renderUniform = async () => {
-        await render(text, 500, {
-          fontSize: 40,
-          candidateCount: 5,
-          balanceFactor,
-          minFillRatio,
-          mode: "uniform",
-          locale: locale, // Include the locale
-          containerId: "layoutUniform"
+          containerId: "layoutContainer"
         });
       };
 
-      // Execute both renders and then add additional blocks
-      Promise.all([renderFit(), renderUniform()]).then(() => {
-        console.log("Both layouts rendered, now ensuring correct candidate count");
+      // Execute the render and then ensure correct candidate count
+      renderLayout().then(() => {
+        console.log("Layout rendered, now ensuring correct candidate count");
         // Wait a bit longer to make sure CanvasKit has finished rendering
         setTimeout(() => {
-          addAdditionalCandidateBlocks();
+          ensureCandidateCount(document.getElementById("layoutContainer"), "layout", 5);
         }, 1000);
       });
     };
     
-    // Function to add additional candidate blocks to reach the required number
+    // This function is no longer needed as we're using ensureCandidateCount directly
+    // Keeping it for backwards compatibility but with simplified implementation
     function addAdditionalCandidateBlocks() {
-      const layoutFit = document.getElementById("layoutFit");
-      const layoutUniform = document.getElementById("layoutUniform");
+      const layoutContainer = document.getElementById("layoutContainer");
       
-      // Check existing candidate counts
-      const fitCount = layoutFit ? layoutFit.querySelectorAll(".candidate-block").length : 0;
-      const uniformCount = layoutUniform ? layoutUniform.querySelectorAll(".candidate-block").length : 0;
+      // Check existing candidate count
+      const candidateCount = layoutContainer ? layoutContainer.querySelectorAll(".candidate-block").length : 0;
       
-      console.log(`Current candidate counts - Best Fit: ${fitCount}, Most Uniform: ${uniformCount}`);
+      console.log(`Current candidate count: ${candidateCount}`);
       
-      // Extract scores from existing candidates for more accurate additional blocks
-      const fitScores = extractScoresFromCandidates(layoutFit);
-      const uniformScores = extractScoresFromCandidates(layoutUniform);
+      // Extract scores from existing candidates
+      const scores = extractScoresFromCandidates(layoutContainer);
       
-      console.log("Extracted scores:", {fit: fitScores, uniform: uniformScores});
+      console.log("Extracted scores:", scores);
       
-      // Add additional candidates to each layout if needed
-      ensureCandidateCount(layoutFit, "fit", 5);
-      ensureCandidateCount(layoutUniform, "uniform", 5);
+      // Add additional candidates if needed
+      ensureCandidateCount(layoutContainer, "layout", 5);
       
-      // Log final counts
-      const finalFitCount = layoutFit ? layoutFit.querySelectorAll(".candidate-block").length : 0;
-      const finalUniformCount = layoutUniform ? layoutUniform.querySelectorAll(".candidate-block").length : 0;
-      console.log(`Final candidate counts - Best Fit: ${finalFitCount}, Most Uniform: ${finalUniformCount}`);
+      // Log final count
+      const finalCount = layoutContainer ? layoutContainer.querySelectorAll(".candidate-block").length : 0;
+      console.log(`Final candidate count: ${finalCount}`);
     }
     
     // Helper to extract scores from existing candidates for better score distribution
