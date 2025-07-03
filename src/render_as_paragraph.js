@@ -109,7 +109,8 @@ export async function render(text, targetWidth, options = {}) {
       balanceFactor,
       minFillRatio,
       mode,
-      locale
+      locale,
+      { enableLocalization: options.enableLocalization !== false } // Pass localization toggle state
     );
 
     // Enhance with localization if needed

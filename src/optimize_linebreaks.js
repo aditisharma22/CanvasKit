@@ -17,6 +17,8 @@
  * @param {number} minFillRatio - Minimum fill ratio for lines (default: 0.5)
  * @param {string} mode - Layout mode: 'fit' or 'fill' (default: 'fit')
  * @param {string} locale - The locale to use for line breaking rules (default: 'en')
+ * @param {Object} options - Additional options
+ * @param {boolean} options.enableLocalization - Whether to apply localization rules (default: true)
  * @returns {Array<Object>} - Array of candidate line breaking solutions
  */
 export function computeBreaks(
@@ -29,7 +31,8 @@ export function computeBreaks(
   balanceFactor = 0.5,
   minFillRatio = 0.5,
   mode = 'fit',
-  locale = 'en'
+  locale = 'en',
+  options = { enableLocalization: true }
 ) {
   // Validate inputs and ensure consistency
   if (words.length !== wordWidths.length) {

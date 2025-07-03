@@ -13,13 +13,18 @@ if (typeof window !== 'undefined') {
  * 
  * @param {Array} wordMetrics - Original word metrics from CanvasKit
  * @param {string} locale - The ISO language code for the text (e.g., 'en', 'ja', 'de')
+ * @param {Object} options - Additional options
+ * @param {boolean} options.enableLocalization - Whether to apply localization rules
  * @returns {Array} - Enhanced word metrics with locale-specific line-breaking constraints
  */
-export async function enhanceWordMetricsWithLocalization(wordMetrics, locale) {
-  // Skip localization processing if not needed
-  if (!localeConfigManager.needsLocalization(locale)) {
+export async function enhanceWordMetricsWithLocalization(wordMetrics, locale, options = { enableLocalization: true }) {
+  // Skip localization processing if explicitly disabled or not needed
+  if (options.enableLocalization === false || !localeConfigManager.needsLocalization(locale)) {
+    console.log(`Skipping localization enhancement: ${options.enableLocalization === false ? 'toggle disabled' : 'locale does not need processing'}`);
     return wordMetrics;
   }
+  
+  console.log(`Enhancing word metrics with localization rules for locale: ${locale}`);
   
   // Convert word metrics to a simple text string for processing
   const text = wordMetrics.map(w => w.text).join(' ');
@@ -51,10 +56,19 @@ export async function enhanceWordMetricsWithLocalization(wordMetrics, locale) {
  * @param {Array} candidates - Line breaking candidates from optimization algorithm
  * @param {Array} words - Original words array
  * @param {string} locale - ISO language code (e.g., 'en', 'ja', 'de')
+ * @param {Object} options - Additional options
+ * @param {boolean} options.enableLocalization - Whether to apply localization rules
  * @returns {Array} - Filtered candidates that respect locale-specific rules
  */
-export function filterCandidatesByLocalizationRules(candidates, words, locale) {
+export function filterCandidatesByLocalizationRules(candidates, words, locale, options = { enableLocalization: true }) {
+  // Skip filtering if localization is disabled
+  if (options.enableLocalization === false) {
+    console.log('Localization rules disabled - skipping candidate filtering');
+    return candidates;
+  }
+  
   // Use universal rule processor for dynamic filtering
+  console.log(`Applying localization filtering for locale: ${locale}`);
   return universalRuleProcessor.filterCandidates(candidates, words, locale);
 }
 
@@ -82,25 +96,44 @@ export function createLocalizedLineBreakOptimizer(originalOptimizer) {
    * @param {number} minFillRatio - Minimum fill ratio (0-1)
    * @param {string} mode - Optimization mode ('fit' or 'uniform')
    * @param {string} locale - ISO language code (defaults to 'en')
+   * @param {Object} options - Additional options
+   * @param {boolean} options.enableLocalization - Whether to apply localization rules
    * @returns {Array} - Optimized line breaking candidates for the specified locale
    */
   return async function(words, wordWidths, spaceWidth, targetWidth, 
                         candidateCount, debugElement, balanceFactor, 
-                        minFillRatio, mode, locale = DEFAULT_LOCALE) {
+                        minFillRatio, mode, locale = DEFAULT_LOCALE, 
+                        options = { enableLocalization: true }) {
+    
+    // Check if localization is explicitly disabled
+    const isLocalizationEnabled = options.enableLocalization !== false;
+    
+    console.log(`Line break optimization: localization ${isLocalizationEnabled ? 'ENABLED' : 'DISABLED'}`);
     
     // First, get candidates from the original optimizer
+    // Pass the localization toggle state to ensure the core algorithm knows whether to apply rules
     const candidates = originalOptimizer(
       words, wordWidths, spaceWidth, targetWidth, 
       candidateCount, debugElement, balanceFactor, 
-      minFillRatio, mode
+      minFillRatio, mode,
+      locale,
+      { enableLocalization: isLocalizationEnabled }
     );
     
-    // Apply localization filtering for non-English locales
-    if (locale && locale !== DEFAULT_LOCALE) {
-      return filterCandidatesByLocalizationRules(candidates, words, locale);
+    // Apply localization filtering for non-English locales if enabled
+    if (isLocalizationEnabled && locale && locale !== DEFAULT_LOCALE) {
+      console.log(`Applying localization rules for ${locale}`);
+      // Pass the toggle state to the filter function as well
+      return filterCandidatesByLocalizationRules(candidates, words, locale, { enableLocalization: true });
     }
     
-    // Return unfiltered candidates for English or default locale
+    // If localization is disabled or locale is English, return unfiltered candidates
+    if (!isLocalizationEnabled) {
+      console.log(`Localization rules disabled - using standard line breaking`);
+    } else if (locale === DEFAULT_LOCALE) {
+      console.log(`Using English locale - no special rules applied`);
+    }
+    
     return candidates;
   };
 }

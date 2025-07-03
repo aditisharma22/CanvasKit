@@ -41,7 +41,7 @@ function formatCandidateJson(candidate, words, locale) {
         fillPercentage: Math.round((candidate.lineWidths[i] / targetWidth) * 100) + "%",
         hasBreakAfter: candidate.breaks.includes(i),
         isProtectedBreak: candidate.breaks.includes(i) && 
-                         isProtectedBreak(words, candidate.breaks[i])
+                         isProtectedBreak(words, candidate.breaks[i], { enableLocalization: options?.enableLocalization })
       };
     }),
     breaks: candidate.breaks,
@@ -128,9 +128,16 @@ const ALL_PROTECTED_WORDS = new Set([
  * 
  * @param {string[]} words - Array of words in text
  * @param {number} index - Break position to evaluate
+ * @param {Object} options - Additional options
+ * @param {boolean} options.enableLocalization - Whether to apply localization rules
  * @returns {boolean} Whether the break is at a protected position
  */
-function isProtectedBreak(words, index) {
+function isProtectedBreak(words, index, options = { enableLocalization: true }) {
+  // Skip protected break detection if localization is disabled
+  if (options.enableLocalization === false) {
+    return false;
+  }
+  
   // Invalid break position
   if (index <= 0 || index >= words.length) {
     console.log(`Invalid break position: ${index}, words length: ${words.length}`);
@@ -394,7 +401,8 @@ export async function render(text, targetWidth, userOptions = {}) {
     options.balanceFactor,
     options.minFillRatio,
     options.mode,
-    options.locale // Pass the locale for localization-aware line breaking
+    options.locale, // Pass the locale for localization-aware line breaking
+    { enableLocalization: options.enableLocalization !== false } // Pass localization toggle state
   );
 
   // Calculate score range for relative scoring display
@@ -705,7 +713,7 @@ export async function render(text, targetWidth, userOptions = {}) {
         }
         // If the words are consecutive, check if this is a protected break
         else if (firstWordNextLineIndex === lastWordIndex + 1 && 
-                isProtectedBreak(words, firstWordNextLineIndex)) {
+                isProtectedBreak(words, firstWordNextLineIndex, { enableLocalization: options?.enableLocalization })) {
           protectedBreakCount++;
           console.log(`Detected protected break between lines ${i} and ${i+1}: "${lastWordOfLine}" and "${firstWordOfNextLine}"`);
         }
@@ -972,7 +980,7 @@ export async function render(text, targetWidth, userOptions = {}) {
         }
         
         // Store violation info if this is a protected break
-        if ((isConsecutiveOrNearby && isProtectedBreak(words, firstWordNextLineIndex)) || 
+        if ((isConsecutiveOrNearby && isProtectedBreak(words, firstWordNextLineIndex, { enableLocalization: options?.enableLocalization })) || 
             ((lastWordOfLine.toLowerCase() === "apple" && 
              ["arcade", "one", "music", "tv+", "news+", "books", "pay", "watch"].includes(firstWordOfNextLine.toLowerCase())) ||
              (lastWordOfLine.toLowerCase() === "super" && firstWordOfNextLine.toLowerCase() === "bowl") ||

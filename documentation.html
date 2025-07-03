@@ -252,6 +252,7 @@
         <li>Adjust the <strong>Balance Factor</strong> slider to control the trade-off between line length uniformity and optimal break positions</li>
         <li>Set the <strong>Required Line Width %</strong> to determine the minimum fill ratio for each line</li>
         <li>Select a <strong>Locale</strong> to apply language-specific rules</li>
+        <li>Toggle <strong>Enable Localization Rules</strong> to turn language-specific line breaking rules on or off</li>
         <li>Click <strong>Compute Breaks</strong> to see the results</li>
       </ol>
       <p>
@@ -318,7 +319,9 @@
       <h3>Integration with CanvasKit</h3>
       <p>
         TextFit+ extends CanvasKit's capabilities by adding a localization layer that applies
-        language-specific rules before the core line-breaking algorithm runs.
+        language-specific rules before the core line-breaking algorithm runs. The localization
+        rules can be toggled on or off using the UI switch, allowing for comparison between
+        standard line breaking and language-specific optimized line breaking.
       </p>
       
       <h3>Code Usage Example</h3>
@@ -327,7 +330,8 @@
 // Render text with locale-specific line breaking
 render('これは改行ポイントを見つけるためのテストです。', 400, {
   fontSize: 36,
-  locale: 'ja'  // Specify the locale
+  locale: 'ja',  // Specify the locale
+  enableLocalization: true  // Enable or disable localization rules
 });
 
 // Using just the localization module
