@@ -82,6 +82,11 @@ export async function render(text, targetWidth, options = {}) {
     locale = "en",
     containerId = "output"
   } = options;
+  
+  // Define consistent font style
+  const fontFamily = "'SF Pro Display', 'Inter', system-ui, -apple-system, sans-serif";
+  const defaultFontStyle = `${fontSize}px ${fontFamily}`;
+  const defaultTextColor = '#333333';
 
   const container = document.getElementById(containerId);
   if (!container) {
@@ -275,7 +280,7 @@ export async function render(text, targetWidth, options = {}) {
       let maxLineWidth = 0;
       const tempCanvas = document.createElement('canvas');
       const tempCtx = tempCanvas.getContext('2d');
-      tempCtx.font = `${fontSize}px 'SF Pro Display', 'Inter', system-ui, -apple-system, sans-serif`;
+      tempCtx.font = defaultFontStyle;
       
       lines.forEach(line => {
         const lineText = Array.isArray(line) ? line.join(' ') : line;
@@ -306,8 +311,8 @@ export async function render(text, targetWidth, options = {}) {
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
       
       // Set consistent font styling
-      ctx.font = `${fontSize}px 'SF Pro Display', 'Inter', system-ui, -apple-system, sans-serif`;
-      ctx.fillStyle = '#333333';
+      ctx.font = defaultFontStyle;
+      ctx.fillStyle = defaultTextColor;
       ctx.textAlign = 'left';
       
       // Render lines with proper spacing
@@ -320,46 +325,15 @@ export async function render(text, targetWidth, options = {}) {
         if (lineIndex % 2 === 1) {
           ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
           ctx.fillRect(0, y - 2, canvasWidth, lineHeight);
-          ctx.fillStyle = '#333333';
+          ctx.fillStyle = defaultTextColor;
         }
         
         ctx.fillText(lineText, x, y);
-        
-        // Add visual indicator for line width if available
-        if (candidate.lineWidths && candidate.lineWidths[lineIndex]) {
-          const lineWidth = candidate.lineWidths[lineIndex];
-          const widthIndicatorX = padding + lineWidth;
-          
-          // Draw a subtle line width indicator
-          ctx.strokeStyle = 'rgba(0, 113, 227, 0.3)';
-          ctx.lineWidth = 1;
-          ctx.setLineDash([2, 2]);
-          ctx.beginPath();
-          ctx.moveTo(widthIndicatorX, y);
-          ctx.lineTo(widthIndicatorX, y + lineHeight - 4);
-          ctx.stroke();
-          ctx.setLineDash([]); // Reset line dash
-        }
       });
       
-      // Add target width indicator line
-      if (targetWidth > 0) {
-        ctx.strokeStyle = 'rgba(255, 152, 0, 0.4)';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([4, 4]);
-        ctx.beginPath();
-        ctx.moveTo(padding + targetWidth, padding);
-        ctx.lineTo(padding + targetWidth, canvasHeight - padding);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        
-        // Add target width label
-        ctx.fillStyle = 'rgba(255, 152, 0, 0.7)';
-        ctx.font = `${Math.round(fontSize * 0.7)}px 'SF Pro Display', 'Inter', system-ui, sans-serif`;
-        ctx.fillText('Target', padding + targetWidth + 5, padding);
-        ctx.fillStyle = '#333333';
-        ctx.font = `${fontSize}px 'SF Pro Display', 'Inter', system-ui, -apple-system, sans-serif`;
-      }
+      // Maintain font consistency - reset to default font
+      ctx.fillStyle = defaultTextColor;
+      ctx.font = defaultFontStyle;
       
       candidateDiv.appendChild(radio);
       candidateDiv.appendChild(label);
