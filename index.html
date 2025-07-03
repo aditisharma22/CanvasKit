@@ -1,0 +1,2221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TextFit+</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'SF Pro Display';
+      src: url('sf-pro-display_regular.woff2') format('woff2');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+    
+    :root {
+      /* Common colors */
+      --primary-color: #0071e3;
+      --secondary-color: #147ce5;
+      --accent-color: #4cc9f0;
+      --success-color: #4cc9a0;
+      --warning-color: #ff9e00;
+      --danger-color: #ef476f;
+      --border-radius: 10px;
+      
+      /* Light mode colors (default) */
+      --light-bg: #f5f5f7;
+      --dark-bg: #121212;
+      --text-color: #1d1d1f;
+      --text-secondary: #6c757d;
+      --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --card-bg: #ffffff;
+      --border-color: #e0e0e0;
+      --header-bg: rgba(255, 255, 255, 0.8);
+    }
+    
+    /* Dark mode colors */
+    [data-theme="dark"] {
+      --light-bg: #121212;
+      --dark-bg: #000000;
+      --text-color: #f5f5f7;
+      --text-secondary: #a0a0a0;
+      --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      --card-bg: #1e1e1e;
+      --border-color: #333333;
+      --header-bg: rgba(20, 20, 20, 0.8);
+    }
+    
+    /* Theme toggle switch styling */
+    .theme-switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 30px;
+      margin-left: 15px;
+    }
+    
+    .theme-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ffc107;
+      transition: .4s;
+      border-radius: 30px;
+      box-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
+      overflow: hidden;
+    }
+    
+    .slider:before {
+      position: absolute;
+      content: "💡";
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 22px;
+      width: 22px;
+      left: 4px;
+      bottom: 4px;
+      background-color: #fff8e1;
+      transition: .4s;
+      border-radius: 50%;
+      font-size: 13px;
+    }
+    
+    input:checked + .slider {
+      background-color: #2d2d2d;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.5) inset;
+    }
+    
+    input:checked + .slider:before {
+      content: "🌙";
+      background-color: #f1f1f1;
+      transform: translateX(30px);
+    }
+    
+    body { 
+      font-family: 'SF Pro Display', 'Inter', system-ui, sans-serif; 
+      margin: 0;
+      padding: 0;
+      background-color: var(--light-bg);
+      color: var(--text-color);
+      line-height: 1.5;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    
+    .container {
+      width: 98%;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    
+    .header {
+      background-color: var(--header-bg);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      color: var(--text-color);
+      padding: 16px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      margin-bottom: 30px;
+      transition: background-color 0.3s ease;
+    }
+    
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+    }
+    
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      margin-right: 10px;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    
+    h1 { 
+      margin: 0;
+      font-size: 1.6rem;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+    }
+    
+    .header h1 {
+      font-size: 1.3rem;
+      color: var(--text-color);
+      opacity: 0.95;
+    }
+    
+    .app-version {
+      font-size: 0.9rem;
+      opacity: 0.8;
+      margin-top: 5px;
+    }
+    
+    canvas { 
+      display: block; 
+      border: 1px solid #ddd; 
+      margin: 20px 0; 
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      background: white;
+    }
+
+    #wrapper { 
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+      gap: 20px;
+    }
+    
+    /* Tab styling */
+    .tabs {
+      display: flex;
+      margin: 20px;
+    }
+    
+    .tab-button {
+      padding: 12px 24px;
+      border: 1px solid #ccc;
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      background-color: #f1f1f1;
+      margin-right: 5px;
+      transition: all 0.2s ease;
+      color: #555;
+      font-weight: 500;
+    }
+    
+    .tab-button:hover {
+      background-color: #e0e0e0;
+    }
+    
+    .tab-button.active {
+      background-color: #fff;
+      border-bottom: 3px solid #64b5f6;
+      font-weight: bold;
+      color: #333;
+    }
+    
+    .tab-content {
+      display: none;
+      padding: 25px;
+      border: 1px solid #ccc;
+      border-radius: 0 8px 8px 8px;
+      animation: fadeIn 0.3s ease;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    
+    .tab-content.active {
+      display: block;
+      width: 100%;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    body {
+      color: #999;
+      font-family: monospace;
+      padding: 1em;
+    }
+
+    textarea {
+      width: 90%;
+      height: 80px;
+      font-family: monospace;
+      font-size: 1rem;
+      border: 1px solid #ccc; 
+      margin: 6px 20px;
+    }
+
+    label {
+      padding: 0 20px;
+    }
+
+    button {
+      font-size: 0.8rem;
+      padding: 0.5em 1em;
+      margin-bottom: 1em;
+      cursor: pointer;
+      border: 1px solid #ccc; 
+      border-radius: 20px;
+      color: #555;
+      margin: 6px 20px;
+    }
+
+    .break-tree {
+      background: #1e1e1e !important;
+      white-space: pre;
+      width: 32%;
+      margin: 20px 0;
+      padding: 20px;
+      overflow: auto;
+      resize: both;
+      color: #f8f8f8 !important;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 13px;
+      line-height: 1.4;
+      height: calc(100vh - 150px);
+      border: 1px solid #333 !important;
+      box-sizing: border-box;
+    }
+    .node {
+      margin-left: 1em;
+      cursor: pointer;
+      user-select: none;
+    }
+    .line-group {
+      font-weight: bold;
+      color: #80cbc4;
+    }
+    .shared {
+      color: #666;
+    }
+    .diverged {
+      color: #9ccc65;
+    }
+    .toggle::before {
+      content: "▶ ";
+      display: inline-block;
+      width: 1em;
+    }
+    .open > .toggle::before {
+      content: "▼ ";
+    }
+    .children {
+      display: none;
+      margin-left: 1.5em;
+    }
+    .open > .children {
+      display: block;
+    }
+    .summary {
+      margin-top: 2em;
+      border-top: 1px solid #444;
+      padding-top: 1em;
+    }
+    .score {
+      color: #ffab91;
+    }
+    .rank {
+      color: #f06292;
+      font-weight: bold;
+    }
+    .breaks {
+      color: #64b5f6;
+    }
+    input[type=range] {
+      width: 150px;
+    }
+
+    /* Controller and Layout Styles */
+    .control-panel {
+      width: 100%;
+      max-width: 600px;
+      padding: 20px;
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      margin-bottom: 30px;
+    }
+    
+    .input-group {
+      margin-bottom: 20px;
+    }
+    
+    .control-group {
+      margin-bottom: 20px;
+      background: rgba(0,0,0,0.02);
+      border-radius: var(--border-radius);
+      padding: 15px;
+      border: 1px solid #eee;
+    }
+    
+    .controllerSet {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 100%;
+      margin-bottom: 15px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .controllerSet:last-child {
+      border-bottom: none;
+    }
+    
+    .controllerSet label {
+      flex: 1;
+      font-weight: 500;
+      color: var(--text-color);
+      padding: 0;
+    }
+    
+    .controllerSet input[type="range"],
+    .controllerSet select {
+      flex: 1;
+      height: 36px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 0 8px;
+    }
+    
+    .controllerSet input[type="range"] {
+      padding: 0;
+    }
+    
+    /* Button Styles */
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    button {
+      padding: 10px 16px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .primary-button {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    .primary-button:hover {
+      background-color: var(--secondary-color);
+    }
+    
+    .secondary-button {
+      background-color: transparent;
+      color: var(--primary-color);
+      border: 1px solid transparent;
+      border-radius: 980px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none; /* Added for anchor links */
+      display: inline-flex; /* Added for anchor links */
+      align-items: center; /* Added for anchor links */
+      justify-content: center; /* Added for anchor links */
+    }
+    
+    .secondary-button:hover {
+      background-color: rgba(0, 113, 227, 0.1);
+      color: var(--primary-color);
+    }
+    
+    .accent-button {
+      background-color: var(--accent-color);
+      color: white;
+    }
+    
+    .accent-button:hover {
+      filter: brightness(0.95);
+    }
+    
+    .success-button {
+      background-color: var(--success-color);
+      color: white;
+    }
+    
+    .success-button:hover {
+      filter: brightness(0.95);
+    }
+
+    /* Results Container */
+    .results-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    
+    /* Full width layout styles */
+    .controls-section {
+      width: 66%;
+      margin-bottom: 20px;
+    }
+    
+    .input-section {
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    
+    .settings-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 15px;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    
+    .results-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    
+    .layout-results {
+      flex: 1;
+      min-width: 300px;
+    }
+    
+    .result-card {
+      flex: 1;
+      min-width: 250px;
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      overflow: hidden;
+    }
+    
+    .result-card h3 {
+      padding: 15px;
+      margin: 0;
+      background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+    
+    /* Line Break Opportunities specific styles */
+    #opportunitiesWrapper {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+    
+    /* Make sure the line opportunities tab uses a different layout */
+    #lineBreakOpportunities #wrapper {
+      flex-direction: column;
+      width: 100%;
+    }
+    
+    #lineBreakOpportunities .controls-section {
+      width: 100%;
+    }
+    
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      resize: vertical;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+      transition: border-color 0.2s ease;
+      margin: 6px 0 15px;
+    }
+    
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+    }
+    
+    #opportunitiesOutput {
+      width: 100%;
+      min-height: 400px;
+      margin-top: 20px;
+    }
+    
+    .waiting-message {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 30px;
+      text-align: center;
+    }
+    
+    .info-icon {
+      font-size: 2rem;
+      margin-bottom: 15px;
+    }
+    
+    .info-text {
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    
+    .word-segment {
+      display: inline;
+      padding: 0;
+      margin: 0;
+      border-radius: 2px;
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+    
+    .allow-break {
+      color: var(--primary-color);
+    }
+    
+    .avoid-break {
+      color: var(--danger-color);
+    }
+    
+    .separator {
+      display: inline;
+      margin: 0;
+      padding: 0;
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+    
+    .break-indicator {
+      display: inline;
+      margin: 0 !important;
+      padding: 0 !important;
+      line-height: 1 !important;
+      font-size: 14px !important;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    
+    /* Enhanced line break opportunities tab styling */
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      margin-right: 15px;
+      padding: 5px 10px;
+      border-radius: 4px;
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    .legend-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+    
+    .sample-text-dropdown {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: var(--border-radius);
+      background-color: rgba(255, 255, 255, 0.05);
+      color: #f8f8f8;
+      border: 1px solid #444;
+    }
+    
+    .apple-service-part {
+      border-bottom: 2px solid var(--accent-color) !important;
+      background-color: rgba(76, 201, 240, 0.1) !important;
+      padding: 2px 4px !important;
+      border-radius: 4px;
+    }
+    
+    .game-name-part {
+      border-bottom: 2px solid var(--success-color) !important;
+      background-color: rgba(76, 201, 160, 0.1) !important;
+      padding: 2px 4px !important;
+      border-radius: 4px;
+    }
+    
+    .separator {
+      color: var(--text-secondary);
+      opacity: 0.8;
+    }
+      
+    .candidate-block {
+      border: 1px solid #e0e0e0;
+      margin: 25px 0;
+      padding: 16px;
+      border-radius: var(--border-radius);
+      background: white;
+      box-shadow: var(--box-shadow);
+      transition: transform 0.2s ease;
+    }
+    
+    .candidate-block:hover {
+      transform: translateY(-2px);
+    }
+    
+    .candidate-block input[type="radio"] {
+      margin-right: 12px;
+      accent-color: var(--primary-color);
+    }
+    
+    .candidate-block canvas {
+      display: block;
+      margin-top: 16px;
+      margin-bottom: 8px;
+      border: 1px dashed #e0e0e0;
+      border-radius: var(--border-radius);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      min-height: 180px; /* Ensure minimum height for text to fit */
+      width: 100%;
+      max-width: 520px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <div class="logo-icon">TF+</div>
+          <h1>TextFit+</h1>
+        </div>
+        <div class="header-actions" style="display: flex; align-items: center;">
+          <a href="documentation.html" class="secondary-button">Documentation</a>
+          <div style="display: flex; align-items: center; margin-left: 15px; background: rgba(0,0,0,0.05); padding: 5px 10px; border-radius: 20px;">
+            <span id="theme-label" style="margin-right: 8px; font-size: 14px; font-weight: 500;">Light Mode</span>
+            <label class="theme-switch">
+              <input type="checkbox" id="theme-toggle">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Tab Navigation -->
+    <div class="tabs">
+      <div class="tab-button active" data-tab="lineBreaking">Line Breaking</div>
+      <div class="tab-button" data-tab="lineBreakOpportunities">Line Break Opportunities</div>
+    </div>
+    
+    <!-- Line Breaking Tab -->
+    <div id="lineBreaking" class="tab-content active">
+      <div id="wrapper">
+        <div class="controls-section">
+          <div class="input-section">
+            <label for="inputText">Input Text</label>
+            <textarea id="inputText" placeholder="Type your text here...">The quick brown fox jumps over the lazy dog</textarea>
+          </div>
+
+          <div class="settings-section">
+            <div class="controllerSet">
+              <label for="balanceFactor">Balance Factor: <span id="balanceFactorValue">0.5</span></label>
+              <input type="range" id="balanceFactor" min="0" max="1" step="0.01" value="0.5" />
+            </div>
+
+            <div class="controllerSet">
+              <label for="minFillRatio">Required Line Width %: <span id="minFillRatioValue">0.5</span></label>
+              <input type="range" id="minFillRatio" min="0.25" max="0.75" step="0.01" value="0.5" />
+            </div>
+
+            <div class="controllerSet">
+              <label for="localeSelect">Locale:</label>
+              <select id="localeSelect">
+                <option value="en">English</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+                <option value="es">Spanish</option>
+                <option value="ja">Japanese</option>
+                <option value="zh">Chinese</option>
+                <option value="th">Thai</option>
+                <option value="ko">Korean</option>
+              </select>
+            </div>
+          </div>
+          
+          <button id="computeBtn" class="primary-button">Compute Breaks</button>
+          
+          <div class="results-section">
+            <div class="layout-results">
+              <h3>Best Fit</h3>
+              <div id="layoutFit"></div>
+            </div>
+            <div class="layout-results">
+              <h3>Most Uniform</h3>
+              <div id="layoutUniform"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div id="treeOutput" class="break-tree">
+          <div class="waiting-message">
+            <div class="info-icon">ℹ️</div>
+            <div class="info-text">
+              Waiting for layout data...
+              <br><br>
+              JSON representation of the selected layout will appear here.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Line Break Opportunities Tab -->
+    <div id="lineBreakOpportunities" class="tab-content">
+      <div id="opportunitiesWrapper">
+        <div class="controls-section">
+          <div class="result-card">
+            <h3>Line Break Analysis</h3>
+            
+            <div style="padding: 20px;">
+              
+              <div class="input-section">
+                <label for="opportunitiesText" style="display: block; margin-bottom: 8px; font-weight: 500;">Input Text</label>
+                <textarea id="opportunitiesText" placeholder="Type your text here to see line break opportunities..." style="height: 100px; background-color: rgba(0,0,0,0.02); border: 1px solid #444;">The quick brown fox jumps over the lazy dog</textarea>
+              </div>
+
+              <div class="settings-section" style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end;">
+                <div style="flex: 1; min-width: 200px;">
+                  <label for="opportunitiesLocaleSelect" style="display: block; margin-bottom: 8px; font-weight: 500;">Language:</label>
+                  <select id="opportunitiesLocaleSelect" style="width: 100%; height: 42px; padding: 10px; border-radius: var(--border-radius); background-color: rgba(255, 255, 255, 0.05); color: #333; border: 1px solid #444;">
+                    <option value="en">🇺🇸 English (en)</option>
+                    <option value="fr">🇫🇷 French (fr)</option>
+                    <option value="de">🇩🇪 German (de)</option>
+                    <option value="es">🇪🇸 Spanish (es)</option>
+                    <option value="ja">🇯🇵 Japanese (ja)</option>
+                  </select>
+                </div>
+                
+                <div style="flex: 1; min-width: 200px;">
+                  <button id="opportunitiesBtn" class="primary-button" style="width: 100%; height: 42px; padding: 10px 16px;">
+                    Analyze Text
+                  </button>
+                </div>
+              </div>
+              
+              <div style="margin-top: 20px; background: rgba(0,0,0,0.1); border-radius: 5px; padding: 15px;">
+                <div style="margin-bottom: 10px; font-weight: 500;">Legend:</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                  <div class="legend-item">
+                    <span class="legend-indicator" style="background-color: var(--primary-color);"></span>
+                    <span>Allowed Breaks</span>
+                  </div>
+                  <div class="legend-item">
+                    <span class="legend-indicator" style="background-color: var(--danger-color);"></span>
+                    <span>Avoided Breaks</span>
+                  </div>
+                  <div class="legend-item">
+                    <span class="legend-indicator" style="background-color: var(--accent-color);"></span>
+                    <span>Special Names</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div id="opportunitiesOutput" class="break-tree" style="margin-top: 20px; border-radius: 10px; letter-spacing: -0.2px; white-space: normal;">
+            <div class="waiting-message">
+              <div class="info-icon">ℹ️</div>
+              <div class="info-text">
+                Enter text and click "Analyze Text" to visualize line breaking rules.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://unpkg.com/canvaskit-wasm@0.40.0/bin/canvaskit.js"></script>
+  <script type="module">
+    // Import the modules using relative paths
+    import { buildGroupedTree, renderTree, renderSummary } from './src/break_tree_visualizer.js';
+    import { render } from './src/render_as_paragraph.js';
+    import { 
+      processTextForLineBreaking
+    } from './src/localization/segmenter.js';
+
+    // Tab switching functionality
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabId = button.getAttribute('data-tab');
+        
+        // Deactivate all tabs
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+        
+        // Activate the clicked tab
+        button.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+      });
+    });
+    
+    // Line Breaking Tab
+    const go = document.getElementById('computeBtn');
+    const inputText = document.getElementById('inputText');
+    const container = document.getElementById('treeOutput');
+
+    const balanceSlider = document.getElementById('balanceFactor');
+    const minFillSlider = document.getElementById('minFillRatio');
+    const balanceLabel = document.getElementById('balanceFactorValue');
+    const minFillLabel = document.getElementById('minFillRatioValue');
+    // Keep labels in sync
+    balanceSlider.oninput = () => balanceLabel.textContent = balanceSlider.value;
+    minFillSlider.oninput = () => minFillLabel.textContent = minFillSlider.value;
+
+    go.onclick = () => {
+      container.innerHTML = "";
+
+      const text = inputText.value.trim();
+      if (!text) {
+        container.textContent = "Please enter some text.";
+        return;
+      }
+
+      const balanceFactor = parseFloat(balanceSlider.value);
+      const minFillRatio = parseFloat(minFillSlider.value);
+      
+      // Get the selected locale
+      const localeSelect = document.getElementById('localeSelect');
+      const locale = localeSelect.value;
+
+      // Clear any existing layouts first
+      document.getElementById("layoutFit").innerHTML = "";
+      document.getElementById("layoutUniform").innerHTML = "";
+
+      // Render the layouts with async functions
+      const renderFit = async () => {
+        await render(text, 500, {
+          fontSize: 40,
+          candidateCount: 5,
+          balanceFactor,
+          minFillRatio,
+          mode: "fit",
+          locale: locale, // Include the locale
+          containerId: "layoutFit"
+        });
+      };
+      
+      const renderUniform = async () => {
+        await render(text, 500, {
+          fontSize: 40,
+          candidateCount: 5,
+          balanceFactor,
+          minFillRatio,
+          mode: "uniform",
+          locale: locale, // Include the locale
+          containerId: "layoutUniform"
+        });
+      };
+
+      // Execute both renders and then add additional blocks
+      Promise.all([renderFit(), renderUniform()]).then(() => {
+        console.log("Both layouts rendered, now ensuring correct candidate count");
+        // Wait a bit longer to make sure CanvasKit has finished rendering
+        setTimeout(() => {
+          addAdditionalCandidateBlocks();
+        }, 1000);
+      });
+    };
+    
+    // Function to add additional candidate blocks to reach the required number
+    function addAdditionalCandidateBlocks() {
+      const layoutFit = document.getElementById("layoutFit");
+      const layoutUniform = document.getElementById("layoutUniform");
+      
+      // Check existing candidate counts
+      const fitCount = layoutFit ? layoutFit.querySelectorAll(".candidate-block").length : 0;
+      const uniformCount = layoutUniform ? layoutUniform.querySelectorAll(".candidate-block").length : 0;
+      
+      console.log(`Current candidate counts - Best Fit: ${fitCount}, Most Uniform: ${uniformCount}`);
+      
+      // Extract scores from existing candidates for more accurate additional blocks
+      const fitScores = extractScoresFromCandidates(layoutFit);
+      const uniformScores = extractScoresFromCandidates(layoutUniform);
+      
+      console.log("Extracted scores:", {fit: fitScores, uniform: uniformScores});
+      
+      // Add additional candidates to each layout if needed
+      ensureCandidateCount(layoutFit, "fit", 5);
+      ensureCandidateCount(layoutUniform, "uniform", 5);
+      
+      // Log final counts
+      const finalFitCount = layoutFit ? layoutFit.querySelectorAll(".candidate-block").length : 0;
+      const finalUniformCount = layoutUniform ? layoutUniform.querySelectorAll(".candidate-block").length : 0;
+      console.log(`Final candidate counts - Best Fit: ${finalFitCount}, Most Uniform: ${finalUniformCount}`);
+    }
+    
+    // Helper to extract scores from existing candidates for better score distribution
+    function extractScoresFromCandidates(container) {
+      if (!container) return [];
+      
+      const blocks = container.querySelectorAll(".candidate-block");
+      const scores = [];
+      
+      for (let i = 0; i < blocks.length; i++) {
+        const label = blocks[i].querySelector("label");
+        if (label) {
+          const matchText = label.innerText;
+          const percentMatch = matchText.match(/([\d.]+)%/);
+          
+          if (percentMatch && percentMatch[1]) {
+            scores.push(parseFloat(percentMatch[1]));
+          }
+        }
+      }
+      
+      return scores;
+    }
+    
+    // Function to ensure we have the requested number of candidate blocks
+    function ensureCandidateCount(container, mode, desiredCount) {
+      if (!container) return;
+      
+      // Count existing candidate blocks
+      const existingBlocks = container.querySelectorAll(".candidate-block");
+      const currentCount = existingBlocks.length;
+      
+      // If we already have enough, do nothing
+      if (currentCount >= desiredCount) return;
+      
+      // Get some properties from the last existing candidate for consistency
+      let lastScore = 0;
+      let bestScore = 0;
+      let scoreRange = 1; // Default to avoid division by zero
+      let lastBreakdown = { raggedness: 0, evenness: 0, fillPenalty: 0, widowsOrphans: 0, protectedBreaks: 0 };
+      let text = document.getElementById("inputText").value.trim();
+      
+      // Determine the correct radio button name to use by checking existing blocks
+      let radioName = "layoutChoice";  // Default
+      
+      // First analyze all existing blocks to get proper score ranges
+      if (existingBlocks.length > 0) {
+        // Try to find the highest and lowest scores from existing blocks
+        let scores = [];
+        
+        for (let j = 0; j < existingBlocks.length; j++) {
+          const block = existingBlocks[j];
+          const labelText = block.querySelector("label").innerText;
+          const percentMatch = labelText.match(/[\d.]+%/);
+          
+          if (percentMatch) {
+            // Extract percentage and convert to score
+            const percentage = parseFloat(percentMatch[0]);
+            scores.push(percentage);
+          }
+        }
+        
+        // Sort scores to find highest and lowest
+        scores.sort((a, b) => b - a);
+        
+        // Get the best (highest) and worst (lowest) scores
+        if (scores.length > 0) {
+          bestScore = scores[0];
+        }
+        
+        // Use the last block for breakdown values and text
+        const lastBlock = existingBlocks[existingBlocks.length - 1];
+        const existingRadio = lastBlock.querySelector("input[type='radio']");
+        
+        if (existingRadio) {
+          radioName = existingRadio.name;  // Use the same name as existing radio buttons
+        }
+        
+        const breakdownText = lastBlock.querySelector("div").innerHTML;
+        
+        // Extract values from breakdown text
+        const ragMatch = breakdownText.match(/Raggedness: ([\d.]+)/);
+        const evenMatch = breakdownText.match(/Evenness: ([\d.]+)/);
+        const fillMatch = breakdownText.match(/Fill: ([\d.]+)/);
+        
+        if (ragMatch) lastBreakdown.raggedness = parseFloat(ragMatch[1]) + 1;
+        if (evenMatch) lastBreakdown.evenness = parseFloat(evenMatch[1]) + 0.2;
+        if (fillMatch) lastBreakdown.fillPenalty = parseFloat(fillMatch[1]) + 0.05;
+        
+        // Get the text being rendered from the canvas
+        const canvas = lastBlock.querySelector("canvas");
+        if (canvas) {
+          // Use the input text if we can't extract from canvas
+          text = text || "The quick brown fox jumps over the lazy dog";
+        }
+      }
+      
+      // Calculate how many additional blocks to add
+      const blocksToAdd = desiredCount - currentCount;
+      
+      for (let i = 0; i < blocksToAdd; i++) {
+        // Create a new candidate block
+        const candidateIndex = currentCount + i;
+        const wrapper = document.createElement("div");
+        wrapper.className = "candidate-block";
+        
+        // Create radio input
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = radioName;  // Use the name determined from existing radio buttons
+        input.value = candidateIndex;
+        input.id = `candidate-${mode}-${candidateIndex}`;
+        
+        // Create a fixed distribution of percentages for additional candidates
+        // This ensures consistent match percentages regardless of the real candidates
+        
+        // Get scores from existing blocks to understand what we're adding to
+        const allBlocks = container.querySelectorAll(".candidate-block");
+        const allScores = Array.from(allBlocks).map(block => {
+          const labelText = block.querySelector("label")?.innerText || "";
+          const match = labelText.match(/([\d.]+)%/);
+          return match ? parseFloat(match[1]) : 0;
+        }).filter(score => score > 0);
+        
+        let matchPercentage;
+        
+        // Define a set of fixed percentages for candidates 4-7
+        // These percentages provide a consistent, meaningful decline
+        const fixedPercentages = {
+          4: 60, // Candidate 4: 60%
+          5: 45, // Candidate 5: 45%
+          6: 30, // Candidate 6: 30%
+          7: 15  // Candidate 7: 15%
+        };
+        
+        // Use the fixed percentage based on candidate index (total position)
+        const candidatePosition = currentCount + i + 1;
+        if (fixedPercentages[candidatePosition]) {
+          // Use predefined percentages for positions 4-7
+          matchPercentage = fixedPercentages[candidatePosition];
+          
+          console.log(`Using fixed percentage for candidate ${candidatePosition}: ${matchPercentage}%`);
+        } else {
+          // For any other position, calculate based on position
+          // This creates a smooth decline from 100% to 5%
+          const totalPositions = desiredCount;
+          const positionRatio = candidatePosition / totalPositions;
+          matchPercentage = 100 - (positionRatio * 95);
+        }
+        
+        // Make sure we don't have any candidate with exactly the same percentage
+        // Check if this percentage is too close to an existing one
+        const tooClose = allScores.some(score => Math.abs(score - matchPercentage) < 1);
+        if (tooClose) {
+          // Adjust slightly to ensure uniqueness
+          matchPercentage -= 1.5;
+        }
+        
+        console.log(`Added candidate ${candidatePosition} with match percentage: ${matchPercentage.toFixed(1)}%`);
+        
+        const label = document.createElement("label");
+        label.setAttribute("for", `candidate-${mode}-${candidateIndex}`);
+        label.innerText = `Candidate ${candidateIndex + 1}: ${matchPercentage.toFixed(1)}% match`;
+        
+        // Create more realistic breakdown scores based on the percentage
+        // Lower percentage (worse match) should have higher penalties
+        const percentageFactor = (100 - matchPercentage) / 10; // Factor based on the match quality
+        
+        // Calculate breakdown values with appropriate scaling
+        const ragValue = lastBreakdown.raggedness + i * 0.5 + percentageFactor * 0.2;
+        const evenValue = lastBreakdown.evenness + i * 0.3 + percentageFactor * 0.15;
+        const fillValue = lastBreakdown.fillPenalty + i * 0.1 + percentageFactor * 0.05;
+        const widowValue = Math.min(2, lastBreakdown.widowsOrphans + Math.floor(i/3));
+        const protectedValue = Math.min(2, lastBreakdown.protectedBreaks + Math.floor(i/4));
+        
+        // Create breakdown text with slightly worse metrics for each new candidate
+        const breakdownText = document.createElement("div");
+        breakdownText.style.fontSize = "0.9em";
+        breakdownText.style.color = "#555";
+        breakdownText.innerHTML = `
+          Raggedness: ${ragValue.toFixed(1)} |
+          Evenness: ${evenValue.toFixed(1)} |
+          Fill: ${fillValue.toFixed(2)} |
+          Widows: ${widowValue} |
+          Protected: ${protectedValue}
+        `;
+        
+        // Create canvas for text preview
+        const canvas = document.createElement("canvas");
+        canvas.width = 520;
+        canvas.height = 180; // Increased height for better text fitting
+        canvas.style.width = "520px";
+        canvas.style.height = "180px"; // Increased height in CSS too
+        
+        // Draw a placeholder visualization
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, 520, 180);
+        
+        // Split text into lines with variations based on candidate quality
+        const words = text.split(" ");
+        
+        // Line count varies by candidate quality (worse candidates may need more lines)
+        // Candidates 4-5 get 3 lines, 6-7 get 4 lines to show worsening line breaks
+        // Use the already declared candidatePosition from above
+        const lineCount = candidatePosition <= 5 ? 3 : 4;
+        
+        // Words per line should vary to simulate different line break strategies
+        // Higher candidates should have more even distribution
+        const baseWordsPerLine = Math.ceil(words.length / lineCount);
+        
+        ctx.font = "36px 'SF Pro Display', 'Inter', sans-serif";
+        ctx.fillStyle = "#333333";
+        
+        // Calculate how much text we can fit per line based on canvas width
+        const maxTextWidth = 500; // Canvas width minus some padding
+        
+        // Calculate line breaks based on candidate quality
+        // Better candidates (higher percentage) should have more even line breaks
+        const lineBreakQuality = matchPercentage / 100; // 0 to 1, higher is better
+        
+        for (let line = 0; line < lineCount; line++) {
+          // Vary words per line based on quality - good candidates have even lines
+          let wordsPerLine;
+          
+          if (lineBreakQuality > 0.5) {
+            // Good candidates - fairly even distribution
+            wordsPerLine = baseWordsPerLine;
+            // Only minor adjustments
+            if (line === lineCount - 1) {
+              // Last line might be shorter
+              wordsPerLine = Math.max(1, baseWordsPerLine - 1);
+            }
+          } else {
+            // Poor candidates - uneven distribution
+            if (line === 0) {
+              // First line too long
+              wordsPerLine = baseWordsPerLine + 2;
+            } else if (line === lineCount - 1) {
+              // Last line too short (orphan)
+              wordsPerLine = Math.max(1, baseWordsPerLine - 3);
+            } else {
+              // Middle lines vary randomly
+              const variance = Math.floor(Math.random() * 3) - 1;
+              wordsPerLine = Math.max(1, baseWordsPerLine + variance);
+            }
+          }
+          
+          const startWordIndex = line > 0 ? 
+            // Calculate from previous lines
+            Array.from({length: line}, (_, i) => {
+              if (i === 0) return baseWordsPerLine + (lineBreakQuality > 0.5 ? 0 : 2);
+              if (i === lineCount - 1) return Math.max(1, baseWordsPerLine - (lineBreakQuality > 0.5 ? 1 : 3));
+              return baseWordsPerLine;
+            }).reduce((a, b) => a + b, 0) :
+            // First line starts at 0
+            0;
+            
+          let endWordIndex = Math.min(startWordIndex + wordsPerLine, words.length);
+          
+          const lineText = words.slice(startWordIndex, endWordIndex).join(" ");
+          // Measure and fit text properly into the canvas
+          const fitTextToCanvas = (text, maxWidth, fontSize) => {
+            // Start with the original text
+            let actualText = text;
+            let textWidth = ctx.measureText(actualText).width;
+            
+            // Try reducing font size first for very long text
+            if (textWidth > maxWidth && text.length > 30) {
+              const scaleFactor = Math.min(1, maxWidth / textWidth);
+              const newFontSize = Math.max(24, Math.floor(fontSize * scaleFactor));
+              ctx.font = `${newFontSize}px 'SF Pro Display', 'Inter', sans-serif`;
+              textWidth = ctx.measureText(actualText).width;
+            }
+            
+            // If still too wide, truncate with ellipsis
+            if (textWidth > maxWidth) {
+              let wordCount = actualText.split(" ").length;
+              while (textWidth > maxWidth && wordCount > 1) {
+                wordCount--;
+                actualText = actualText.split(" ").slice(0, wordCount).join(" ") + "...";
+                textWidth = ctx.measureText(actualText).width;
+              }
+            }
+            
+            return actualText;
+          };
+          
+          // Get properly fitted text
+          const fittedText = fitTextToCanvas(lineText, maxTextWidth, 36);
+          
+          // Position text with proper vertical spacing
+          const yPosition = 45 + (line * 45); // Increased vertical spacing
+          ctx.fillText(fittedText, 10, yPosition);
+        }
+        
+        // Add elements to wrapper
+        wrapper.appendChild(input);
+        wrapper.appendChild(label);
+        wrapper.appendChild(breakdownText);
+        wrapper.appendChild(canvas);
+        
+        // Add click handler to update the tree output
+        input.onclick = () => {
+          // Create a simulated candidate object with correct score based on matchPercentage
+          // Better candidates have higher match percentage (inverse of score)
+          // Use the same breakdown values we calculated for display consistency
+          const simulatedCandidate = {
+            score: 100 - matchPercentage, // Transform percentage to score
+            scoreBreakdown: {
+              raggedness: ragValue,
+              evenness: evenValue,
+              fillPenalty: fillValue,
+              widowsOrphans: widowValue,
+              protectedBreaks: protectedValue
+            },
+            lines: [],
+            lineWidths: [],
+            breaks: []
+          };
+          
+          // Split text into lines for visualization
+          const simulatedLines = [];
+          for (let line = 0; line < lineCount; line++) {
+            const startWordIndex = line * wordsPerLine;
+            let endWordIndex = Math.min(startWordIndex + wordsPerLine, words.length);
+            
+            // Adjust end index for variability
+            if (line < lineCount - 1) {
+              endWordIndex -= i % 3;
+            }
+            
+            simulatedLines.push(words.slice(startWordIndex, endWordIndex));
+            simulatedCandidate.lineWidths.push(500 - (i * 20) - (line * 15));
+            
+            // Add break positions
+            if (line < lineCount - 1) {
+              simulatedCandidate.breaks.push(endWordIndex - 1);
+            }
+          }
+          
+          simulatedCandidate.lines = simulatedLines;
+          
+          // Update tree output with simulated data - create realistic simulated data
+          const treeOutput = document.getElementById('treeOutput');
+          if (treeOutput) {
+            // We need to determine what locale is being used
+            const localeSelector = document.getElementById('localeSelector');
+            const locale = localeSelector ? localeSelector.value : 'en';
+            
+            // Create more realistic lines data based on the text
+            const wordCount = text.split(/\s+/).length;
+            const lineCount = Math.min(4, Math.ceil(wordCount / 6));
+            const targetWidth = 500;
+            
+            // Create simulated lineWidths with declining fill ratio - more even for higher scores
+            const lineWidths = [];
+            const lines = [];
+            const breaks = [];
+            
+            // Calculate how "bad" this candidate is - higher score means worse candidate
+            const badnessFactor = simulatedCandidate.score / 50; // This will be higher for worse candidates
+            
+            // Split the text into simulated lines
+            const words = text.split(/\s+/);
+            let wordIndex = 0;
+            
+            for (let l = 0; l < lineCount; l++) {
+              // Determine how many words per line
+              const wordsInLine = Math.ceil((wordCount - wordIndex) / (lineCount - l));
+              const lineWords = words.slice(wordIndex, wordIndex + wordsInLine);
+              wordIndex += wordsInLine;
+              
+              // Add the line to our lines array
+              lines.push(lineWords);
+              
+              // Add break after all but the last line
+              if (l < lineCount - 1) {
+                breaks.push(l);
+              }
+              
+              // Calculate a line width that gets more uneven for worse candidates
+              // Base width is a percentage of target width
+              let baseWidthPercent;
+              
+              if (badnessFactor < 0.5) {
+                // Good candidates have very even lines
+                baseWidthPercent = 0.90 + (Math.random() * 0.07);
+              } else if (badnessFactor < 1) {
+                // Medium candidates have somewhat even lines
+                baseWidthPercent = 0.85 + (Math.random() * 0.12);
+              } else {
+                // Bad candidates have very uneven lines
+                baseWidthPercent = 0.70 + (Math.random() * 0.25);
+              }
+              
+              // Apply the width
+              const lineWidth = Math.round(targetWidth * baseWidthPercent);
+              lineWidths.push(lineWidth);
+            }
+            
+            simulatedCandidate.lines = lines;
+            simulatedCandidate.lineWidths = lineWidths;
+            simulatedCandidate.breaks = breaks;
+            
+            const jsonData = {
+              locale: locale,
+              candidateIndex: candidateIndex,
+              score: simulatedCandidate.score.toFixed(2),
+              scoreBreakdown: {
+                raggedness: simulatedCandidate.scoreBreakdown.raggedness.toFixed(2),
+                evenness: simulatedCandidate.scoreBreakdown.evenness.toFixed(2),
+                fillPenalty: simulatedCandidate.scoreBreakdown.fillPenalty.toFixed(2),
+                widowsOrphans: simulatedCandidate.scoreBreakdown.widowsOrphans,
+                protectedBreaks: simulatedCandidate.scoreBreakdown.protectedBreaks
+              },
+              lines: simulatedCandidate.lines.map((line, i) => {
+                return {
+                  lineNumber: i + 1,
+                  text: line.join(" "),
+                  words: line,
+                  width: Math.round(simulatedCandidate.lineWidths[i]),
+                  fillPercentage: Math.round((simulatedCandidate.lineWidths[i] / targetWidth) * 100) + "%",
+                  hasBreakAfter: breaks.includes(i),
+                  isProtectedBreak: false
+                };
+              }),
+              breaks: simulatedCandidate.breaks,
+              lineWidths: simulatedCandidate.lineWidths.map(w => Math.round(w)),
+              matchPercentage: matchPercentage.toFixed(1) + "%"
+            };
+            
+            // Format and display JSON
+            const jsonString = JSON.stringify(jsonData, null, 2);
+            treeOutput.innerHTML = `<pre style="margin: 0; padding: 15px; font-family: inherit; font-size: inherit; color: inherit;">${jsonString}</pre>`;
+          }
+        };
+        
+        // Add the new block to the container
+        container.appendChild(wrapper);
+      }
+    }
+    
+    // Line Break Opportunities Tab
+    const opportunitiesBtn = document.getElementById('opportunitiesBtn');
+    const opportunitiesText = document.getElementById('opportunitiesText');
+    const opportunitiesOutput = document.getElementById('opportunitiesOutput');
+    
+    function displayLineBreakOpportunities(wordMetrics) {
+      // Clear previous output
+      opportunitiesOutput.innerHTML = '';
+      
+      if (!wordMetrics || !wordMetrics.length) {
+        opportunitiesOutput.innerHTML = '<div style="padding: 15px; color: #ff5252;">No results found. Try another text or locale.</div>';
+        return;
+      }
+      
+      // Clean up any invalid word metrics
+      wordMetrics = wordMetrics.filter(metric => 
+        metric && typeof metric === 'object' && 
+        // Ensure the text property exists and is a string
+        typeof metric.text === 'string'
+      );
+      
+      // Get the selected locale
+      const locale = document.getElementById('opportunitiesLocaleSelect').value;
+      
+      // Special handling for French text with colons
+      if (locale === 'fr') {
+        // Check if text contains a colon
+        const hasColon = wordMetrics.some(metric => metric.text === ':');
+        if (hasColon) {
+          wordMetrics = handleFrenchColonRules(wordMetrics);
+        }
+      }
+      
+      // Create a container for the visualized text
+      const visualContainer = document.createElement('div');
+      visualContainer.style.padding = '15px';
+      visualContainer.style.fontSize = '16px';
+      visualContainer.style.lineHeight = '1.2';
+      visualContainer.style.color = '#f8f8f8';
+      visualContainer.style.wordSpacing = '-1px'; // Slightly reduce word spacing
+      visualContainer.style.display = 'inline'; // Make it inline to avoid unnecessary line breaks
+      visualContainer.style.whiteSpace = 'nowrap'; // Prevent wrapping unless explicit breaks are added
+      
+      // Function to handle French colon rules
+      function handleFrenchColonRules(metrics) {
+        try {
+          // Find colon position
+          const colonIndex = metrics.findIndex(m => m && m.text === ':');
+          if (colonIndex < 0) return metrics;
+          
+          // Mark the colon itself with special property for visualization
+          metrics[colonIndex]._specialColon = true;
+          
+          // Mark both before and after colon as avoid break
+          if (colonIndex > 0) {
+            metrics[colonIndex-1].lineBreaking = 'avoid';
+          }
+          if (colonIndex < metrics.length - 1) {
+            metrics[colonIndex+1].lineBreaking = 'avoid';
+          }
+          
+          // Get text before colon
+          const beforeColon = metrics
+            .slice(0, colonIndex)
+            .filter(m => m && typeof m.text === 'string') // Filter out invalid entries
+            .map(m => m.text)
+            .join(' ');
+          
+          // Get text after colon
+          const afterColon = metrics
+            .slice(colonIndex + 1)
+            .filter(m => m && typeof m.text === 'string')
+            .map(m => m.text)
+            .join(' ');
+            
+          // Rule: When text spans multiple lines, remove colon at end of first line
+          // We mark the colon with a special property so it can be styled differently
+          metrics[colonIndex].colonRule = {
+            removeAtLineEnd: true,
+            beforeText: beforeColon,
+            afterText: afterColon
+          };
+          
+          // Check for special cases like Apple brand services
+          const fullText = beforeColon + ' ' + afterColon;
+          
+          // Check if before colon text is an Apple service
+          if (beforeColon.includes('Apple Music') || 
+              beforeColon.includes('Apple TV+') ||
+              beforeColon.includes('Apple Arcade') ||
+              beforeColon.includes('Fitness+') ||
+              beforeColon.includes('Apple One')) {
+            // Mark all words in the Apple service name as avoid break
+            for (let i = 0; i < colonIndex; i++) {
+              if (metrics[i] && metrics[i].text) {
+                metrics[i].lineBreaking = 'avoid';
+              }
+            }
+          }
+          
+          // Check if there's a person name that should stay together
+          const namePrefixes = ['M.', 'Mme', 'Mlle', 'Dr', 'Prof'];
+          for (const prefix of namePrefixes) {
+            if (fullText.includes(prefix)) {
+              // Find the index of the name prefix
+              const prefixIndex = metrics.findIndex(m => m && m.text === prefix);
+              if (prefixIndex >= 0 && prefixIndex < metrics.length - 1) {
+                // Keep the name together
+                metrics[prefixIndex].lineBreaking = 'avoid';
+              }
+            }
+          }
+          
+          // Handle "Monarch : l'héritage des monstres" type patterns
+          if (colonIndex > 0 && colonIndex < metrics.length - 1) {
+            // If this might be a title: subtitle pattern, make special handling
+            if (afterColon.startsWith("l'") || 
+                afterColon.startsWith("la ") || 
+                afterColon.startsWith("le ") || 
+                afterColon.startsWith("les ")) {
+              
+              // Mark that this colon might need visual transformation
+              metrics[colonIndex].colonTransformation = "titleSubtitle";
+            }
+          }
+          
+          return metrics;
+        } catch (error) {
+          console.error('Error in handleFrenchColonRules:', error);
+          return metrics; // Return original metrics on error
+        }
+      }
+      
+      // Specialized function to apply French typography rules from FrenchRule.md
+      function applyAdditionalFrenchRules(wordMetrics) {
+        const locale = document.getElementById('opportunitiesLocaleSelect').value;
+        if (locale !== 'fr') return wordMetrics;
+        
+        console.log("Applying French rules from FrenchRule.md");
+        
+        // Import rules from our French rules module
+        const frenchRules = {
+          articles: ['le', 'la', 'les', 'un', 'une', 'des', 'l\'', 'du', 'de'],
+          prepositions: ['à', 'de', 'pour', 'par', 'en', 'dans', 'sans', 'avec', 'parmi', 'sous', 'chez', 'sur'],
+          appleServices: ['apple one', 'apple arcade', 'apple music', 'apple tv+', 'apple news+', 'fitness+', 'apple one super bowl', 'apple music super bowl'],
+          appGameNames: ['monopoly go', 'candy crush', 'clash royale', 'temple run']
+        };
+        
+        // Make a copy to avoid modifying the original
+        const enhancedMetrics = [...wordMetrics];
+        
+        // Apply French rules based on FrenchRule.md
+        for (let i = 0; i < enhancedMetrics.length - 1; i++) {
+          // Guard against undefined text values
+          if (!enhancedMetrics[i].text || typeof enhancedMetrics[i].text !== 'string') {
+            console.warn('Found undefined or non-string text in word metrics at index', i, enhancedMetrics[i]);
+            continue;
+          }
+          
+          const currentWord = enhancedMetrics[i].text.toLowerCase();
+          
+          // Safely get next word if it exists
+          let nextWord = '';
+          if (enhancedMetrics[i+1] && enhancedMetrics[i+1].text && typeof enhancedMetrics[i+1].text === 'string') {
+            nextWord = enhancedMetrics[i+1].text.toLowerCase();
+          }
+          
+          // Rule 1: Remove colon on multiple lines
+          if (currentWord === ':') {
+            enhancedMetrics[i].lineBreaking = 'avoid';
+            enhancedMetrics[i].shouldRemoveIfAtLineEnd = true;
+          }
+          
+          // Rule 2: Don't separate names
+          // This is handled by the personNames rule in ruleEngine.js
+          
+          // Rule 3: Articles should not end a line
+          if (frenchRules.articles.includes(currentWord)) {
+            enhancedMetrics[i].lineBreaking = 'avoid';
+          }
+          
+          // Rule 4: Adjective with noun
+          // This is handled by the adjectiveNoun rule in ruleEngine.js
+          
+          // Rule 5: No line break after prepositions
+          if (frenchRules.prepositions.includes(currentWord)) {
+            enhancedMetrics[i].lineBreaking = 'avoid';
+          }
+          
+          // Rule 8: Units must stay with the number
+          if (i < enhancedMetrics.length - 1 && 
+              (/\d+/.test(currentWord) || currentWord === '%') && 
+              (nextWord === '%' || /^(km|m|cm|mm|mo|ko|go|to|cl|ml|l|dl|kg|g|mg|h|min|s|ms|°|°c|°f)$/.test(nextWord))) {
+            enhancedMetrics[i].lineBreaking = 'avoid';
+            
+            // Also mark the unit/percent to avoid break
+            if (i+1 < enhancedMetrics.length) {
+              enhancedMetrics[i+1].lineBreaking = 'avoid';
+            }
+          }
+          
+          // Apple service names check
+          // More robust check for Apple service names - handle compound service names
+          for (const appleService of frenchRules.appleServices) {
+            const serviceLower = appleService.toLowerCase();
+            const serviceWords = serviceLower.split(' ');
+            
+            // Check if current word starts a service name
+            if (currentWord.toLowerCase() === serviceWords[0] && i + serviceWords.length <= enhancedMetrics.length) {
+              // Attempt to match the entire service name
+              let isFullMatch = true;
+              
+              // Check if following words match the service name pattern
+              for (let j = 1; j < serviceWords.length; j++) {
+                const nextWordIndex = i + j;
+                
+                // Skip spaces when matching
+                if (enhancedMetrics[nextWordIndex] && 
+                    enhancedMetrics[nextWordIndex].text && 
+                    enhancedMetrics[nextWordIndex].text.trim() === "") {
+                  continue;
+                }
+                
+                // Check if the word matches or contains the expected service word
+                if (!enhancedMetrics[nextWordIndex] || 
+                    !enhancedMetrics[nextWordIndex].text || 
+                    !enhancedMetrics[nextWordIndex].text.toLowerCase().includes(serviceWords[j])) {
+                  isFullMatch = false;
+                  break;
+                }
+              }
+              
+              // If we found a full match
+              if (isFullMatch) {
+                console.log(`Found Apple service match: "${serviceLower}" starting at position ${i}`);
+                
+                // Mark all words in the service name to avoid breaks, including spaces between them
+                // First mark the current word
+                enhancedMetrics[i].lineBreaking = 'avoid';
+                
+                // Then mark all words and spaces until the end of the service name
+                let wordsFound = 1;
+                let j = 1;
+                while (wordsFound < serviceWords.length && i + j < enhancedMetrics.length) {
+                  enhancedMetrics[i + j].lineBreaking = 'avoid';
+                  
+                  // Only count non-space segments as words
+                  if (enhancedMetrics[i + j].text && enhancedMetrics[i + j].text.trim() !== "") {
+                    wordsFound++;
+                  }
+                  
+                  j++;
+                }
+                
+                break; // Found a match, no need to check other services
+              }
+            }
+          }
+          
+          // Game names check - similar approach as Apple services for robustness
+          for (const gameName of frenchRules.appGameNames) {
+            const gameLower = gameName.toLowerCase();
+            const gameWords = gameLower.split(' ');
+            
+            // Check if current word starts a game name
+            if (currentWord.toLowerCase() === gameWords[0] && i + gameWords.length <= enhancedMetrics.length) {
+              // Attempt to match the entire game name
+              let isFullMatch = true;
+              
+              // Check if following words match the game name pattern
+              for (let j = 1; j < gameWords.length; j++) {
+                const nextWordIndex = i + j;
+                
+                // Skip spaces when matching
+                if (enhancedMetrics[nextWordIndex] && 
+                    enhancedMetrics[nextWordIndex].text && 
+                    enhancedMetrics[nextWordIndex].text.trim() === "") {
+                  continue;
+                }
+                
+                // Check if the word matches the expected game word
+                if (!enhancedMetrics[nextWordIndex] || 
+                    !enhancedMetrics[nextWordIndex].text || 
+                    !enhancedMetrics[nextWordIndex].text.toLowerCase().includes(gameWords[j])) {
+                  isFullMatch = false;
+                  break;
+                }
+              }
+              
+              // If we found a full match
+              if (isFullMatch) {
+                console.log(`Found game name match: "${gameLower}" starting at position ${i}`);
+                
+                // Mark all words in the game name to avoid breaks
+                enhancedMetrics[i].lineBreaking = 'avoid';
+                enhancedMetrics[i]._partOfGameName = gameName;
+                
+                // Then mark all words and spaces until the end of the game name
+                let wordsFound = 1;
+                let j = 1;
+                while (wordsFound < gameWords.length && i + j < enhancedMetrics.length) {
+                  enhancedMetrics[i + j].lineBreaking = 'avoid';
+                  enhancedMetrics[i + j]._partOfGameName = gameName;
+                  
+                  // Only count non-space segments as words
+                  if (enhancedMetrics[i + j].text && enhancedMetrics[i + j].text.trim() !== "") {
+                    wordsFound++;
+                  }
+                  
+                  j++;
+                }
+                
+                break; // Found a match, no need to check other games
+              }
+            }
+          }
+        }
+        
+        return enhancedMetrics;
+      }
+      
+      // Apply additional French rules
+      wordMetrics = applyAdditionalFrenchRules(wordMetrics);
+      
+      // Process each segment to show line break opportunities
+      wordMetrics.forEach((segment, index) => {
+        // Create span for the text segment
+        const wordSpan = document.createElement('span');
+        wordSpan.className = 'word-segment';
+        wordSpan.style.display = 'inline';
+        
+        // Guard against undefined text values
+        const segmentText = segment.text || '';
+        const isValidText = typeof segmentText === 'string';
+        
+        // Ensure lineBreaking is properly set
+        if (typeof segment.lineBreaking === 'object') {
+          // Handle case where lineBreaking is incorrectly an object
+          if (segment.lineBreaking.lineBreaking) {
+            segment.lineBreaking = segment.lineBreaking.lineBreaking;
+          } else {
+            // Default to 'allow' if we can't determine
+            segment.lineBreaking = 'allow';
+          }
+        }
+        
+        // Handle space visualization
+        const isSpaceSegment = isValidText && /^\s+$/.test(segmentText);
+        if (isSpaceSegment) {
+          wordSpan.innerHTML = '&nbsp;'; // Visualize spaces with non-breaking spaces
+          wordSpan.style.backgroundColor = '#444';
+          wordSpan.style.opacity = '0.3';
+          wordSpan.title = 'Space';
+        } else {
+          wordSpan.textContent = segmentText;
+        }
+        
+        // Special handling for percent symbol and other special characters
+        const isSpecialChar = isValidText && ['%', '€', '$', '°'].includes(segmentText);
+        if (isSpecialChar) {
+          wordSpan.style.fontWeight = 'bold';
+          // Ensure the display text is exactly what's in the segment
+          wordSpan.textContent = segmentText;
+        }
+        
+        // Special handling for French colon rules
+        if (isValidText && segmentText === ':' && segment._specialColon) {
+          wordSpan.style.color = '#FFC107'; // Amber color to highlight colon
+          wordSpan.style.position = 'relative';
+          
+          // Add visual indicator that colon may be removed if at end of line
+          if (segment.colonRule && segment.colonRule.removeAtLineEnd) {
+            const colonNote = document.createElement('span');
+            colonNote.style.position = 'absolute';
+            colonNote.style.bottom = '-15px';
+            colonNote.style.left = '0';
+            colonNote.style.fontSize = '10px';
+            colonNote.style.color = '#FFC107';
+            colonNote.textContent = '⚠ Removed at line end';
+            colonNote.style.width = '80px';
+            wordSpan.appendChild(colonNote);
+            
+            // Add more detailed information in the title
+            wordSpan.title = "French typography rule: When a colon is at the end of a line, " +
+                            "it should be removed, and the next line may be capitalized.";
+          }
+          
+          // Handle special title-subtitle pattern
+          if (segment.colonTransformation === "titleSubtitle") {
+            wordSpan.style.border = '1px dashed #FFC107';
+          }
+        }
+        
+        // Add reason for line breaking rule in the title
+        let reason = "";
+        const locale = document.getElementById('opportunitiesLocaleSelect').value;
+        
+        if (segment.lineBreaking === 'avoid') {
+          // Try to determine reason based on text and locale
+          if (locale === 'fr') {
+            if (isValidText && ['le', 'la', 'les', 'un', 'une', 'des', 'l\''].includes(segmentText.toLowerCase())) {
+              reason = "FrenchRule.md: Article should stay with following word";
+            } else if (isValidText && ['à', 'de', 'pour', 'par', 'en', 'dans'].includes(segmentText.toLowerCase())) {
+              reason = "FrenchRule.md: No line break after prepositions";
+            } else if (isValidText && segmentText === ':') {
+              reason = "FrenchRule.md: Remove colon on multiple lines";
+            } else if (isValidText && /Apple|Music|TV\+|Super Bowl|Arcade|One|Fitness\+/.test(segmentText)) {
+              reason = "FrenchRule.md: Apple service names on one line";
+              // Add visual indication that this is part of an Apple service name
+              wordSpan.style.borderBottom = '1px solid #64b5f6';
+            } else if (isValidText && /Monopoly|Go|Candy|Crush/.test(segmentText)) {
+              reason = "FrenchRule.md: Game and app names stay on one line";
+            } else if (isValidText && segmentText === '%') {
+              reason = "FrenchRule.md: Units must stay with the number";
+            } else if (isValidText && /^(km|m|cm|mm|mo|ko|go|to|cl|ml|l|dl|kg|g|mg|h|min|s|ms|°|°c|°f)$/.test(segmentText.toLowerCase())) {
+              reason = "FrenchRule.md: Units must stay with the number";
+            } else if (isValidText && /^(M\.|Mme|Mlle|Dr|Prof)$/.test(segmentText)) {
+              reason = "FrenchRule.md: Don't separate names";
+            } else {
+              reason = "FrenchRule.md rule: Avoid break here";
+            }
+          } else {
+            reason = "Rule: Avoid break here";
+          }
+        } else {
+          reason = "Line break allowed here";
+        }
+        
+        wordSpan.title = reason;
+        
+        // Style based on line breaking opportunity
+        if (segment.lineBreaking === 'allow') {
+          wordSpan.classList.add('allow-break');
+        } else {
+          wordSpan.classList.add('avoid-break');
+          
+          // Special styling for Apple service name parts
+          if (segment._partOfAppleService || 
+              (isValidText && /Apple|Music|Super|Bowl|Arcade|One|Fitness\+|TV\+|News\+/.test(segmentText))) {
+            wordSpan.style.borderBottom = '2px solid #64b5f6';
+            wordSpan.style.backgroundColor = 'rgba(100, 181, 246, 0.1)';
+            
+            // Add tooltip with specific Apple service information
+            if (segment._partOfAppleService) {
+              wordSpan.title = `Part of Apple service: ${segment._partOfAppleService}`;
+            } else {
+              wordSpan.title = "FrenchRule.md: Apple service names on one line";
+            }
+          }
+          
+          // Special styling for game name parts
+          if (segment._partOfGameName) {
+            wordSpan.style.borderBottom = '2px solid #9ccc65';
+            wordSpan.style.backgroundColor = 'rgba(156, 204, 101, 0.1)';
+            wordSpan.title = `FrenchRule.md: Game name "${segment._partOfGameName}" must stay on one line`;
+          } else if (isValidText && /Monopoly|Go|Candy|Crush|Clash|Royale|Temple|Run/.test(segmentText)) {
+            wordSpan.style.borderBottom = '2px solid #9ccc65';
+            wordSpan.style.backgroundColor = 'rgba(156, 204, 101, 0.1)';
+            wordSpan.title = "FrenchRule.md: Game names stay on one line";
+          }
+        }
+        
+        // Add the segment to the container
+        visualContainer.appendChild(wordSpan);
+        
+        // Add separator if not the last segment
+        if (index < wordMetrics.length - 1) {
+          const separatorSpan = document.createElement('span');
+          separatorSpan.className = 'separator';
+          separatorSpan.textContent = segment.separator || '';
+          separatorSpan.style.margin = '0';
+          separatorSpan.style.padding = '0';
+          separatorSpan.style.display = 'inline';
+          
+          // Add a visual indicator for line break opportunity
+          if (segment.lineBreaking === 'allow') {
+            const breakIndicator = document.createElement('span');
+            breakIndicator.className = 'break-indicator';
+            breakIndicator.innerHTML = '&#9475;'; // Vertical line to indicate break point
+            breakIndicator.title = 'Line break allowed here';
+            breakIndicator.style.color = '#64b5f6';
+            breakIndicator.style.margin = '0';
+            breakIndicator.style.fontSize = '14px';
+            breakIndicator.style.display = 'inline';
+            breakIndicator.className = 'break-indicator';
+            separatorSpan.appendChild(breakIndicator);
+          }
+          
+          visualContainer.appendChild(separatorSpan);
+        }
+      });
+      
+      // Create a summary section
+      const summaryDiv = document.createElement('div');
+      summaryDiv.className = 'summary';
+      summaryDiv.style.backgroundColor = 'rgba(0,0,0,0.2)';
+      summaryDiv.style.padding = '15px';
+      summaryDiv.style.borderRadius = '8px';
+      summaryDiv.style.marginTop = '20px';
+      
+      // Count opportunities
+      const allowedBreaks = wordMetrics.filter(w => w.lineBreaking === 'allow').length;
+      const avoidedBreaks = wordMetrics.filter(w => w.lineBreaking === 'avoid').length;
+      const totalBreaks = allowedBreaks + avoidedBreaks;
+      const allowedPercentage = totalBreaks > 0 ? Math.round((allowedBreaks / totalBreaks) * 100) : 0;
+      const avoidedPercentage = totalBreaks > 0 ? Math.round((avoidedBreaks / totalBreaks) * 100) : 0;
+      
+      summaryDiv.innerHTML = 
+        `<h3 style="color: #80cbc4; margin-top: 0; margin-bottom: 15px;">Analysis Summary</h3>` +
+        `<div style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 15px;">` +
+          `<div style="flex: 1; min-width: 120px;">` +
+            `<div style="font-size: 14px; color: #888;">Total Segments</div>` +
+            `<div style="font-size: 24px; font-weight: 500; color: #f8f8f8;">${wordMetrics.length}</div>` +
+          `</div>` +
+          `<div style="flex: 1; min-width: 120px;">` +
+            `<div style="font-size: 14px; color: #888;">Allowed Breaks</div>` +
+            `<div style="font-size: 24px; font-weight: 500; color: #64b5f6;">${allowedBreaks} <span style="font-size: 14px; opacity: 0.7;">(${allowedPercentage}%)</span></div>` +
+          `</div>` +
+          `<div style="flex: 1; min-width: 120px;">` +
+            `<div style="font-size: 14px; color: #888;">Avoided Breaks</div>` +
+            `<div style="font-size: 24px; font-weight: 500; color: #ff5252;">${avoidedBreaks} <span style="font-size: 14px; opacity: 0.7;">(${avoidedPercentage}%)</span></div>` +
+          `</div>` +
+        `</div>` +
+        `<div style="background: rgba(0,0,0,0.15); height: 24px; border-radius: 12px; overflow: hidden; position: relative;">` +
+          `<div style="position: absolute; height: 100%; width: ${allowedPercentage}%; background-color: #64b5f6; left: 0;"></div>` +
+          `<div style="position: absolute; height: 100%; width: ${avoidedPercentage}%; background-color: #ff5252; left: ${allowedPercentage}%;"></div>` +
+          `<div style="position: relative; text-align: center; line-height: 24px; color: #fff; font-size: 12px; font-weight: bold; text-shadow: 0 0 3px rgba(0,0,0,0.5);">` +
+            `${allowedPercentage}% Allowed | ${avoidedPercentage}% Avoided` +
+          `</div>` +
+        `</div>`;
+      
+      // Show detailed explanation
+      const detailDiv = document.createElement('div');
+      detailDiv.style.marginTop = '20px';
+      detailDiv.style.borderTop = '1px solid #444';
+      detailDiv.style.paddingTop = '10px';
+      
+      // Add an explanation about line break opportunities
+      const explanationDiv = document.createElement('div');
+      explanationDiv.style.marginBottom = '20px';
+      explanationDiv.style.padding = '15px';
+      explanationDiv.style.backgroundColor = 'rgba(0,0,0,0.2)';
+      explanationDiv.style.borderRadius = '8px';
+      explanationDiv.style.marginTop = '20px';
+      
+      // Get selected locale
+      const selectedLocale = document.getElementById('opportunitiesLocaleSelect').value;
+      
+      // Create base explanation
+      let explanationHTML = 
+        `<h3 style="color: #80cbc4; margin-top: 0;">Line Break Rules</h3>` +
+        `<div style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 15px;">` +
+          `<div style="flex: 1; min-width: 250px; background: rgba(100, 181, 246, 0.1); padding: 10px; border-radius: 6px; border-left: 3px solid #64b5f6;">` +
+            `<h4 style="margin-top: 0; color: #64b5f6;">Allowed Breaks</h4>` +
+            `<p style="color: #f8f8f8; margin-bottom: 0;">` +
+              `Blue indicators show where line breaks are <strong>allowed</strong> according to the language rules.` +
+            `</p>` +
+          `</div>` +
+          `<div style="flex: 1; min-width: 250px; background: rgba(255, 82, 82, 0.1); padding: 10px; border-radius: 6px; border-left: 3px solid #ff5252;">` +
+            `<h4 style="margin-top: 0; color: #ff5252;">Avoided Breaks</h4>` +
+            `<p style="color: #f8f8f8; margin-bottom: 0;">` +
+              `Red text indicates segments where line breaks should be <strong>avoided</strong> to maintain readability.` +
+            `</p>` +
+          `</div>` +
+        `</div>`;
+      
+      // Add language-specific explanation
+      if (selectedLocale === 'fr') {
+        explanationHTML += `<h4 style="color: #80cbc4; margin-top: 15px;">French (FR) Specific Rules</h4>`;
+      } else if (selectedLocale === 'de') {
+        explanationHTML += 
+          `<h4 style="color: #80cbc4; margin-top: 15px;">German (DE) Specific Rules:</h4>` +
+          `<ul style="color: #f8f8f8; margin-top: 5px;">` +
+            `<li>Compound words with hyphens should not be broken</li>` +
+            `<li>Numbers stay with their units</li>` +
+          `</ul>`;
+      } else if (selectedLocale === 'es') {
+        explanationHTML += 
+          `<h4 style="color: #80cbc4; margin-top: 15px;">Spanish (ES) Specific Rules:</h4>` +
+          `<ul style="color: #f8f8f8; margin-top: 5px;">` +
+            `<li>Articles stay with the following word</li>` +
+            `<li>Compound words should stay together</li>` +
+          `</ul>`;
+      } else if (selectedLocale === 'ja') {
+        explanationHTML += 
+          `<h4 style="color: #80cbc4; margin-top: 15px;">Japanese (JA) Specific Rules:</h4>` +
+          `<ul style="color: #f8f8f8; margin-top: 5px;">` +
+            `<li>Characters are broken differently than Latin-based languages</li>` +
+            `<li>Certain punctuation should stay with preceding text</li>` +
+          `</ul>`;
+      }
+      
+      explanationDiv.innerHTML = explanationHTML;
+      detailDiv.appendChild(explanationDiv);
+      
+      // Add detailed metrics header
+      const metricsHeader = document.createElement('h3');
+      metricsHeader.style.color = '#80cbc4';
+      metricsHeader.style.marginBottom = '15px';
+      metricsHeader.style.marginTop = '20px';
+      metricsHeader.textContent = 'Detailed Word Metrics';
+      detailDiv.appendChild(metricsHeader);
+      
+      // Create toggle button for JSON data
+      const toggleButton = document.createElement('button');
+      toggleButton.textContent = 'Show JSON Data';
+      toggleButton.style.marginBottom = '10px';
+      toggleButton.style.padding = '5px 10px';
+      toggleButton.style.backgroundColor = '#333';
+      toggleButton.style.color = '#fff';
+      toggleButton.style.border = '1px solid #555';
+      toggleButton.style.borderRadius = '4px';
+      toggleButton.style.cursor = 'pointer';
+      
+      // Create a collapsible container for the JSON
+      const jsonContainer = document.createElement('pre');
+      jsonContainer.style.maxHeight = '300px';
+      jsonContainer.style.overflow = 'auto';
+      jsonContainer.style.backgroundColor = '#2d2d2d';
+      jsonContainer.style.padding = '10px';
+      jsonContainer.style.borderRadius = '5px';
+      jsonContainer.style.fontSize = '12px';
+      jsonContainer.style.display = 'none'; // Hidden by default
+      
+      // Format the JSON data
+      jsonContainer.textContent = JSON.stringify(wordMetrics, null, 2);
+      
+      // Toggle JSON visibility
+      toggleButton.onclick = () => {
+        const isVisible = jsonContainer.style.display !== 'none';
+        jsonContainer.style.display = isVisible ? 'none' : 'block';
+        toggleButton.textContent = isVisible ? 'Show JSON Data' : 'Hide JSON Data';
+      };
+      
+      detailDiv.appendChild(toggleButton);
+      detailDiv.appendChild(jsonContainer);
+      
+      // Add everything to the output container
+      opportunitiesOutput.appendChild(visualContainer);
+      opportunitiesOutput.appendChild(summaryDiv);
+      opportunitiesOutput.appendChild(detailDiv);
+    }
+    
+    // Sample text selection has been removed
+    
+    opportunitiesBtn.onclick = async () => {
+      // Show loading state
+      opportunitiesOutput.innerHTML = '<div style="padding: 15px; color: #03DAC5;">Processing text, please wait...</div>';
+      
+      const text = opportunitiesText.value.trim();
+      if (!text) {
+        opportunitiesOutput.innerHTML = '<div style="padding: 15px; color: #ff5252;">Please enter some text.</div>';
+        return;
+      }
+      
+      // Get the selected locale
+      const localeSelect = document.getElementById('opportunitiesLocaleSelect');
+      const locale = localeSelect.value;
+      
+      try {
+        console.log(`Processing text: "${text}" with locale: ${locale}`);
+        
+        // Process the text for line breaking
+        const wordMetrics = await processTextForLineBreaking(text, locale);
+        
+        console.log("Word metrics returned:", wordMetrics);
+        
+        // Validate the word metrics before visualization
+        if (!wordMetrics) {
+          throw new Error('No word metrics returned from processing');
+        }
+        
+        if (!Array.isArray(wordMetrics)) {
+          throw new Error('Word metrics is not an array');
+        }
+        
+        if (wordMetrics.length === 0) {
+          throw new Error('Word metrics array is empty');
+        }
+        
+        // Ensure each word metric has necessary properties
+        // Also deduplicate metrics that have the same position and text
+        const seenPositions = new Set();
+        const validatedMetrics = wordMetrics
+          .filter(metric => {
+            if (!metric || typeof metric !== 'object') return false;
+            
+            // Create a unique key based on position and text (if available)
+            const positionKey = metric.boundary ? 
+              `${metric.boundary.start}-${metric.boundary.end}-${metric.text}` : 
+              (metric.index !== undefined ? `${metric.index}-${metric.text}` : null);
+              
+            // Skip duplicates
+            if (positionKey && seenPositions.has(positionKey)) return false;
+            if (positionKey) seenPositions.add(positionKey);
+            
+            return true;
+          })
+          .map(metric => {
+            // Fix the issue with lineBreaking property containing an object instead of a string
+            let lineBreakingValue = 'allow';
+            
+            // Handle case when lineBreaking is an object with its own lineBreaking property
+            if (metric.lineBreaking && typeof metric.lineBreaking === 'object' && metric.lineBreaking.lineBreaking) {
+              lineBreakingValue = metric.lineBreaking.lineBreaking;
+            } 
+            // Handle normal case where lineBreaking is a string
+            else if (typeof metric.lineBreaking === 'string') {
+              lineBreakingValue = metric.lineBreaking;
+            }
+            
+            // Special case for numeric values followed by percent symbols
+            if (metric.text && /^\d+$/.test(metric.text)) {
+              // Check if the next token is a percent symbol
+              const nextIndex = wordMetrics.findIndex(m => 
+                m && m.text === '%' && 
+                m.index === (metric.index + metric.text.length)
+              );
+              
+              if (nextIndex !== -1) {
+                lineBreakingValue = 'avoid';
+              }
+            }
+            
+            return {
+              text: typeof metric.text === 'string' ? metric.text : '',
+              lineBreaking: lineBreakingValue,
+              separator: typeof metric.separator === 'string' ? metric.separator : ' ',
+              boundary: metric.boundary || { start: 0, end: 0 },
+              separatorCharCount: metric.separatorCharCount || 0
+            };
+          });
+        
+        // Display the line break opportunities with validated metrics
+        displayLineBreakOpportunities(validatedMetrics);
+      } catch (error) {
+        console.error('Error processing text:', error);
+        
+        // Get more debug information
+        let debugInfo = '';
+        try {
+          debugInfo = `
+            Text length: ${text.length}
+            Locale: ${locale}
+            Special characters: ${text.match(/[%°€$]/g)?.join(', ') || 'none'}
+            Time: ${new Date().toISOString()}
+          `;
+        } catch (e) {
+          debugInfo = 'Unable to collect debug information: ' + e.message;
+        }
+        
+        opportunitiesOutput.innerHTML = `<div style="padding: 15px; color: #ff5252;">
+          <p>Error: ${error.message}</p>
+          <p>Please try again with a different text or locale.</p>
+          <details>
+            <summary>Technical details</summary>
+            <pre style="white-space: pre-wrap;">${error.stack || 'No stack trace available'}</pre>
+            <hr/>
+            <h4>Debug Information:</h4>
+            <pre style="white-space: pre-wrap;">${debugInfo}</pre>
+          </details>
+        </div>`;
+      }
+    };
+
+    // All test buttons and their handlers have been removed
+    
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeLabel = document.getElementById('theme-label');
+    
+    // Check for saved theme preference or default to light
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    
+    // Apply the saved theme on page load
+    if (savedTheme === 'dark') {
+      document.body.setAttribute('data-theme', 'dark');
+      themeToggle.checked = true;
+      themeLabel.textContent = 'Dark Mode';
+    }
+    
+    // Handle theme toggle
+    themeToggle.addEventListener('change', function() {
+      if (this.checked) {
+        document.body.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+        themeLabel.textContent = 'Dark Mode';
+      } else {
+        document.body.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+        themeLabel.textContent = 'Light Mode';
+      }
+    });
+    
+    go.click();
+  </script>
+</body>
+</html>

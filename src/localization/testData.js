@@ -1,0 +1,53 @@
+export const testCases = [
+  { locale: "en", text: "This is a test to find line break opportunities for this sentence." },
+  { locale: "zh", text: "这是一个用于检测换行点的测试。" },
+  { locale: "ja", text: "これは改行ポイントを見つけるためのテストです。" },
+  { locale: "th", text: "ใครๆ ก็แสวงหาความตื่นเต้น แต่เว้นยูจีนไว้คนหนึ่งละกั" },
+  { locale: "ko", text: "이것은 줄 바꿈 기회를 찾기 위한 테스트입니다。" },
+  { locale: "en", text: "This is a well-known issue with browser-specific behavior." },
+  { locale: "de", text: "Die Entscheidung war eine wohlüberlegte, aber nicht leicht-zu-treffende." },
+  { locale: "fr", text: "C'est une situation socio-économique bien connue." },
+
+  // Spanish line break rule test cases
+  { locale: "es", text: "Evita dividir la palabra reproducción incorrectamente." },
+  { locale: "es", text: "Nos gusta la música y televisión de calidad." },
+  { locale: "es", text: "Escucha la lista de reproducción ahora." },
+  { locale: "es", text: "Escucha la lista de reproducción de inmediato." },
+  { locale: "es", text: "John Doe presenta Angry Birds." },
+  { locale: "es", text: "Un producto calidad-precio insuperable." },
+  { locale: "es", text: "Disponible en App Store y Apple TV+." },
+  { locale: "es", text: "Éxitos latinos y lanzamientos del mes." },
+  { locale: "es", text: "Lanzamientos del mes." },
+  { locale: "es", text: "Éxitos virales: Pop." },
+  { locale: "es", text: "Disfruta el nuevo episodio hoy." },
+  { locale: "es", text: "Descuento del 100 %, válido hasta mañana." },
+
+  // French line break rule test cases
+  { locale: "fr", text: "Hits viraux : pop" },
+  { locale: "fr", text: "Jean-Luc Godard revient avec un film culte." },
+  { locale: "fr", text: "Écoutez la nouvelle chanson maintenant." },
+  { locale: "fr", text: "C'est un véritable casse-tête musical." },
+  { locale: "fr", text: "Le concert à Paris est complet." },
+  { locale: "fr", text: "Nouveautés : electro pop" },
+  { locale: "fr", text: "Disponible sur Apple Arcade dès aujourd'hui." },
+  { locale: "fr", text: "Jouez à Monopoly Go maintenant." },
+  { locale: "fr", text: "Apple Music Super Bowl : la performance." },
+  { locale: "fr", text: "Apple One Super Bowl : l'événement." },
+  { locale: "fr", text: "L'artiste pop se donne à 100% dans son nouvel album." },
+
+  // German line break rule test cases
+  { locale: "de", text: "Angela Merkel spricht über neue Maßnahmen." },
+  { locale: "de", text: "Ein neues Angebot im App Store ist verfügbar." },
+  { locale: "de", text: "Jetzt erhältlich: Apple Books und mehr." },
+  { locale: "de", text: "Sende die Nachricht per E‑Mail noch heute." },
+  { locale: "de", text: "Er gewann 100 Punkte im Spiel." },
+  { locale: "de", text: "Sie trägt ein preis-leistungsstarkes Outfit." },
+  { locale: "de", text: "Das neue Smart-home System ist da." },
+  { locale: "de", text: "Besuche die Autowerkstatt noch heute." },
+  { locale: "de", text: "Er spielt Beethoven Opus 27 und KV 255 a." },
+  { locale: "de", text: "Ein kleiner Junge rannte über die Straße." },
+  { locale: "de", text: "Die Möglichkeit war beeindruckend." },
+  { locale: "de", text: "Vergiss nicht die Vergebung in dieser Zeit." },
+
+  { locale: "ja", text: "毎日が最高のゲーム日和。" },
+];

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TextFit+ Documentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'SF Pro Display';
+      src: url('sf-pro-display_regular.woff2') format('woff2');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+    
+    :root {
+      --primary-color: #0071e3;
+      --secondary-color: #147ce5;
+      --accent-color: #4cc9f0;
+      --success-color: #4cc9a0;
+      --warning-color: #ff9e00;
+      --danger-color: #ef476f;
+      --light-bg: #f5f5f7;
+      --dark-bg: #121212;
+      --text-color: #1d1d1f;
+      --text-secondary: #6c757d;
+      --border-radius: 10px;
+      --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    body { 
+      font-family: 'SF Pro Display', 'Inter', system-ui, sans-serif; 
+      margin: 0;
+      padding: 0;
+      background-color: var(--light-bg);
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+    
+    .container {
+      width: 98%;
+      margin: 0 auto;
+      padding: 0 20px;
+      max-width: 1000px;
+    }
+    
+    .header {
+      background-color: rgba(255, 255, 255, 0.8);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      color: var(--text-color);
+      padding: 16px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      margin-bottom: 30px;
+    }
+    
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+    }
+    
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      margin-right: 10px;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    
+    h1 { 
+      margin: 0;
+      font-size: 1.6rem;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+    }
+    
+    .header h1 {
+      font-size: 1.3rem;
+      color: var(--text-color);
+      opacity: 0.95;
+    }
+    
+    .header-actions {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .secondary-button {
+      background-color: transparent;
+      color: var(--primary-color);
+      border: 1px solid transparent;
+      border-radius: 980px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .secondary-button:hover {
+      background-color: rgba(0, 113, 227, 0.1);
+    }
+
+    .documentation-section {
+      background-color: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+
+    .documentation-section h2 {
+      color: var(--primary-color);
+      margin-top: 0;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .documentation-section h3 {
+      color: var(--secondary-color);
+      margin-top: 25px;
+    }
+
+    code {
+      background-color: #f1f1f1;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.9em;
+    }
+
+    pre {
+      background-color: #f8f8f8;
+      padding: 15px;
+      border-radius: var(--border-radius);
+      overflow-x: auto;
+      border: 1px solid #eee;
+    }
+
+    pre code {
+      background-color: transparent;
+      padding: 0;
+    }
+
+    .language-badge {
+      display: inline-block;
+      background-color: var(--accent-color);
+      color: white;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      margin-right: 5px;
+      margin-bottom: 5px;
+    }
+
+    .language-section {
+      margin-top: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      background-color: #f5f5f7;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <div class="logo-icon">TF+</div>
+          <h1>TextFit+ Documentation</h1>
+        </div>
+        <div class="header-actions">
+          <a href="index.html" class="secondary-button">Back to App</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="documentation-section">
+      <h2>TextFit+ Overview</h2>
+      <p>
+        TextFit+ integrates CanvasKit's line-breaking capabilities with a localization rules engine
+        to provide language-aware text layout. The application respects language-specific typographic 
+        rules for optimal text display.
+      </p>
+    </div>
+
+    <div class="documentation-section">
+      <h2>Features</h2>
+      <ul>
+        <li><strong>Language-Specific Line Breaking</strong>: Follow language-specific typographic rules</li>
+        <li><strong>Localization Rules</strong>: Support for special rules in different languages</li>
+        <li><strong>Visual Testing</strong>: Interactive UI to test line-breaking with different locales</li>
+        <li><strong>Rule Checking</strong>: Automatic validation against language-specific constraints</li>
+      </ul>
+      
+      <div class="language-section">
+        <h3>Supported Languages</h3>
+        <span class="language-badge">English</span>
+        <span class="language-badge">French</span>
+        <span class="language-badge">German</span>
+        <span class="language-badge">Spanish</span>
+        <span class="language-badge">Japanese</span>
+        <span class="language-badge">Chinese</span>
+        <span class="language-badge">Thai</span>
+        <span class="language-badge">Korean</span>
+      </div>
+    </div>
+
+    <div class="documentation-section">
+      <h2>Using the Application</h2>
+
+      <h3>Line Breaking Tab</h3>
+      <p>
+        This tab allows you to test how text is broken into lines using different layout algorithms.
+      </p>
+      <ol>
+        <li>Enter the text you want to format in the input field</li>
+        <li>Adjust the <strong>Balance Factor</strong> slider to control the trade-off between line length uniformity and optimal break positions</li>
+        <li>Set the <strong>Required Line Width %</strong> to determine the minimum fill ratio for each line</li>
+        <li>Select a <strong>Locale</strong> to apply language-specific rules</li>
+        <li>Click <strong>Compute Breaks</strong> to see the results</li>
+      </ol>
+      <p>
+        The results will show both the Best Fit and Most Uniform layouts, and the JSON representation
+        of the selected layout will appear in the tree view.
+      </p>
+
+      <h3>Line Break Opportunities Tab</h3>
+      <p>
+        This tab visualizes where line breaks are allowed or should be avoided based on language rules.
+      </p>
+      <ol>
+        <li>Enter text in the input field</li>
+        <li>Select a locale from the dropdown</li>
+        <li>Click <strong>Show Line Break Opportunities</strong> to visualize the results</li>
+      </ol>
+      <p>
+        Words highlighted in blue indicate where line breaks are allowed, while words in red show where 
+        breaks should be avoided. Special rules are applied for items like Apple service names, 
+        game titles, and more.
+      </p>
+    </div>
+
+    <div class="documentation-section">
+      <h2>Language-Specific Rules</h2>
+      
+      <h3>French (FR) Rules</h3>
+      <ul>
+        <li>Remove colons at the end of lines</li>
+        <li>Don't separate person names</li>
+        <li>Articles should not end a line</li>
+        <li>Keep adjectives with their nouns</li>
+        <li>No line break after prepositions</li>
+        <li>Units must stay with their numbers</li>
+        <li>Apple service names should stay on one line</li>
+        <li>Game and app names stay on one line</li>
+      </ul>
+
+      <h3>German (DE) Rules</h3>
+      <ul>
+        <li>Compound words with hyphens should not be broken</li>
+        <li>Numbers stay with their units</li>
+        <li>Special handling for compound nouns</li>
+      </ul>
+
+      <h3>Spanish (ES) Rules</h3>
+      <ul>
+        <li>Articles stay with the following word</li>
+        <li>Compound words should stay together</li>
+        <li>Keep adjectives with their nouns</li>
+      </ul>
+
+      <h3>Japanese (JA) Rules</h3>
+      <ul>
+        <li>Characters are broken differently than Latin-based languages</li>
+        <li>Certain punctuation should stay with preceding text</li>
+        <li>No breaks between small kana and the preceding character</li>
+      </ul>
+    </div>
+
+    <div class="documentation-section">
+      <h2>Technical Implementation</h2>
+      
+      <h3>Integration with CanvasKit</h3>
+      <p>
+        TextFit+ extends CanvasKit's capabilities by adding a localization layer that applies
+        language-specific rules before the core line-breaking algorithm runs.
+      </p>
+      
+      <h3>Code Usage Example</h3>
+      <pre><code>import { render } from './src/render_as_paragraph.js';
+
+// Render text with locale-specific line breaking
+render('これは改行ポイントを見つけるためのテストです。', 400, {
+  fontSize: 36,
+  locale: 'ja'  // Specify the locale
+});
+
+// Using just the localization module
+import { processTextForLineBreaking } from './src/localization/segmenter.js';
+
+async function example() {
+  const text = "Jean-Luc Godard revient avec un film culte.";
+  const locale = "fr";
+  
+  // Get word metrics with line-breaking constraints
+  const wordMetrics = await processTextForLineBreaking(text, locale);
+  
+  // Use these metrics to make line-breaking decisions
+}</code></pre>
+    </div>
+  </div>
+
+  <script>
+    // Simple script to handle navigation
+    document.addEventListener('DOMContentLoaded', function() {
+      const backButton = document.querySelector('a.secondary-button');
+      backButton.addEventListener('click', function(e) {
+        // You could add analytics here to track documentation usage
+        console.log('Navigating back to app');
+      });
+    });
+  </script>
+</body>
+</html>

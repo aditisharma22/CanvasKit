@@ -1,0 +1,235 @@
+import { processTextForLineBreaking, getLineBreakingRules } from './localization/segmenter.js';
+
+/**
+ * Apply localizing constraints to the word metrics
+ * This function enhances the standard metrics with locale-specific line breaking rules
+ * 
+ * @param {Array} wordMetrics - Original word metrics from CanvasKit
+ * @param {string} locale - The ISO language code for the text (e.g., 'en', 'ja', 'de')
+ * @returns {Array} - Enhanced word metrics with locale-specific line-breaking constraints
+ */
+export async function enhanceWordMetricsWithLocalization(wordMetrics, locale) {
+  // Define constants for line breaking constraints
+  const LINE_BREAK = {
+    ALLOW: 'allow',
+    AVOID: 'avoid'
+  };
+  
+  // Define default locale
+  const DEFAULT_LOCALE = 'en';
+  
+  // Skip localization processing for English or if no locale provided
+  if (!locale || locale === DEFAULT_LOCALE) {
+    return wordMetrics;
+  }
+  
+  // Convert word metrics to a simple text string for processing
+  const text = wordMetrics.map(w => w.text).join(' ');
+  
+  // Process text with locale-specific line breaking rules
+  const localizedMetrics = await processTextForLineBreaking(text, locale);
+  
+  // Merge localization constraints back into the original word metrics
+  return wordMetrics.map((metric, index) => {
+    // Get line breaking constraint from localized metrics, default to 'allow' if not available
+    const localConstraint = index < localizedMetrics.length ? 
+      localizedMetrics[index].lineBreaking : LINE_BREAK.ALLOW;
+      
+    // Return enhanced metrics with line breaking constraint
+    return {
+      ...metric,
+      lineBreaking: localConstraint === LINE_BREAK.AVOID ? LINE_BREAK.AVOID : LINE_BREAK.ALLOW
+    };
+  });
+}
+
+/**
+ * Filter line breaking candidates based on locale-specific rules
+ * Removes candidates that violate language-specific line breaking conventions
+ * 
+ * @param {Array} candidates - Line breaking candidates from optimization algorithm
+ * @param {Array} words - Original words array
+ * @param {string} locale - ISO language code (e.g., 'en', 'ja', 'de')
+ * @returns {Array} - Filtered candidates that respect locale-specific rules
+ */
+export function filterCandidatesByLocalizationRules(candidates, words, locale) {
+  const rules = getLineBreakingRules(locale);
+  if (!rules || !rules.rules) return candidates;
+
+  // Helper: get a list by name from the rules object
+  function getList(name) {
+    return rules[name] || rules.rules[name] || [];
+  }
+
+  // Helper: check if a word matches any entry in a list (case-insensitive)
+  function matchesList(word, list) {
+    if (!Array.isArray(list)) return false;
+    return list.some(entry => typeof entry === 'string' && word.toLowerCase() === entry.toLowerCase());
+  }
+
+  // Helper: check if a word matches any regex in a list
+  function matchesRegex(word, list) {
+    if (!Array.isArray(list)) return false;
+    return list.some(entry => {
+      if (typeof entry === 'string' && entry.includes('\\')) {
+        try {
+          return new RegExp(entry, 'i').test(word);
+        } catch { return false; }
+      }
+      return false;
+    });
+  }
+
+  // Helper: check for multi-token or regex phrase split at breakIdx
+  function breakSplitsPhrase(idx, phraseList) {
+    if (!Array.isArray(phraseList)) return false;
+    // Try to match each phrase (string or regex) against a window around the break
+    for (const phrase of phraseList) {
+      // Special case: Check for hyphenated expressions that might be split during tokenization
+      if (typeof phrase === 'string' && phrase.includes('-')) {
+        // Handle hyphenated expressions like "Smart-home"
+        const parts = phrase.split('-');
+        if (parts.length === 2 && idx > 0 && idx < words.length) {
+          // Check if this break is between parts of a hyphenated expression
+          // e.g., "Smart" and "home" for "Smart-home"
+          if (words[idx-1].toLowerCase() === parts[0].toLowerCase() && 
+              words[idx].toLowerCase() === parts[1].toLowerCase()) {
+            return true; // Found a hyphenated expression being split
+          }
+        }
+      }
+      
+      // Regex pattern (e.g. "Opus \\d+")
+      if (typeof phrase === 'string' && phrase.includes('\\')) {
+        // Try to match regex in a window of up to 5 tokens before and after the break
+        for (let win = 5; win >= 2; --win) {
+          for (let start = Math.max(0, idx - win + 1); start <= Math.min(idx, words.length - win); ++start) {
+            const candidate = words.slice(start, start + win).join(' ');
+            try {
+              if (new RegExp('^' + phrase + '$', 'i').test(candidate)) {
+                // If the break is inside this match, forbid it
+                if (idx >= start && idx < start + win - 1) return true;
+              }
+            } catch {}
+          }
+        }
+      } else if (typeof phrase === 'string') {
+        // Plain string phrase (multi-token)
+        const phraseWords = phrase.split(/\s+/);
+        if (phraseWords.length < 2) continue;
+        for (let start = Math.max(0, idx - phraseWords.length + 2); start <= Math.min(idx, words.length - phraseWords.length); ++start) {
+          let match = true;
+          for (let j = 0; j < phraseWords.length; ++j) {
+            if (words[start + j].toLowerCase() !== phraseWords[j].toLowerCase()) {
+              match = false;
+              break;
+            }
+          }
+          if (match) {
+            // If the break is inside this phrase, forbid it
+            if (idx >= start && idx < start + phraseWords.length - 1) return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  // Main filter
+  return candidates.filter(candidate => {
+    const breaks = candidate.breaks || [];
+    for (const breakIdx of breaks) {
+      if (breakIdx <= 0 || breakIdx >= words.length - 1) continue;
+      const prevWord = words[breakIdx - 1]; // Word before the break
+      const currWord = words[breakIdx];     // Word at the break position
+      const nextWord = words[breakIdx + 1]; // Word after the break
+
+      // Special direct check for hyphenated expressions like "Smart-home"
+      // This handles the case where tokenization split them into separate words
+      if (getList('fixedExpressions')) {
+        for (const expr of getList('fixedExpressions')) {
+          if (typeof expr === 'string' && expr.includes('-')) {
+            const [first, second] = expr.split('-');
+            
+            // Check if we're trying to break between the parts of the hyphenated expression
+            if (prevWord && currWord && 
+                prevWord.toLowerCase() === first.toLowerCase() && 
+                currWord.toLowerCase() === second.toLowerCase()) {
+              return false; // Don't allow breaks between parts of a hyphenated expression
+            }
+          }
+        }
+      }
+
+      // --- avoidBreakBefore ---
+      for (const rule of rules.rules.avoidBreakBefore || []) {
+        const list = getList(rule);
+        if (matchesList(nextWord, list) || matchesRegex(nextWord, list)) return false;
+      }
+
+      // --- avoidBreakAfter ---
+      for (const rule of rules.rules.avoidBreakAfter || []) {
+        const list = getList(rule);
+        if (matchesList(currWord, list) || matchesRegex(currWord, list)) return false;
+        // Special: numeric+unit/percent
+        if (rule === 'numeric' && /^\d+$/.test(currWord) && (matchesList(nextWord, getList('unitsOfMeasure')) || matchesList(nextWord, getList('percentSymbols')))) return false;
+        // Special: hyphen
+        if (rule === 'hyphen' && /-$/.test(currWord)) return false;
+      }
+
+      // --- avoidBreakBetween ---
+      for (const rule of rules.rules.avoidBreakBetween || []) {
+        const list = getList(rule);
+        if (breakSplitsPhrase(breakIdx, list)) return false;
+      }
+    }
+    return true;
+  });
+}
+
+/**
+ * Factory function to create a localization-aware line breaking optimizer
+ * Wraps an existing line breaking optimizer with locale-specific rules
+ *
+ * @param {function} originalOptimizer - The original line breaking optimizer function
+ * @returns {function} - Enhanced optimizer that respects locale-specific rules
+ */
+export function createLocalizedLineBreakOptimizer(originalOptimizer) {
+  // Define constants for default values and locale handling
+  const DEFAULT_LOCALE = 'en';
+  
+  /**
+   * Localized line breaking optimizer function
+   * 
+   * @param {string[]} words - Array of words in the text
+   * @param {number[]} wordWidths - Array of word widths
+   * @param {number} spaceWidth - Width of space character
+   * @param {number} targetWidth - Target line width
+   * @param {number} candidateCount - Number of candidates to generate
+   * @param {HTMLElement} debugElement - Debug visualization element
+   * @param {number} balanceFactor - Balance factor (0-1)
+   * @param {number} minFillRatio - Minimum fill ratio (0-1)
+   * @param {string} mode - Optimization mode ('fit' or 'uniform')
+   * @param {string} locale - ISO language code (defaults to 'en')
+   * @returns {Array} - Optimized line breaking candidates for the specified locale
+   */
+  return async function(words, wordWidths, spaceWidth, targetWidth, 
+                        candidateCount, debugElement, balanceFactor, 
+                        minFillRatio, mode, locale = DEFAULT_LOCALE) {
+    
+    // First, get candidates from the original optimizer
+    const candidates = originalOptimizer(
+      words, wordWidths, spaceWidth, targetWidth, 
+      candidateCount, debugElement, balanceFactor, 
+      minFillRatio, mode
+    );
+    
+    // Apply localization filtering for non-English locales
+    if (locale && locale !== DEFAULT_LOCALE) {
+      return filterCandidatesByLocalizationRules(candidates, words, locale);
+    }
+    
+    // Return unfiltered candidates for English or default locale
+    return candidates;
+  };
+}
