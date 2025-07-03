@@ -832,6 +832,30 @@
             </div>
           </div>
           
+          <div style="margin-top: 20px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <h4 style="margin: 0; color: #333;">Line Break Opportunities:</h4>
+              <div style="display: flex; gap: 15px; font-size: 12px;">
+                <span style="display: flex; align-items: center; gap: 5px;">
+                  <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: var(--primary-color);"></span>
+                  Allow
+                </span>
+                <span style="display: flex; align-items: center; gap: 5px;">
+                  <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: var(--danger-color);"></span>
+                  Avoid
+                </span>
+              </div>
+            </div>
+            <div id="lineBreakPreview" class="break-tree" style="width: 100%; min-height: 80px; max-height: 200px; padding: 15px; border-radius: 8px; white-space: normal; overflow: auto; background-color: rgba(0,0,0,0.05); border: 1px solid #ddd;">
+              <div class="waiting-message">
+                <div class="info-icon">ℹ️</div>
+                <div class="info-text">
+                  Line break opportunities will be displayed here after computing breaks.
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <button id="computeBtn" class="primary-button">Compute Breaks</button>
           
           <div class="results-section">
@@ -980,7 +1004,7 @@
       }
     };
 
-    go.onclick = () => {
+    go.onclick = async () => {
       container.innerHTML = "";
 
       const text = inputText.value.trim();
@@ -1002,6 +1026,25 @@
 
       // Clear any existing layouts
       document.getElementById("layoutContainer").innerHTML = "";
+      
+      // Update the line break opportunities preview
+      const lineBreakPreview = document.getElementById('lineBreakPreview');
+      lineBreakPreview.innerHTML = '<div style="padding: 15px; color: #03DAC5;">Processing line break opportunities...</div>';
+      
+      try {
+        // Process the text for line breaking opportunities
+        const wordMetrics = await processTextForLineBreaking(text, locale);
+        
+        // Display the line break opportunities
+        displayLineBreakOpportunities(wordMetrics, lineBreakPreview);
+        
+        // Sync the text in the opportunities tab too
+        document.getElementById('opportunitiesText').value = text;
+        document.getElementById('opportunitiesLocaleSelect').value = locale;
+      } catch (error) {
+        console.error('Error processing line break opportunities:', error);
+        lineBreakPreview.innerHTML = '<div style="padding: 15px; color: #ff5252;">Error processing line break opportunities.</div>';
+      }
 
       // Render the single column layout with async function
       const renderLayout = async () => {
@@ -1496,14 +1539,17 @@
     const opportunitiesText = document.getElementById('opportunitiesText');
     const opportunitiesOutput = document.getElementById('opportunitiesOutput');
     
-    function displayLineBreakOpportunities(wordMetrics) {
+    function displayLineBreakOpportunities(wordMetrics, targetElement = opportunitiesOutput) {
       // Clear previous output
-      opportunitiesOutput.innerHTML = '';
+      targetElement.innerHTML = '';
       
       if (!wordMetrics || !wordMetrics.length) {
-        opportunitiesOutput.innerHTML = '<div style="padding: 15px; color: #ff5252;">No results found. Try another text or locale.</div>';
+        targetElement.innerHTML = '<div style="padding: 15px; color: #ff5252;">No results found. Try another text or locale.</div>';
         return;
       }
+      
+      // Check if we're displaying in the main line break tab preview (simplified view)
+      const isLineBreakPreview = targetElement.id === 'lineBreakPreview';
       
       // Clean up any invalid word metrics
       wordMetrics = wordMetrics.filter(metric => 
@@ -2128,10 +2174,14 @@
       detailDiv.appendChild(toggleButton);
       detailDiv.appendChild(jsonContainer);
       
-      // Add everything to the output container
-      opportunitiesOutput.appendChild(visualContainer);
-      opportunitiesOutput.appendChild(summaryDiv);
-      opportunitiesOutput.appendChild(detailDiv);
+      // Add components based on whether this is the simplified view or full view
+      targetElement.appendChild(visualContainer);
+      
+      // Only add summary and detailed information in the full view (Opportunities tab)
+      if (!isLineBreakPreview) {
+        targetElement.appendChild(summaryDiv);
+        targetElement.appendChild(detailDiv);
+      }
     }
     
     // Sample text selection has been removed
@@ -2224,8 +2274,19 @@
             };
           });
         
-        // Display the line break opportunities with validated metrics
-        displayLineBreakOpportunities(validatedMetrics);
+        // Display the line break opportunities with validated metrics in the opportunities tab
+        displayLineBreakOpportunities(validatedMetrics, opportunitiesOutput);
+        
+        // Update the line break preview in the main tab if needed
+        if (document.getElementById('lineBreakPreview')) {
+          // If the user has switched tabs, update the preview in the main tab too
+          const lineBreakPreview = document.getElementById('lineBreakPreview');
+          displayLineBreakOpportunities(validatedMetrics, lineBreakPreview);
+          
+          // Sync the inputs between tabs
+          document.getElementById('inputText').value = text;
+          document.getElementById('localeSelect').value = locale;
+        }
       } catch (error) {
         console.error('Error processing text:', error);
         
