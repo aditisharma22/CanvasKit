@@ -83,7 +83,7 @@ export function computeBreaks(
         break; // This line is too wide, stop considering more words
       }
       
-      // Calculate line penalty based on mode
+      // Calculate line penalty based on mode and balance factor
       let penalty;
       
       if (mode === 'fill') {
@@ -91,13 +91,22 @@ export function computeBreaks(
         penalty = Math.abs(targetWidth - width);
       } else {
         // Fit mode: Allow lines to be shorter, penalize exceeding target width heavily
-        penalty = width <= targetWidth ? (targetWidth - width) * 0.5 : (width - targetWidth) * 3;
+        // Balance factor affects how we penalize deviations from target width
+        // Higher balance factor = more focus on matching target width
+        const underWeightFactor = 0.5 * (1 - balanceFactor); // Lower if high balance factor
+        const overWeightFactor = 3 * (0.5 + balanceFactor * 0.5); // Higher if high balance factor
+        
+        penalty = width <= targetWidth 
+          ? (targetWidth - width) * underWeightFactor 
+          : (width - targetWidth) * overWeightFactor;
       }
       
       // Adjust penalty based on fill ratio to prevent too-short lines
+      // Higher balance factor means stricter adherence to minFillRatio
       const fillRatio = width / targetWidth;
-      if (fillRatio < minFillRatio) {
-        penalty += (minFillRatio - fillRatio) * targetWidth * 2;
+      const adjustedMinFillRatio = minFillRatio + (balanceFactor * 0.1); // Higher balance factor means higher minimum fill ratio
+      if (fillRatio < adjustedMinFillRatio) {
+        penalty += (adjustedMinFillRatio - fillRatio) * targetWidth * (1.5 + balanceFactor * 1);
       }
       
       // Calculate total penalty: current line + penalty so far
@@ -363,59 +372,201 @@ function breakPatternDifference(pattern1, pattern2, totalWords) {
 }
 
 /**
- * Calculate score breakdown for a candidate solution
+ * Calculate score breakdown for a candidate solution with normalized metrics
+ * Metrics are calculated on a 0-100% scale where appropriate to match UI requirements
  * 
  * @param {Array} lines - Lines of text
  * @param {Array} lineWidths - Widths of each line
  * @param {number} targetWidth - Target width
  * @param {number} balanceFactor - Balance factor between raggedness and evenness
- * @returns {Object} - Score breakdown
+ * @returns {Object} - Score breakdown with normalized metrics
  */
 function calculateScoreBreakdown(lines, lineWidths, targetWidth, balanceFactor) {
-  // Calculate raggedness (how much lines deviate from target width)
-  let totalRaggedness = 0;
-  for (let i = 0; i < lineWidths.length - 1; i++) {
-    totalRaggedness += Math.pow(targetWidth - lineWidths[i], 2);
+  // Skip calculation for empty inputs
+  if (!lines || !lineWidths || lines.length === 0 || lineWidths.length === 0) {
+    return {
+      raggedness: 0,
+      evenness: 100,
+      fillRatio: 100,
+      widows: 0,
+      orphans: 0,
+      protectedBreaks: 0,
+      balanceFactor: balanceFactor
+    };
+  }
+
+  // ===== CALCULATE RAGGEDNESS (0-100%, lower is better) =====
+  // Measures how uneven the right edge of text is (excluding the last line)
+  // Perfect score (0%) means all lines exactly match the target width
+  
+  // Only consider non-last lines unless there's only one line
+  const raggedLinesToMeasure = lineWidths.length > 1 ? lineWidths.slice(0, -1) : [];
+  let totalSquaredDeviation = 0;
+  
+  // Skip calculation if we have nothing to measure (single line paragraph)
+  if (raggedLinesToMeasure.length === 0) {
+    var normalizedRaggedness = 0;
+  } else {
+    // Calculate squared deviations from target width
+    for (let i = 0; i < raggedLinesToMeasure.length; i++) {
+      const deviation = Math.abs(targetWidth - raggedLinesToMeasure[i]);
+      const deviationRatio = deviation / targetWidth; // Normalized by target width
+      totalSquaredDeviation += Math.pow(deviationRatio, 2);
+    }
+    
+    // Scale to 0-100% range using root-mean-square deviation
+    // This provides a proper measure of raggedness where:
+    // - 0% = perfect right edge alignment (all lines exactly match target width)
+    // - ~10% = minor variations (good)
+    // - ~30% = noticeable variations (acceptable)
+    // - >50% = highly ragged (poor)
+    normalizedRaggedness = Math.min(100, Math.sqrt(totalSquaredDeviation / raggedLinesToMeasure.length) * 100);
   }
   
-  // Calculate evenness (how consistent line lengths are)
-  let totalEvenness = 0;
-  const avgWidth = lineWidths.reduce((sum, width) => sum + width, 0) / lineWidths.length;
+  // ===== CALCULATE EVENNESS (0-100%, higher is better) =====
+  // Measures how consistent line lengths are with each other
+  // Perfect score (100%) means all lines are exactly the same length
   
-  for (let i = 0; i < lineWidths.length; i++) {
-    totalEvenness += Math.pow(lineWidths[i] - avgWidth, 2);
+  // Use all lines for evenness calculation
+  const avgLineWidth = lineWidths.reduce((sum, w) => sum + w, 0) / lineWidths.length;
+  let sumOfSquaredDifferences = 0;
+  
+  // Calculate variance
+  for (const width of lineWidths) {
+    sumOfSquaredDifferences += Math.pow(width - avgLineWidth, 2);
   }
   
-  // Calculate fill penalty (how much of the available width is used)
-  let totalFill = 0;
-  for (let i = 0; i < lineWidths.length - 1; i++) {
-    const fillRatio = lineWidths[i] / targetWidth;
-    totalFill += Math.max(0, 0.9 - fillRatio) * 100; // Penalty increases as fill ratio decreases below 90%
+  // Calculate coefficient of variation (CV)
+  // CV = (Standard Deviation / Mean) * 100%
+  // Lower CV means better evenness
+  const variance = sumOfSquaredDifferences / lineWidths.length;
+  const stdDev = Math.sqrt(variance);
+  const coefficientOfVariation = avgLineWidth > 0 ? (stdDev / avgLineWidth) : 0;
+  
+  // Transform CV to evenness score (0-100%)
+  // A CV of 0 means perfect evenness (100% score)
+  // A CV of 0.33 (33%) or higher means very poor evenness (0% score)
+  const normalizedEvenness = Math.max(0, Math.min(100, 100 - (coefficientOfVariation * 300)));
+  
+  // ===== CALCULATE FILL RATIO (0-100%, higher is better) =====
+  // Measures how much of the available width is used by each line
+  // Perfect score (100%) means all lines use the full width
+  
+  // Skip last line for fill ratio calculations unless there's only one line
+  const fillLinesToMeasure = lineWidths.length > 1 ? lineWidths.slice(0, -1) : lineWidths;
+  let totalWidth = 0;
+  let totalAvailableWidth = fillLinesToMeasure.length * targetWidth;
+  
+  // Sum the actual widths of all measured lines
+  for (const lineWidth of fillLinesToMeasure) {
+    totalWidth += Math.min(lineWidth, targetWidth); // Cap at target width
   }
   
-  // Count widows and orphans
-  let widowOrphanCount = 0;
+  // Calculate fill ratio as percentage of available space used
+  // Handle edge case of single-line or empty text
+  const avgFillRatio = totalAvailableWidth > 0 ? 
+    (totalWidth / totalAvailableWidth) * 100 : 100;
   
-  // Check for orphans (first line of a paragraph with a single word)
-  if (lines[0].length === 1) {
-    widowOrphanCount++;
+  // ===== COUNT WIDOWS (single words on last line) =====
+  // A widow is specifically a single word left alone on the last line
+  const widowCount = lines.length > 1 && Array.isArray(lines[lines.length - 1]) && 
+    lines[lines.length - 1].length === 1 ? 1 : 0;
+  
+  // ===== COUNT ORPHANS (single words on first line) =====
+  // An orphan is specifically a single word on the first line
+  const orphanCount = lines.length > 0 && Array.isArray(lines[0]) && 
+    lines[0].length === 1 ? 1 : 0;
+  
+  // ===== DETECT PROTECTED BREAKS (violations of typography rules) =====
+  // Calculate initial count based on basic rules
+  let protectedBreaks = 0;
+  
+  // List of common function words that shouldn't end a line
+  const functionWords = [
+    // Articles
+    'a', 'an', 'the', 
+    // Prepositions
+    'of', 'to', 'in', 'for', 'with', 'by', 'at', 'from', 'on', 'about',
+    // Conjunctions  
+    'and', 'but', 'or', 'nor', 'so', 'yet', 'as'
+  ];
+  
+  // Check each line except the last for protected break violations
+  for (let i = 0; i < lines.length - 1; i++) {
+    const line = lines[i];
+    if (Array.isArray(line) && line.length > 0) {
+      const lastWord = line[line.length - 1].toLowerCase().replace(/[,.;:!?]$/, ''); // Remove punctuation
+      
+      // Check for function words at line end
+      if (functionWords.includes(lastWord)) {
+        protectedBreaks++;
+      }
+      
+      // Check for hyphenated words broken at inappropriate places
+      if (lastWord.endsWith('-')) {
+        protectedBreaks++;
+      }
+      
+      // Check for numbers separated from units
+      if (i < lines.length - 1 && Array.isArray(lines[i+1]) && lines[i+1].length > 0) {
+        if (/^\d+$/.test(lastWord)) {
+          const nextFirstWord = lines[i+1][0].toLowerCase();
+          // Check if next word is a unit
+          if (/^(px|em|%|kg|lb|ft|in|cm|mm|m|s|ms|gb|mb|kb)$/i.test(nextFirstWord)) {
+            protectedBreaks++;
+          }
+        }
+      }
+    }
   }
   
-  // Check for widows (last line of a paragraph with a single word)
-  if (lines[lines.length - 1].length === 1) {
-    widowOrphanCount++;
-  }
+  // Calculate final score based on all metrics with proper weighting
+  // This combines all factors into a single score, influenced by balance factor
+  // Lower score is better in our scoring system
   
-  // Check for protected breaks (placeholder - will be updated later in render)
-  // This is initially 0 and will be updated when rendering
-  const protectedBreaks = 0;
+  // Base score components - adjusted to align with expected ranges
+  // Raggedness: 0-10% is good, 10-30% is acceptable, >30% is poor
+  const raggednessPenalty = normalizedRaggedness * 0.5; // 0-50 points
+  
+  // Evenness: 90-100% is good, 75-90% is acceptable, <75% is poor
+  const evennessPenalty = (100 - normalizedEvenness) * 0.3; // 0-30 points
+  
+  // Fill Ratio: 85-100% is good, 70-85% is acceptable, <70% is poor
+  const fillPenalty = (100 - avgFillRatio) * 0.2; // 0-20 points
+  
+  // Apply balance factor to adjust relative importance of raggedness vs evenness
+  // Higher balance factor means we care more about adherence to target width (raggedness)
+  // Lower balance factor means we care more about consistent line lengths (evenness)
+  const balancedRaggednessPenalty = raggednessPenalty * balanceFactor;
+  const balancedEvennessPenalty = evennessPenalty * (1 - balanceFactor);
+  
+  // Additional penalties for typographical issues
+  const widowPenalty = widowCount * 15; // 15 points per widow
+  const orphanPenalty = orphanCount * 10; // 10 points per orphan
+  const protectedBreakPenalty = protectedBreaks * 8; // 8 points per protected break violation
+  
+  // Calculate final score (lower is better)
+  const finalScore = balancedRaggednessPenalty + 
+                     balancedEvennessPenalty + 
+                     fillPenalty + 
+                     widowPenalty + 
+                     orphanPenalty + 
+                     protectedBreakPenalty;
   
   return {
-    raggedness: Math.sqrt(totalRaggedness) / 100,
-    evenness: Math.sqrt(totalEvenness) / 100,
-    fillPenalty: totalFill / lineWidths.length,
-    widowsOrphans: widowOrphanCount,
-    protectedBreaks: protectedBreaks
+    // Main metrics as normalized values (0-100%)
+    raggedness: normalizedRaggedness,
+    evenness: normalizedEvenness,
+    fillRatio: avgFillRatio,
+    
+    // Count-based metrics (absolute values)
+    widows: widowCount,
+    orphans: orphanCount,
+    protectedBreaks: protectedBreaks,
+    
+    // Store settings and calculated score
+    balanceFactor: balanceFactor,
+    score: finalScore
   };
 }
 
@@ -493,11 +644,18 @@ function findBreakIndices(lines) {
 }
 
 /**
- * Create debug tree display
+ * Create debug tree display with comprehensive metrics
  * 
  * @param {Object} solution - Best solution
  * @param {number} wordCount - Total word count
- * @returns {string} - Debug HTML
+ * @returns {string} - Debug HTML with enhanced metrics
+ */
+/**
+ * Create debug tree display with comprehensive metrics
+ * 
+ * @param {Object} solution - Best solution
+ * @param {number} wordCount - Total word count
+ * @returns {string} - Debug HTML with enhanced metrics
  */
 function createDebugTree(solution, wordCount) {
   if (!solution) return "No solution found";
@@ -529,13 +687,133 @@ function createDebugTree(solution, wordCount) {
   
   html += '</div>';
   
-  // Add score breakdown
+  // Helper function to generate color-coded metric display with improved thresholds
+  function getMetricColor(value, isGoodWhenLow = false, thresholds = { good: 90, warning: 70 }) {
+    if (isGoodWhenLow) {
+      return value <= thresholds.good ? '#4caf50' : // Green for good
+             value <= thresholds.warning ? '#ff9800' : // Orange for warning
+             '#f44336';               // Red for poor
+    } else {
+      return value >= thresholds.good ? '#4caf50' : // Green for good
+             value >= thresholds.warning ? '#ff9800' : // Orange for warning
+             '#f44336';                            // Red for poor
+    }
+  }
+  
+  // Extract metrics with proper fallbacks
+  const breakdowns = solution.scoreBreakdown || {};
+  const balanceFactor = breakdowns.balanceFactor?.toFixed(2) || '0.50';
+  const raggedness = breakdowns.raggedness || 0;
+  const evenness = breakdowns.evenness || 100;
+  const fillRatio = breakdowns.fillRatio || breakdowns.fillPenalty || 100;
+  const widows = breakdowns.widows || breakdowns.widowsOrphans || 0;
+  const orphans = breakdowns.orphans || 0;
+  const protectedBreaks = breakdowns.protectedBreaks || 0;
+  
+  // Add enhanced score breakdown with color indicators and better explanations
   html += `
-    <div style="margin-top: 10px;">
-      <div>Score: ${solution.score.toFixed(2)}</div>
-      <div>Raggedness: ${solution.scoreBreakdown.raggedness.toFixed(2)}</div>
-      <div>Evenness: ${solution.scoreBreakdown.evenness.toFixed(2)}</div>
-      <div>Fill Penalty: ${solution.scoreBreakdown.fillPenalty.toFixed(2)}</div>
+    <div style="margin-top: 10px; border-top: 1px dashed #666; padding-top: 10px;">
+      <div style="font-weight: bold; font-size: 1.1em;">
+        Solution Score: ${solution.score.toFixed(2)}
+        <span style="font-size: 0.8em; color: #666; font-weight: normal;">(lower is better)</span>
+      </div>
+      
+      <div style="margin-top: 12px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 4px;">
+        Quality Metrics
+        <span style="font-weight: normal; font-size: 0.9em; color: #666; margin-left: 10px;">
+          Aligned with professional typography standards
+        </span>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: auto 1fr; gap: 8px; margin: 8px 0;">
+        <div style="color: ${getMetricColor(raggedness, true, { good: 10, warning: 30 })}; font-weight: bold;">
+          Raggedness:
+        </div>
+        <div>
+          ${raggedness.toFixed(1)}% 
+          <span style="color: #666; font-size: 0.9em;">
+            (0-10% ideal) - Measures how uneven the right margin appears
+          </span>
+          <div style="width: 100%; height: 4px; background: #eee; margin-top: 3px;">
+            <div style="width: ${Math.min(100, raggedness)}%; height: 4px; background: ${getMetricColor(raggedness, true, { good: 10, warning: 30 })};"></div>
+          </div>
+        </div>
+        
+        <div style="color: ${getMetricColor(evenness, false, { good: 90, warning: 75 })}; font-weight: bold;">
+          Evenness:
+        </div>
+        <div>
+          ${evenness.toFixed(1)}% 
+          <span style="color: #666; font-size: 0.9em;">
+            (90-100% ideal) - Consistency of line lengths throughout text
+          </span>
+          <div style="width: 100%; height: 4px; background: #eee; margin-top: 3px;">
+            <div style="width: ${evenness}%; height: 4px; background: ${getMetricColor(evenness, false, { good: 90, warning: 75 })};"></div>
+          </div>
+        </div>
+        
+        <div style="color: ${getMetricColor(fillRatio, false, { good: 85, warning: 70 })}; font-weight: bold;">
+          Fill Ratio:
+        </div>
+        <div>
+          ${fillRatio.toFixed(1)}% 
+          <span style="color: #666; font-size: 0.9em;">
+            (85-100% ideal) - How efficiently the available width is used
+          </span>
+          <div style="width: 100%; height: 4px; background: #eee; margin-top: 3px;">
+            <div style="width: ${fillRatio}%; height: 4px; background: ${getMetricColor(fillRatio, false, { good: 85, warning: 70 })};"></div>
+          </div>
+        </div>
+        
+        <div style="color: ${getMetricColor(widows, true, { good: 0, warning: 0 })}; font-weight: bold;">
+          Widows:
+        </div>
+        <div>
+          ${widows} 
+          <span style="color: #666; font-size: 0.9em;">
+            (0 ideal) - Single words isolated on the last line
+          </span>
+        </div>
+        
+        <div style="color: ${getMetricColor(orphans, true, { good: 0, warning: 0 })}; font-weight: bold;">
+          Orphans:
+        </div>
+        <div>
+          ${orphans} 
+          <span style="color: #666; font-size: 0.9em;">
+            (0 ideal) - Single words isolated on the first line
+          </span>
+        </div>
+        
+        <div style="color: ${getMetricColor(protectedBreaks, true, { good: 0, warning: 0 })}; font-weight: bold;">
+          Protected:
+        </div>
+        <div>
+          ${protectedBreaks} 
+          <span style="color: #666; font-size: 0.9em;">
+            (0 ideal) - Violations of typographic rules (e.g., prepositions at line end)
+          </span>
+        </div>
+      </div>
+      
+      <div style="margin-top: 12px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 4px;">
+        Balance Settings
+      </div>
+      <div style="margin-top: 5px;">
+        <div>Balance Factor: <strong>${balanceFactor}</strong></div>
+        <div style="display: flex; align-items: center; gap: 8px; margin: 8px 0;">
+          <span style="font-size: 0.9em; min-width: 75px;">Even lines</span>
+          <div style="flex: 1; height: 8px; background: linear-gradient(to right, #4caf50, #ffeb3b, #f44336); border-radius: 4px; position: relative;">
+            <div style="position: absolute; width: 12px; height: 12px; background: #3f51b5; border: 2px solid white; border-radius: 50%; top: -4px; left: calc(${parseFloat(balanceFactor) * 100}% - 6px); box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>
+          </div>
+          <span style="font-size: 0.9em; min-width: 75px; text-align: right;">Target width</span>
+        </div>
+        <div style="font-size: 0.9em; color: #666; margin-top: 2px;">
+          ${parseFloat(balanceFactor) < 0.4 ? 'Prioritizing even line lengths - lines will be more consistent in length, but may vary from target width' :
+          parseFloat(balanceFactor) > 0.6 ? 'Prioritizing target width adherence - lines will closely match the target width, but may vary in length' :
+          'Balanced approach - compromise between even lines and target width adherence'}
+        </div>
+      </div>
     </div>
   `;
   

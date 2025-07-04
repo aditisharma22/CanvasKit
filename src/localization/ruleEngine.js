@@ -14,17 +14,21 @@ import { localeConfigManager, CONFIG } from './LocaleConfigManager.js';
  * @returns {Array} - Updated word metrics with line breaking annotations
  */
 export function annotateLineBreakingWithSeparators(wordMetricsArray, ruleConfig) {
-  // Use universal rule processor for all rule processing
   if (!ruleConfig || !ruleConfig.locale) {
     return wordMetricsArray;
   }
 
-  // Get the locale from the configuration  
-  const locale = ruleConfig.locale;
-  
-  // Apply universal rule processing
-  return universalRuleProcessor.processWordMetrics(wordMetricsArray, locale);
+  // Apply universal rule processing using the locale from the configuration
+  return universalRuleProcessor.processWordMetrics(wordMetricsArray, ruleConfig.locale);
 }
+
+/**
+ * Apply segmentation rules and track violations for debugging
+ * 
+ * @param {Array} wordMetricsArray - Array of word metrics objects
+ * @param {Object} ruleConfig - Language-specific rule configuration
+ * @returns {Array} - List of rule violations for debugging
+ */
 export function applySegmentationRules(wordMetricsArray, ruleConfig) {
   // Extract rule configurations
   const { 
@@ -39,87 +43,36 @@ export function applySegmentationRules(wordMetricsArray, ruleConfig) {
     unitsOfMeasure
   } = ruleConfig || {};
   const violations = [];
+  
+  // Constants from LocaleConfigManager
+  const { SEPARATORS, REGEX_PATTERNS } = CONFIG;
 
   // Helper functions for rule checking
-  
-  /**
-   * Check if a word is a function word (article, preposition, etc.)
-   * @param {string} w - Word to check
-   * @returns {boolean} - True if it's a function word
-   */
   const isFunctionWord = (w) => functionWords?.includes(w?.toLowerCase());
-  
-  /**
-   * Check if a word is an adjective
-   * @param {string} w - Word to check
-   * @returns {boolean} - True if it's an adjective
-   */
   const isAdjective = (w) => adjectives?.includes(w?.toLowerCase());
-  
-  /**
-   * Check if a word is a person name prefix (M., Mme, etc.)
-   * @param {string} w - Word to check
-   * @returns {boolean} - True if it's a person name prefix
-   */
   const isPersonPrefix = (w) => personNamePrefixes?.includes(w);
-  
-  /**
-   * Check if a word is a unit of measurement
-   * @param {string} w - Word to check
-   * @returns {boolean} - True if it's a unit of measurement
-   */
   const isUnit = (w) => unitsOfMeasure?.includes(w);
-  
-  /**
-   * Check if a word is punctuation
-   * @param {string} w - Word to check
-   * @returns {boolean} - True if it's punctuation
-   */
-  const isPunctuation = (w) => REGEX_PATTERNS.PUNCTUATION.test(w);
-  
-  /**
-   * Check if a separator is a hyphen
-   * @param {string} sep - Separator to check
-   * @returns {boolean} - True if it's a hyphen
-   */
+  const isPunctuation = (w) => REGEX_PATTERNS.PUNCTUATION?.test(w);
   const isHyphen = (sep) => sep === SEPARATORS.HYPHEN || sep === SEPARATORS.NON_BREAKING_HYPHEN;
-  
-  /**
-   * Check if a word is numeric
-   * @param {string} w - Word to check
-   * @returns {boolean} - True if it's numeric
-   */
-  const isNumeric = (w) => REGEX_PATTERNS.NUMERIC.test(w);
-  
-  /**
-   * Check if a word is a proper noun (capitalized)
-   * @param {string} w - Word to check
-   * @returns {boolean} - True if it looks like a proper noun
-   */
-  const isProperNoun = (w) => REGEX_PATTERNS.PROPER_NOUN.test(w);
+  const isNumeric = (w) => REGEX_PATTERNS.NUMERIC?.test(w);
+  const isProperNoun = (w) => REGEX_PATTERNS.PROPER_NOUN?.test(w);
 
   /**
    * Check if two adjacent words form a fixed expression or brand name
-   * @param {Object} curr - Current word metrics
-   * @param {Object} next - Next word metrics
-   * @param {string} separator - Separator between words
-   * @returns {boolean} - True if it's a fixed expression or brand name
    */
   function isFixedExpressionOrAppleService(curr, next, separator) {
     // Combine words with separator
     const combined = `${curr.text}${separator}${next.text}`;
     
-    // Check against fixed expressions (including regex patterns)
+    // Check against fixed expressions
     if (fixedExpressions) {
       for (const expr of fixedExpressions) {
         // Check for exact match with the combined expression
         if (new RegExp(`^${expr}$`, 'i').test(combined)) return true;
         
-        // Special handling for hyphenated expressions that might be split during tokenization
+        // Special handling for hyphenated expressions
         if (typeof expr === 'string' && expr.includes('-')) {
           const [first, second] = expr.split('-');
-          // Check if this is a pair of words that match a hyphenated expression
-          // even if they're not currently joined with a hyphen in the text
           if (first && second && 
               curr.text.toLowerCase() === first.toLowerCase() && 
               next.text.toLowerCase() === second.toLowerCase()) {
@@ -160,13 +113,13 @@ export function applySegmentationRules(wordMetricsArray, ruleConfig) {
     ) {
       violations.push([i, `'${currText}' | '${nextText}'`, "Avoid break in fixed expression/Apple service"]);
       // Mark both the current and next words with avoid line breaking
-      wordMetricsArray[i].lineBreaking = "avoid";  // Mark the first part as "avoid"
+      wordMetricsArray[i].lineBreaking = "avoid";
       if (i < wordMetricsArray.length - 1) {
-        wordMetricsArray[i+1].lineBreaking = "avoid"; // Mark the second part as "avoid" too
+        wordMetricsArray[i+1].lineBreaking = "avoid";
       }
     }
 
-    // French Rule: Articles/Prepositions should never be at the end of a line
+    // Articles/Prepositions should never be at the end of a line
     if (rules?.avoidBreakAfter?.includes("articles") && isFunctionWord(currText)) {
       violations.push([i, `'${currText}' | '${nextText}'`, "Articles/prepositions should not be at the end of a line"]);
     }
@@ -176,33 +129,32 @@ export function applySegmentationRules(wordMetricsArray, ruleConfig) {
       violations.push([i, `'${currText}' | '${nextText}'`, "Avoid break before function word"]);
     }
     
-    // French Rule: Adjectives should not be separated from what they describe
+    // Adjectives should not be separated from what they describe
     if (rules?.avoidBreakBetween?.includes("adjectiveNoun") && isAdjective(currText)) {
       violations.push([i, `'${currText}' | '${nextText}'`, "Adjective should stay with what it describes"]);
     }
     
-    // French Rule: Don't separate names
+    // Don't separate names
     if (rules?.avoidBreakBetween?.includes("personNames") && 
         ((isPersonPrefix(currText) && isProperNoun(nextText)) || 
          (isProperNoun(currText) && isProperNoun(nextText)))) {
       violations.push([i, `'${currText}' | '${nextText}'`, "Don't separate names"]);
     }
     
-    // French Rule: Units/percent symbols stay with preceding numbers
+    // Units/percent symbols stay with preceding numbers
     if (rules?.avoidBreakAfter?.includes("units") && 
         isNumeric(currText) && (nextText === '%' || isUnit(nextText))) {
       violations.push([i, `'${currText}' | '${nextText}'`, "Units stay with preceding numbers"]);
     }
     
     // Apple brand services should remain on a single line
-    if (rules?.avoidBreakBetween?.includes("appleServices")) {
-      // Check a range of words for Apple service names
+    if (rules?.avoidBreakBetween?.includes("appleServices") && appleServices) {
       const possibleServiceText = wordMetricsArray
         .slice(Math.max(0, i-2), Math.min(wordMetricsArray.length, i+3))
         .map(m => m.text || '')
         .join(' ');
       
-      for (const service of appleServices || []) {
+      for (const service of appleServices) {
         if (possibleServiceText.includes(service)) {
           violations.push([i, `'${currText}' | '${nextText}'`, "Apple brands should remain on a single line"]);
           break;
@@ -211,14 +163,13 @@ export function applySegmentationRules(wordMetricsArray, ruleConfig) {
     }
     
     // Game and app names should remain on a single line
-    if (rules?.avoidBreakBetween?.includes("appGameNames")) {
-      // Check a range of words for game names
+    if (rules?.avoidBreakBetween?.includes("appGameNames") && appGameNames) {
       const possibleGameText = wordMetricsArray
         .slice(Math.max(0, i-1), Math.min(wordMetricsArray.length, i+2))
         .map(m => m.text || '')
         .join(' ');
       
-      for (const game of appGameNames || []) {
+      for (const game of appGameNames) {
         if (possibleGameText.includes(game)) {
           violations.push([i, `'${currText}' | '${nextText}'`, "Game names should remain on a single line"]);
           break;
@@ -232,20 +183,17 @@ export function applySegmentationRules(wordMetricsArray, ruleConfig) {
     }
 
     // Avoid break for scores (e.g., "100 Punkte")
-    if (isNumeric(currText) && REGEX_PATTERNS.SCORE_PATTERN.test(nextText)) {
+    if (isNumeric(currText) && REGEX_PATTERNS.SCORE_PATTERN?.test(nextText)) {
       violations.push([i, `'${currText}' | '${nextText}'`, "Avoid break in score"]);
     }
 
-    // JP: Avoid break before periods
-    if (
-      rules?.avoidBreakBefore?.includes("period") &&
-      periods &&
-      periods.includes(nextText)
-    ) {
-      violations.push([i, `'${currText}' | '${nextText}'`, "Do not break before Japanese period"]);
+    // Avoid break before periods (e.g., Japanese periods)
+    if (rules?.avoidBreakBefore?.includes("period") && 
+        periods && periods.includes(nextText)) {
+      violations.push([i, `'${currText}' | '${nextText}'`, "Do not break before period"]);
     }
     
-    // French Rule: Colon handling
+    // Special colon handling
     if (nextText === ':' && rules?.removeColonAtLineEnd) {
       violations.push([i, `'${currText}' | '${nextText}'`, "Colon may need special handling at line breaks"]);
     }
