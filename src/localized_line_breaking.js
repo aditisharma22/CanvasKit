@@ -18,9 +18,40 @@ if (typeof window !== 'undefined') {
  * @returns {Array} - Enhanced word metrics with locale-specific line-breaking constraints
  */
 export async function enhanceWordMetricsWithLocalization(wordMetrics, locale, options = { enableLocalization: true }) {
-  // Skip localization processing if explicitly disabled or not needed
-  if (options.enableLocalization === false || !localeConfigManager.needsLocalization(locale)) {
-    console.log(`Skipping localization enhancement: ${options.enableLocalization === false ? 'toggle disabled' : 'locale does not need processing'}`);
+  // When toggle is off, return metrics with basic line breaks
+  if (options.enableLocalization === false) {
+    console.log('Localization toggle is OFF - using basic line breaks');
+    return wordMetrics.map((metric, index) => {
+      // For basic line breaks, avoid breaks:
+      // 1. At the last word
+      // 2. For punctuation marks
+      // 3. For units after numbers
+      // 4. For currency symbols
+      const isPunctuation = metric.text && /^[.,;:!?)]$/.test(metric.text);
+      const isUnit = metric.text && /^(km|m|cm|mm|kg|g|mg|l|ml|h|min|s|ms|%|€|\$)$/.test(metric.text);
+      const isNumber = metric.text && /^\d+$/.test(metric.text);
+      const nextMetric = index < wordMetrics.length - 1 ? wordMetrics[index + 1] : null;
+      const nextIsUnit = nextMetric && nextMetric.text && /^(km|m|cm|mm|kg|g|mg|l|ml|h|min|s|ms|%|€|\$)$/.test(nextMetric.text);
+      
+      return {
+        ...metric,
+        lineBreaking: (
+          index === wordMetrics.length - 1 || // Last word
+          isPunctuation || // Punctuation marks
+          (isNumber && nextIsUnit) || // Number followed by unit
+          (isUnit && index > 0 && wordMetrics[index - 1].text && /^\d+$/.test(wordMetrics[index - 1].text)) // Unit after number
+        ) ? 'avoid' : 'allow',
+        _localeRules: null, // Clear any previous rule metadata
+        _partOfAppleService: null, // Clear any special word metadata
+        _partOfGameName: null,
+        _isSmartHomeCompound: null
+      };
+    });
+  }
+  
+  // Skip localization processing if not needed for this locale
+  if (!localeConfigManager.needsLocalization(locale)) {
+    console.log(`Locale ${locale} does not require localization processing`);
     return wordMetrics;
   }
   
@@ -110,13 +141,18 @@ export function createLocalizedLineBreakOptimizer(originalOptimizer) {
     
     console.log(`Line break optimization: localization ${isLocalizationEnabled ? 'ENABLED' : 'DISABLED'}`);
     
+    // When localization is disabled, use basic word-level line breaking
+    // regardless of the locale specified
+    const effectiveLocale = isLocalizationEnabled ? locale : DEFAULT_LOCALE;
+    
     // First, get candidates from the original optimizer
     // Pass the localization toggle state to ensure the core algorithm knows whether to apply rules
+    // Use the effective locale based on whether localization is enabled
     const candidates = originalOptimizer(
       words, wordWidths, spaceWidth, targetWidth, 
       candidateCount, debugElement, balanceFactor, 
       minFillRatio, mode,
-      locale,
+      effectiveLocale, // Use the effective locale
       { enableLocalization: isLocalizationEnabled }
     );
     

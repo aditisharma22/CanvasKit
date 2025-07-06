@@ -219,16 +219,38 @@ export async function segmentText(text, locale = "en") {
  * Process text for line-breaking based on locale-specific rules
  * @param {string} text - Text to process
  * @param {string} locale - Locale code
+ * @param {Object} options - Additional options
+ * @param {boolean} options.enableLocalization - Whether to apply localization rules
  * @returns {Array} - Array of word metrics with line breaking annotations
  */
-export async function processTextForLineBreaking(text, locale = "en") {
+export async function processTextForLineBreaking(text, locale = "en", options = { enableLocalization: true }) {
   try {
-    console.log(`[processTextForLineBreaking] Starting with locale ${locale}, text: "${text?.substring(0, 20)}${text?.length > 20 ? '...' : ''}"`);
+    console.log(`[processTextForLineBreaking] Starting with locale ${locale}, text: "${text?.substring(0, 20)}${text?.length > 20 ? '...' : ''}", localization ${options.enableLocalization ? 'enabled' : 'disabled'}`);
     
     // Input validation
     if (!text || typeof text !== 'string') {
       console.warn('Invalid text input for processTextForLineBreaking:', text);
       return [];
+    }
+    
+    // If localization is disabled, provide basic line breaking metrics
+    if (options.enableLocalization === false) {
+      console.log('[processTextForLineBreaking] Localization disabled, using basic line breaks');
+      
+      // Split by spaces to get basic words
+      const words = text.split(/\s+/);
+      
+      // Create basic word metrics with all line breaks allowed (except last word)
+      const basicMetrics = words.map((word, index) => ({
+        text: word,
+        lineBreaking: index === words.length - 1 ? 'avoid' : 'allow',
+        boundary: {
+          start: text.indexOf(word),
+          end: text.indexOf(word) + word.length
+        }
+      }));
+      
+      return basicMetrics;
     }
     
     // Get text segments

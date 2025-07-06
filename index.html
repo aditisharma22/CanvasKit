@@ -654,6 +654,11 @@
       color: var(--danger-color);
     }
     
+    /* When localization is disabled, use the default text color */
+    .localization-disabled .avoid-break {
+      color: var(--text-color);
+    }
+    
     .separator {
       display: inline;
       margin: 0;
@@ -1032,8 +1037,8 @@
       lineBreakPreview.innerHTML = '<div style="padding: 15px; color: #03DAC5;">Processing line break opportunities...</div>';
       
       try {
-        // Process the text for line breaking opportunities
-        const wordMetrics = await processTextForLineBreaking(text, locale);
+        // Process the text for line breaking opportunities, passing the localization toggle state
+        const wordMetrics = await processTextForLineBreaking(text, locale, { enableLocalization });
         
         // Display the line break opportunities
         displayLineBreakOpportunities(wordMetrics, lineBreakPreview);
@@ -1550,6 +1555,19 @@
       
       // Check if we're displaying in the main line break tab preview (simplified view)
       const isLineBreakPreview = targetElement.id === 'lineBreakPreview';
+      
+      // Get the localization toggle state
+      const localizationToggle = document.getElementById('enableLocalization');
+      const isLocalizationEnabled = localizationToggle ? localizationToggle.checked : true;
+      
+      // Apply the appropriate CSS class based on the localization toggle state
+      if (isLocalizationEnabled) {
+        targetElement.classList.add('localization-enabled');
+        targetElement.classList.remove('localization-disabled');
+      } else {
+        targetElement.classList.add('localization-disabled');
+        targetElement.classList.remove('localization-enabled');
+      }
       
       // Clean up any invalid word metrics
       wordMetrics = wordMetrics.filter(metric => 
@@ -2201,10 +2219,14 @@
       const locale = localeSelect.value;
       
       try {
-        console.log(`Processing text: "${text}" with locale: ${locale}`);
+        // Get the localization toggle state
+        const localizationToggle = document.getElementById('enableLocalization');
+        const enableLocalization = localizationToggle ? localizationToggle.checked : true;
         
-        // Process the text for line breaking
-        const wordMetrics = await processTextForLineBreaking(text, locale);
+        console.log(`Processing text: "${text}" with locale: ${locale}, localization ${enableLocalization ? 'enabled' : 'disabled'}`);
+        
+        // Process the text for line breaking with localization toggle state
+        const wordMetrics = await processTextForLineBreaking(text, locale, { enableLocalization });
         
         console.log("Word metrics returned:", wordMetrics);
         
