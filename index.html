@@ -647,16 +647,17 @@
     }
     
     .allow-break {
-      color: var(--primary-color);
+      color: var(--primary-color) !important;
     }
     
     .avoid-break {
-      color: var(--danger-color);
+      color: var(--danger-color) !important;
     }
     
-    /* When localization is disabled, use the default text color */
+    /* When localization is disabled, all word segments should be blue */
+    .localization-disabled .allow-break,
     .localization-disabled .avoid-break {
-      color: var(--text-color);
+      color: var(--primary-color) !important; /* All segments blue when disabled */
     }
     
     .separator {
