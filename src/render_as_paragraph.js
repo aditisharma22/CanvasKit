@@ -92,6 +92,7 @@ function updateTreeOutput(candidate, index, locale, text, targetWidth) {
 
 import { computeBreaks } from './optimize_linebreaks.js';
 import { enhanceWordMetricsWithLocalization } from './localized_line_breaking.js';
+import { localeConfigManager } from './localization/LocaleConfigManager.js';
 
 /**
  * Main render function that creates text layouts with optimized line breaks
@@ -196,11 +197,12 @@ export async function render(text, targetWidth, options = {}) {
         syntheticLines, 
         syntheticLineWidths, 
         targetWidth, 
-        variationIndex
+        variationIndex,
+        locale
       );
       
       // Function to calculate realistic metrics for synthetic candidates
-      function calculateSyntheticMetrics(lines, lineWidths, targetWidth, variationIndex) {
+      function calculateSyntheticMetrics(lines, lineWidths, targetWidth, variationIndex, locale = 'en') {
         // For synthetic metrics, we'll calculate real values based on actual line properties
         // rather than using artificial values
         
@@ -282,11 +284,15 @@ export async function render(text, targetWidth, options = {}) {
         // Actually calculate protected breaks based on typography rules
         let protectedBreaks = 0;
         
-        // List of common function words that shouldn't end a line
-        const functionWords = [
-          'a', 'an', 'the', 'of', 'to', 'in', 'for', 'with', 'by', 'at',
-          'from', 'on', 'about', 'and', 'but', 'or', 'nor', 'so', 'yet', 'as'
-        ];
+        // Get appropriate function words from locale config
+        const config = localeConfigManager.getConfig(locale || 'en');
+        
+        // Get function words from config or create from parts
+        const prepositions = config.prepositions || [];
+        const articles = config.articles || [];
+        const conjunctions = config.conjunctions || [];
+        const functionWords = config.functionWords || 
+          [...prepositions, ...articles, ...conjunctions];
         
         // Check each line except the last for protected break violations
         for (let i = 0; i < lines.length - 1; i++) {
@@ -386,29 +392,31 @@ export async function render(text, targetWidth, options = {}) {
         violations += detectJapaneseProtectedBreaks(candidateLines);
         break;
       default:
-        // For English and other languages, use standard rules
-        violations += detectStandardProtectedBreaks(candidateLines);
+        // For English and other languages, use standard rules with specified locale
+        violations += detectStandardProtectedBreaks(candidateLines, locale);
     }
     
     return violations;
   }
   
   // Standard protected breaks check (mainly English and similar languages)
-  function detectStandardProtectedBreaks(candidateLines) {
+  function detectStandardProtectedBreaks(candidateLines, locale = 'en') {
     let violations = 0;
     
-    // Basic rules that apply to all languages
-    // 1. Check for prepositions at end of lines
-    const commonPrepositions = ['of', 'in', 'to', 'for', 'with', 'on', 'at', 'from', 'by', 'about'];
+    // Get the configuration for the specified locale
+    const config = localeConfigManager.getConfig(locale);
     
-    // 2. Check for articles separated from their nouns
-    const commonArticles = ['a', 'an', 'the'];
+    // Get all the word lists we need from configuration
+    const prepositions = config.prepositions || [];
+    const articles = config.articles || [];
+    const conjunctions = config.conjunctions || [];
     
-    // 3. Check for conjunctions at end of line
-    const commonConjunctions = ['and', 'but', 'or', 'nor', 'so', 'yet', 'because'];
+    // Get function words from config or create from parts
+    const functionWords = config.functionWords || 
+      [...prepositions, ...articles, ...conjunctions];
     
-    // Combined function words list
-    const functionWords = [...commonPrepositions, ...commonArticles, ...commonConjunctions];
+    // Get units of measure from config
+    const unitsOfMeasure = config.unitsOfMeasure || [];
     
     // Check each line except the last
     for (let i = 0; i < candidateLines.length - 1; i++) {
@@ -435,7 +443,7 @@ export async function render(text, targetWidth, options = {}) {
       // Check for numbers separated from their units
       if (/^\d+$/.test(lastWord) && i < candidateLines.length - 1) {
         const nextLine = candidateLines[i+1];
-        if (nextLine.length > 0 && /^(px|em|%|kg|lb|ft|in|cm|mm|m|s|ms|GB|MB|KB)$/i.test(nextLine[0])) {
+        if (nextLine.length > 0 && unitsOfMeasure.includes(nextLine[0].toLowerCase())) {
           violations++;
         }
       }
@@ -453,11 +461,11 @@ export async function render(text, targetWidth, options = {}) {
   function detectFrenchProtectedBreaks(candidateLines) {
     let violations = 0;
     
-    // French rules for line breaks
-    const frenchFunctionWords = [
-      'le', 'la', 'les', 'un', 'une', 'des', 'du', 'au', 'aux', 'à', 'de', 'par', 'pour',
-      'avec', 'sans', 'en', 'dans', 'sur', 'sous', 'chez', 'et', 'ou', 'car', 'mais'
-    ];
+    // Get French locale config
+    const config = localeConfigManager.getConfig('fr');
+    
+    // Get French function words from config
+    const frenchFunctionWords = config.functionWords || [];
     
     // Check each line
     for (let i = 0; i < candidateLines.length - 1; i++) {
@@ -472,6 +480,7 @@ export async function render(text, targetWidth, options = {}) {
       }
       
       // Check for colon at line end (should be avoided in French typography)
+      // This can be controlled by config.rules.removeColonAtLineEnd
       if (lastWord.endsWith(':')) {
         violations++;
       }
@@ -489,11 +498,11 @@ export async function render(text, targetWidth, options = {}) {
   function detectGermanProtectedBreaks(candidateLines) {
     let violations = 0;
     
-    // German rules for line breaks
-    const germanFunctionWords = [
-      'der', 'die', 'das', 'ein', 'eine', 'zu', 'von', 'mit', 'für', 'und', 'oder', 
-      'aber', 'wenn', 'weil', 'als', 'auf', 'bei', 'nach', 'vor', 'über', 'unter'
-    ];
+    // Get German locale config
+    const config = localeConfigManager.getConfig('de');
+    
+    // Get German function words from config
+    const germanFunctionWords = config.functionWords || [];
     
     // Check each line
     for (let i = 0; i < candidateLines.length - 1; i++) {
@@ -509,7 +518,10 @@ export async function render(text, targetWidth, options = {}) {
       
       // Check for compound nouns broken improperly
       // German often has long compound words, but this is a simple check
-      if (lastWord.length > 8 && lastWord.endsWith('-')) {
+      // We can use config.compoundWords if available
+      if ((config.compoundWords && config.compoundWords.some(compound => 
+           compound.includes('-') && compound.split('-')[0] === lastWord)) || 
+          (lastWord.length > 8 && lastWord.endsWith('-'))) {
         violations++;
       }
     }
@@ -521,11 +533,11 @@ export async function render(text, targetWidth, options = {}) {
   function detectSpanishProtectedBreaks(candidateLines) {
     let violations = 0;
     
-    // Spanish rules for line breaks
-    const spanishFunctionWords = [
-      'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'de', 'del', 'a', 'al', 
-      'en', 'con', 'por', 'para', 'y', 'o', 'pero', 'porque', 'como', 'cuando', 'si'
-    ];
+    // Get Spanish locale config
+    const config = localeConfigManager.getConfig('es');
+    
+    // Get Spanish function words from config
+    const spanishFunctionWords = config.functionWords || [];
     
     // Check each line
     for (let i = 0; i < candidateLines.length - 1; i++) {
@@ -540,6 +552,7 @@ export async function render(text, targetWidth, options = {}) {
       }
       
       // Check for opening punctuation without closing
+      // Spanish specific rules for opening/closing punctuation
       if (lastWord.includes('¿') && !lastWord.includes('?')) {
         violations++;
       }
@@ -556,8 +569,13 @@ export async function render(text, targetWidth, options = {}) {
   function detectJapaneseProtectedBreaks(candidateLines) {
     let violations = 0;
     
+    // Get Japanese locale config
+    const config = localeConfigManager.getConfig('ja');
+    
+    // Get Japanese punctuation from config
+    const japanesePunctuation = config.punctuation || [];
+    
     // Check each line - in Japanese, we need to check individual characters
-    // This is a simplified implementation
     for (let i = 0; i < candidateLines.length - 1; i++) {
       const line = candidateLines[i];
       if (!Array.isArray(line) || line.length === 0) continue;
@@ -566,21 +584,18 @@ export async function render(text, targetWidth, options = {}) {
       if (!lastWord) continue;
       
       // Check for Japanese opening brackets without closing
-      if (lastWord.includes('（') && !lastWord.includes('）')) {
-        violations++;
-      }
+      // These pairs should be defined in the config
+      const bracketsRules = config.rules?.bracketPairs || {};
       
-      if (lastWord.includes('「') && !lastWord.includes('」')) {
-        violations++;
-      }
+      Object.entries(bracketsRules).forEach(([opening, closing]) => {
+        if (lastWord.includes(opening) && !lastWord.includes(closing)) {
+          violations++;
+        }
+      });
       
-      if (lastWord.includes('『') && !lastWord.includes('』')) {
-        violations++;
-      }
-      
-      // Japanese punctuation rules (simplified)
+      // Japanese punctuation rules
       const lastChar = lastWord.charAt(lastWord.length - 1);
-      if (['、', '。', '，', '．', '：', '；'].includes(lastChar)) {
+      if (japanesePunctuation.includes(lastChar)) {
         // Punctuation should not end a line
         violations++;
       }
