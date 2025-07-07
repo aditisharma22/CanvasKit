@@ -6,6 +6,37 @@
  * @param {string} text - The original text
  * @param {number} targetWidth - The target width
  */
+/**
+ * Calculate candidate match percentage based on score and ranking
+ * @param {Object} candidate - The candidate object
+ * @param {number} index - The candidate index
+ * @returns {number} - The match percentage (0-100)
+ */
+function calculateCandidateMatchPercentage(candidate, index) {
+  const rawScore = candidate.score || 0;
+  let matchPercentage;
+  
+  if (index === 0) {
+    // Best candidate: 95-100%
+    matchPercentage = 100 - (rawScore > 50 ? 5 : rawScore * 0.1);
+  } else if (index === 1) {
+    // Second best: 85-95%
+    matchPercentage = 95 - (rawScore > 50 ? 10 : rawScore * 0.2);
+  } else if (index === 2) {
+    // Third: 75-85%
+    matchPercentage = 85 - (rawScore > 50 ? 10 : rawScore * 0.2);
+  } else if (index === 3) {
+    // Fourth: 65-75%
+    matchPercentage = 75 - (rawScore > 50 ? 10 : rawScore * 0.2);
+  } else {
+    // Fifth and beyond: 50-65%
+    matchPercentage = 65 - (index * 3) - (rawScore > 50 ? 5 : rawScore * 0.1);
+  }
+  
+  // Ensure percentage is within reasonable bounds
+  return Math.max(10, Math.min(100, matchPercentage));
+}
+
 function updateTreeOutput(candidate, index, locale, text, targetWidth) {
   const treeOutput = document.getElementById('treeOutput');
   if (!treeOutput) {
@@ -69,7 +100,7 @@ function updateTreeOutput(candidate, index, locale, text, targetWidth) {
     }),
     breaks: candidate.breaks || [],
     lineWidths: (candidate.lineWidths || []).map(w => Math.round(w)),
-    matchPercentage: (100 - (candidate.score || 0)).toFixed(1) + '%',
+    matchPercentage: calculateCandidateMatchPercentage(candidate, index).toFixed(1) + '%',
     metadata: {
       originalText: text,
       targetWidth: targetWidth,
@@ -648,32 +679,8 @@ export async function render(text, targetWidth, options = {}) {
       const rawScore = candidate.score || 0;
       console.log(`Candidate ${index + 1} raw score:`, rawScore);
       
-      // For UI display, create a ranking-based percentage where:
-      // - Best candidate (index 0) gets highest percentage
-      // - Each subsequent candidate gets progressively lower percentage
-      // This ensures meaningful differentiation regardless of actual score values
-      
-      let matchPercentage;
-      
-      if (index === 0) {
-        // Best candidate: 85-95%
-        matchPercentage = 95 - (rawScore > 100 ? 10 : rawScore * 0.1);
-      } else if (index === 1) {
-        // Second best: 75-85%
-        matchPercentage = 85 - (index * 5) - (rawScore > 100 ? 5 : rawScore * 0.05);
-      } else if (index === 2) {
-        // Third: 60-75%
-        matchPercentage = 75 - (index * 5) - (rawScore > 100 ? 5 : rawScore * 0.05);
-      } else if (index === 3) {
-        // Fourth: 45-60%
-        matchPercentage = 60 - (index * 5) - (rawScore > 100 ? 5 : rawScore * 0.05);
-      } else {
-        // Fifth and beyond: 30-45%
-        matchPercentage = 45 - (index * 5) - (rawScore > 100 ? 5 : rawScore * 0.05);
-      }
-      
-      // Ensure percentage is within reasonable bounds
-      matchPercentage = Math.max(5, Math.min(95, matchPercentage));
+      // Use our helper function to calculate the match percentage
+      const matchPercentage = calculateCandidateMatchPercentage(candidate, index);
       
       console.log(`Candidate ${index + 1} calculated match:`, matchPercentage);
       
