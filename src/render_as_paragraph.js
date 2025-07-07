@@ -319,6 +319,7 @@ export async function render(text, targetWidth, options = {}) {
         const fillPenalty = (100 - fillRatio) * 0.2;
         
         // Apply balance factor to adjust relative importance
+        // Lower balance factor (0) prioritizes target width adherence, higher (1) prioritizes even line lengths
         const balancedRaggednessPenalty = raggednessPenalty * balanceFactor;
         const balancedEvennessPenalty = evennessPenalty * (1 - balanceFactor);
         
