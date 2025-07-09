@@ -1,13 +1,11 @@
 /**
- * Dynamic Locale Configuration Manager
- * Centralizes all locale-specific configurations and rule management
- * Provides a unified interface for locale handling across the entire application
+ * LocaleConfigManager - managing all locale rules in one place
  */
 
 import ruleConfigs from './rules/ruleConfigs.js';
 
 /**
- * Configuration constants
+ * config constants 
  */
 export const CONFIG = {
   DEFAULT_LOCALE: 'en',
@@ -41,8 +39,7 @@ export const CONFIG = {
 };
 
 /**
- * Locale Configuration Manager Class
- * Handles all locale-specific configurations and rule applications
+ * This is the main locale manager class
  */
 class LocaleConfigManager {
   constructor() {
@@ -83,9 +80,9 @@ class LocaleConfigManager {
   }
 
   /**
-   * Create a default configuration for unsupported locales
+    * Create a default configuration for a locale 
    * @param {string} locale - The locale code
-   * @returns {Object} - Default configuration
+   * @returns {Object} - Basic placeholder config that should work OK
    */
   createDefaultConfig(locale) {
     return {
@@ -176,25 +173,7 @@ class LocaleConfigManager {
     return list.some(entry => typeof entry === 'string' && word.toLowerCase() === entry.toLowerCase());
   }
 
-  /**
-   * Check if a word matches any regex pattern in a list
-   * @param {string} word - The word to check
-   * @param {Array} list - The list of regex patterns
-   * @returns {boolean} - True if word matches any pattern
-   */
-  matchesRegex(word, list) {
-    if (!Array.isArray(list) || !word) return false;
-    return list.some(entry => {
-      if (typeof entry === 'string' && entry.includes('\\')) {
-        try {
-          return new RegExp(entry, 'i').test(word);
-        } catch {
-          return false;
-        }
-      }
-      return false;
-    });
-  }
+
 
   /**
    * Check if breaking at a specific position would split a protected phrase

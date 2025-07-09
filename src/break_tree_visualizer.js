@@ -64,7 +64,6 @@ export function buildGroupedTree(candidates) {
  */
 export function renderTree(tree, container) {
   if (!container) {
-    console.error('Container element not provided');
     return;
   }
 

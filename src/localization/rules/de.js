@@ -3,7 +3,7 @@
  * Defines rules for German text segmentation and line breaking
  */
 export default {
-    locale: "de", // ISO language code for German
+    locale: "de", 
     
     /**
      * Line breaking rules specific to German language

@@ -650,13 +650,6 @@ function findBreakIndices(lines) {
  * @param {number} wordCount - Total word count
  * @returns {string} - Debug HTML with enhanced metrics
  */
-/**
- * Create debug tree display with comprehensive metrics
- * 
- * @param {Object} solution - Best solution
- * @param {number} wordCount - Total word count
- * @returns {string} - Debug HTML with enhanced metrics
- */
 function createDebugTree(solution, wordCount) {
   if (!solution) return "No solution found";
   

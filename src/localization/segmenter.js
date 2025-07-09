@@ -7,13 +7,6 @@ import {
 import { annotateLineBreakingWithSeparators, applySegmentationRules } from "./ruleEngine.js";
 import ruleEngine from "./rules/ruleConfigs.js";
 
-/**
- * Segments text based on locale using Intl.Segmenter
- * 
- * @param {string} text - The text to segment
- * @param {string} locale - The locale/language code (e.g., "en", "ja", "th")
- * @returns {Array} - Array of segment objects
- */
 export async function segmentText(text, locale = "en") {
   try {
     // Special pre-processing for German special terms
@@ -34,7 +27,6 @@ export async function segmentText(text, locale = "en") {
           end: match.index + match[0].length,
           text: match[0]
         });
-        console.log(`Found special term: "${match[0]}" at position ${match.index}`);
       }
       
       // Look for "Smart-home" compound
@@ -47,7 +39,6 @@ export async function segmentText(text, locale = "en") {
           end: match.index + match[0].length,
           text: match[0]
         });
-        console.log(`Found special compound: "${match[0]}" at position ${match.index}`);
       }
     }
     
@@ -224,8 +215,6 @@ export async function segmentText(text, locale = "en") {
  */
 export async function processTextForLineBreaking(text, locale = "en", options = { enableLocalization: true }) {
   try {
-    console.log(`[processTextForLineBreaking] Starting with locale ${locale}, text: "${text?.substring(0, 20)}${text?.length > 20 ? '...' : ''}", localization ${options.enableLocalization ? 'enabled' : 'disabled'}`);
-    
     // Input validation
     if (!text || typeof text !== 'string') {
       console.warn('Invalid text input for processTextForLineBreaking:', text);
@@ -253,9 +242,7 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
     }
     
     // Get text segments
-    console.log(`[processTextForLineBreaking] Getting segments...`);
     const segments = await segmentText(text, locale);
-    console.log(`[processTextForLineBreaking] Got ${segments?.length || 0} segments`);
     
     // Validate segments
     if (!segments || !Array.isArray(segments) || segments.length === 0) {
@@ -264,20 +251,16 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
     }
     
     // Process consecutive special characters
-    console.log(`[processTextForLineBreaking] Handling consecutive special characters...`);
     const enhancedSegments = handleConsecutiveSpecialChars(segments, text);
-    console.log(`[processTextForLineBreaking] Enhanced segments count: ${enhancedSegments?.length || 0}`);
     
     // Get locale-specific rules
     const rulesConfig = ruleEngine[locale] || {};
-    console.log(`[processTextForLineBreaking] Using rules for locale: ${rulesConfig.locale || locale}`);
 
     // Filter out invalid segments before processing
     const validSegments = enhancedSegments.filter(seg => 
       seg && typeof seg === 'object' && 
       (seg.isWordLike !== undefined || seg.segment !== undefined)
     );
-    console.log(`[processTextForLineBreaking] Valid segments after filtering: ${validSegments.length}`);
     
     if (validSegments.length === 0) {
       console.warn('No valid segments found after filtering');
@@ -285,16 +268,11 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
     }
 
     // Apply line breaking rules and get annotations
-    console.log(`[processTextForLineBreaking] Applying line breaking rules...`);
     const lineBreakingAnnotations = annotateLineBreakingWithSeparators(validSegments, rulesConfig);
-    console.log(`[processTextForLineBreaking] Converting to word metrics...`);
     let wordMetricsArray = segmentsToWordMetrics(validSegments, text, lineBreakingAnnotations);
-    console.log(`[processTextForLineBreaking] Word metrics array length: ${wordMetricsArray?.length || 0}`);
     
     // Special direct check for Smart-home compound in the text
     if (locale === 'de' && text.toLowerCase().includes('smart-home')) {
-      console.log(`[processTextForLineBreaking] Direct detection of Smart-home compound in text`);
-      
       // Find all occurrences of Smart, hyphen and home in the wordMetricsArray
       for (let i = 0; i < wordMetricsArray.length; i++) {
         const metric = wordMetricsArray[i];
@@ -302,7 +280,6 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
             (metric.text.toLowerCase() === 'smart' || 
              metric.text === '-' || 
              metric.text.toLowerCase() === 'home')) {
-          console.log(`[processTextForLineBreaking] Direct marking of Smart-home part: ${metric.text}`);
           metric.lineBreaking = 'avoid';
         }
       }
@@ -310,8 +287,6 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
     
     // Additional check for rules about avoiding breaks before punctuation, articles, and prepositions
     if (rulesConfig.rules?.avoidBreakBefore) {
-      console.log(`[processTextForLineBreaking] Applying avoidBreakBefore rules`);
-      
       // Get list of punctuation, articles, and prepositions from rules
       const punctuation = rulesConfig.punctuation || [];
       const articles = (rulesConfig.functionWords || []).filter(w => w.length <= 3); // Simple heuristic for articles
@@ -330,44 +305,35 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
         // Check if next word is punctuation and the rule is active
         if (rulesConfig.rules.avoidBreakBefore.includes('punctuation') &&
             punctuation.includes(nextWord.text)) {
-          console.log(`[processTextForLineBreaking] Avoiding break before punctuation: ${nextWord.text}`);
           currWord.lineBreaking = 'avoid';
         }
         
         // Check if next word is an article and the rule is active
         if (rulesConfig.rules.avoidBreakBefore.includes('articles') &&
             articles.includes(nextWord.text.toLowerCase())) {
-          console.log(`[processTextForLineBreaking] Avoiding break before article: ${nextWord.text}`);
           currWord.lineBreaking = 'avoid';
         }
         
         // Check if next word is a preposition and the rule is active
         if (rulesConfig.rules.avoidBreakBefore.includes('prepositions') &&
             prepositions.includes(nextWord.text.toLowerCase())) {
-          console.log(`[processTextForLineBreaking] Avoiding break before preposition: ${nextWord.text}`);
           currWord.lineBreaking = 'avoid';
         }
       }
     }
     
-    // Special handling for hyphenated fixed expressions
+    // This handles hyphenated words
     if (rulesConfig.fixedExpressions && Array.isArray(rulesConfig.fixedExpressions)) {
-      console.log(`[processTextForLineBreaking] Special handling for hyphenated fixed expressions`);
-      
-      // Special case for words with non-breaking hyphens (U+2011) like E‑Mail
-      // First, check the full text for expressions with non-breaking hyphens
+
       const fullText = wordMetricsArray.map(m => m.text).join('');
       for (const expr of rulesConfig.fixedExpressions) {
         if (typeof expr === 'string' && (expr.includes('\u2011') || expr === 'E‑Mail')) {
           if (fullText.includes(expr)) {
-            console.log(`[processTextForLineBreaking] Found expression with non-breaking hyphen: ${expr}`);
-            
-            // Find the word metrics that contain parts of this expression
+            // Find the word metrics that match the expression
             for (let i = 0; i < wordMetricsArray.length; i++) {
               const metric = wordMetricsArray[i];
               if (metric.text === 'E' || metric.text === 'Mail' || 
                   metric.text === expr || metric.text.includes('\u2011')) {
-                console.log(`[processTextForLineBreaking] Marking part of non-breaking hyphen expression: ${metric.text}`);
                 metric.lineBreaking = 'avoid';
               }
             }
@@ -378,15 +344,12 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
         if (typeof expr === 'string' && expr === 'Smart-home') {
           // Look for both exact match and case-insensitive match
           if (fullText.includes('Smart-home') || fullText.toLowerCase().includes('smart-home')) {
-            console.log(`[processTextForLineBreaking] Found Smart-home compound expression`);
-            
             // Find and mark Smart, hyphen, and home parts
             for (let i = 0; i < wordMetricsArray.length; i++) {
               const metric = wordMetricsArray[i];
               if (metric.text.toLowerCase() === 'smart' || 
                   metric.text === '-' || 
                   metric.text.toLowerCase() === 'home') {
-                console.log(`[processTextForLineBreaking] Marking part of Smart-home: ${metric.text}`);
                 metric.lineBreaking = 'avoid';
                 // Set a flag for special handling
                 metric._isSmartHomeCompound = true;
@@ -414,9 +377,7 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
             // Check for a match with the parts of the hyphenated expression
             if (currWord.text.toLowerCase() === first.toLowerCase() && 
                 nextWord.text.toLowerCase() === second.toLowerCase()) {
-              console.log(`[processTextForLineBreaking] Found hyphenated expression match: ${first}-${second}`);
-              
-              // Mark both parts with avoid line breaking
+                      // Mark both parts with avoid line breaking
               currWord.lineBreaking = 'avoid';
               nextWord.lineBreaking = 'avoid';
             }
@@ -427,8 +388,6 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
     
     // Apply special handling for Apple service names in all locales
     if (rulesConfig.appleServices) {
-      console.log(`[processTextForLineBreaking] Special handling for Apple service names in ${locale}`);
-      
       // Detect Apple service names in text
       const fullText = wordMetricsArray.map(m => m.text).join('');
       
@@ -439,8 +398,6 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
         
         // Check if the service name appears in the text
         if (textLower.includes(serviceLower)) {
-          console.log(`[processTextForLineBreaking] Found Apple service "${appleService}" in text`);
-          
           // Find the starting position of the service name in the text
           const servicePos = textLower.indexOf(serviceLower);
           const serviceEndPos = servicePos + serviceLower.length;
@@ -453,7 +410,6 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
             if (metric.boundary) {
               if ((metric.boundary.start >= servicePos && metric.boundary.start < serviceEndPos) || 
                   (metric.boundary.end > servicePos && metric.boundary.end <= serviceEndPos)) {
-                console.log(`[processTextForLineBreaking] Marking word "${metric.text}" as part of Apple service name`);
                 wordMetricsArray[i].lineBreaking = 'avoid';
                 wordMetricsArray[i]._partOfAppleService = appleService;
               }
@@ -465,8 +421,6 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
     
     // Apply special handling for game names in all locales
     if (rulesConfig.appGameNames) {
-      console.log(`[processTextForLineBreaking] Special handling for game names in ${locale}`);
-      
       // Detect game names in text
       const fullText = wordMetricsArray.map(m => m.text).join('');
       
@@ -477,8 +431,6 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
         
         // Check if the game name appears in the text
         if (textLower.includes(gameLower)) {
-          console.log(`[processTextForLineBreaking] Found game name "${gameName}" in text`);
-          
           // Find the starting position of the game name in the text
           const gamePos = textLower.indexOf(gameLower);
           const gameEndPos = gamePos + gameLower.length;
@@ -491,7 +443,6 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
             if (metric.boundary) {
               if ((metric.boundary.start >= gamePos && metric.boundary.start < gameEndPos) || 
                   (metric.boundary.end > gamePos && metric.boundary.end <= gameEndPos)) {
-                console.log(`[processTextForLineBreaking] Marking word "${metric.text}" as part of game name`);
                 wordMetricsArray[i].lineBreaking = 'avoid';
                 wordMetricsArray[i]._partOfGameName = gameName;
               }
@@ -519,15 +470,10 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
   } catch (error) {
     console.error('Error in processTextForLineBreaking:', error);
     return [];
-  }
-  
-  // Check for rule violations (can be used for validation or debugging)
-  if (rulesConfig.rules && typeof applySegmentationRules === "function") {
-    const violations = applySegmentationRules(wordMetricsArray, rulesConfig);
-    if (violations.length > 0) {
-      console.debug("Line breaking rule violations detected:", violations);
+  }    // Check for rule violations (can be used for validation or debugging)
+    if (rulesConfig.rules && typeof applySegmentationRules === "function") {
+      applySegmentationRules(wordMetricsArray, rulesConfig);
     }
-  }
   
   return wordMetricsArray;
 }

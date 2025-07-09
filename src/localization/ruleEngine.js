@@ -1,17 +1,18 @@
 /**
- * Rule engine for line breaking in localized text
- * Applies language-specific rules to determine where line breaks should be avoided
+ * Rule engine for handling line breaking and segmentation rules
+ * This module processes word metrics based on locale-specific rules
  */
 
 import { universalRuleProcessor } from './UniversalRuleProcessor.js';
 import { localeConfigManager, CONFIG } from './LocaleConfigManager.js';
 
 /**
- * Annotate word metrics with line breaking constraints based on separators
+ * This function adds line breaking info based on spaces and punctuation
+
  * 
- * @param {Array} wordMetricsArray - Array of word metrics objects
- * @param {Object} ruleConfig - Language-specific rule configuration
- * @returns {Array} - Updated word metrics with line breaking annotations
+ * @param {Array} wordMetricsArray - All our word chunks
+ * @param {Object} ruleConfig - Rules for the specific language
+ * @returns {Array} - Same array but with line breaking info added
  */
 export function annotateLineBreakingWithSeparators(wordMetricsArray, ruleConfig) {
   if (!ruleConfig || !ruleConfig.locale) {

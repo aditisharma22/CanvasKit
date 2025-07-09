@@ -155,8 +155,6 @@ export class UniversalRuleProcessor {
       
       // Check if the service name appears in the full text
       if (fullText.includes(serviceNameLower)) {
-        console.log(`Found Apple service match: "${serviceName}" in text`);
-        
         // First, find all positions where this service name appears
         let startPos = 0;
         let foundPos = -1;
@@ -211,8 +209,6 @@ export class UniversalRuleProcessor {
       
       // Check if the game name appears in the full text
       if (fullText.includes(gameNameLower)) {
-        console.log(`Found game name match: "${gameNameText}" in text`);
-        
         // Find all positions where this game name appears
         let startPos = 0;
         let foundPos = -1;
@@ -285,23 +281,7 @@ export class UniversalRuleProcessor {
     }
   }
 
-  /**
-   * Legacy method - kept for backward compatibility but functionality moved to specialized methods
-   * @param {Array} metrics - Word metrics array
-   * @param {Object} config - Locale configuration
-   * @param {string} serviceType - Type of service (appleServices, appGameNames)
-   * @deprecated Use applyAppleServiceRules or applyGameNameRules instead
-   */
-  applyServiceNameRules(metrics, config, serviceType) {
-    // Forward to the appropriate specialized method
-    if (serviceType === 'appleServices') {
-      const fullText = metrics.map(m => m.text || '').join(' ').toLowerCase();
-      this.applyAppleServiceRules(metrics, config, fullText);
-    } else if (serviceType === 'appGameNames') {
-      const fullText = metrics.map(m => m.text || '').join(' ').toLowerCase();
-      this.applyGameNameRules(metrics, config, fullText);
-    }
-  }
+
 
   /**
    * Apply person name rules
@@ -588,41 +568,7 @@ export class UniversalRuleProcessor {
     return false;
   }
 
-  /**
-   * Get statistics about applied rules
-   * @param {Array} metrics - Processed word metrics
-   * @returns {Object} - Rule application statistics
-   */
-  getStatistics(metrics) {
-    const stats = {
-      totalWords: metrics.length,
-      avoidBreaks: 0,
-      allowBreaks: 0,
-      rulesApplied: new Map(),
-      ruleContexts: new Map()
-    };
 
-    for (const metric of metrics) {
-      if (metric.lineBreaking === CONFIG.LINE_BREAK.AVOID) {
-        stats.avoidBreaks++;
-      } else {
-        stats.allowBreaks++;
-      }
-
-      if (metric._appliedRules) {
-        for (const appliedRule of metric._appliedRules) {
-          const count = stats.rulesApplied.get(appliedRule.rule) || 0;
-          stats.rulesApplied.set(appliedRule.rule, count + 1);
-          
-          const contextKey = `${appliedRule.rule}:${appliedRule.context}`;
-          const contextCount = stats.ruleContexts.get(contextKey) || 0;
-          stats.ruleContexts.set(contextKey, contextCount + 1);
-        }
-      }
-    }
-
-    return stats;
-  }
 }
 
 // Export singleton instance

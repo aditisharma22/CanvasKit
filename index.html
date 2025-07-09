@@ -1068,58 +1068,12 @@
 
       // Execute the render and then ensure correct candidate count
       renderLayout().then(() => {
-        console.log("Layout rendered, now ensuring correct candidate count");
         // Wait a bit longer to make sure CanvasKit has finished rendering
         setTimeout(() => {
           ensureCandidateCount(document.getElementById("layoutContainer"), "layout", 5);
         }, 1000);
       });
     };
-    
-    // This function is no longer needed as we're using ensureCandidateCount directly
-    // Keeping it for backwards compatibility but with simplified implementation
-    function addAdditionalCandidateBlocks() {
-      const layoutContainer = document.getElementById("layoutContainer");
-      
-      // Check existing candidate count
-      const candidateCount = layoutContainer ? layoutContainer.querySelectorAll(".candidate-block").length : 0;
-      
-      console.log(`Current candidate count: ${candidateCount}`);
-      
-      // Extract scores from existing candidates
-      const scores = extractScoresFromCandidates(layoutContainer);
-      
-      console.log("Extracted scores:", scores);
-      
-      // Add additional candidates if needed
-      ensureCandidateCount(layoutContainer, "layout", 5);
-      
-      // Log final count
-      const finalCount = layoutContainer ? layoutContainer.querySelectorAll(".candidate-block").length : 0;
-      console.log(`Final candidate count: ${finalCount}`);
-    }
-    
-    // Helper to extract scores from existing candidates for better score distribution
-    function extractScoresFromCandidates(container) {
-      if (!container) return [];
-      
-      const blocks = container.querySelectorAll(".candidate-block");
-      const scores = [];
-      
-      for (let i = 0; i < blocks.length; i++) {
-        const label = blocks[i].querySelector("label");
-        if (label) {
-          const matchText = label.innerText;
-          const percentMatch = matchText.match(/([\d.]+)%/);
-          
-          if (percentMatch && percentMatch[1]) {
-            scores.push(parseFloat(percentMatch[1]));
-          }
-        }
-      }
-      
-      return scores;
-    }
     
     // Function to ensure we have the requested number of candidate blocks
     function ensureCandidateCount(container, mode, desiredCount) {
@@ -1238,7 +1192,7 @@
           // Use predefined percentages for positions 4-7
           matchPercentage = fixedPercentages[candidatePosition];
           
-          console.log(`Using fixed percentage for candidate ${candidatePosition}: ${matchPercentage}%`);
+  
         } else {
           // For any other position, calculate based on position
           // This creates a smooth decline from 100% to 5%
@@ -1255,7 +1209,7 @@
           matchPercentage -= 1.5;
         }
         
-        console.log(`Added candidate ${candidatePosition} with match percentage: ${matchPercentage.toFixed(1)}%`);
+
         
         const label = document.createElement("label");
         label.setAttribute("for", `candidate-${mode}-${candidateIndex}`);
@@ -1694,7 +1648,7 @@
         const locale = document.getElementById('opportunitiesLocaleSelect').value;
         if (locale !== 'fr') return wordMetrics;
         
-        console.log("Applying French typography rules");
+
         
         // Import rules from our French rules module
         const frenchRules = {
@@ -1711,7 +1665,7 @@
         for (let i = 0; i < enhancedMetrics.length - 1; i++) {
           // Guard against undefined text values
           if (!enhancedMetrics[i].text || typeof enhancedMetrics[i].text !== 'string') {
-            console.warn('Found undefined or non-string text in word metrics at index', i, enhancedMetrics[i]);
+
             continue;
           }
           
@@ -1790,7 +1744,7 @@
               
               // If we found a full match
               if (isFullMatch) {
-                console.log(`Found Apple service match: "${serviceLower}" starting at position ${i}`);
+  
                 
                 // Mark all words in the service name to avoid breaks, including spaces between them
                 // First mark the current word
@@ -1847,7 +1801,7 @@
               
               // If we found a full match
               if (isFullMatch) {
-                console.log(`Found game name match: "${gameLower}" starting at position ${i}`);
+  
                 
                 // Mark all words in the game name to avoid breaks
                 enhancedMetrics[i].lineBreaking = 'avoid';
@@ -2237,12 +2191,12 @@
         const localizationToggle = document.getElementById('enableLocalization');
         const enableLocalization = localizationToggle ? localizationToggle.checked : true;
         
-        console.log(`Processing text: "${text}" with locale: ${locale}, localization ${enableLocalization ? 'enabled' : 'disabled'}`);
+
         
         // Process the text for line breaking with localization toggle state
         const wordMetrics = await processTextForLineBreaking(text, locale, { enableLocalization });
         
-        console.log("Word metrics returned:", wordMetrics);
+
         
         // Validate the word metrics before visualization
         if (!wordMetrics) {
@@ -2324,7 +2278,6 @@
           document.getElementById('localeSelect').value = locale;
         }
       } catch (error) {
-        console.error('Error processing text:', error);
         
         // Get more debug information
         let debugInfo = '';

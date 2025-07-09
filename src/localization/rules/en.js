@@ -1,6 +1,5 @@
 /**
- * English (en) Locale Configuration
- * Defines line breaking rules and constraints for English text
+ * English (en) rules file
  */
 
 export default {
@@ -34,16 +33,9 @@ export default {
     capitalizeSecondLineIfColonRemoved: false
   },
   
-  /**
-   * English function words that should not be separated from their context
-   * These words typically have close semantic connections to adjacent words
-   */
+
   functionWords: [
-    // Articles
-    "the", "a", "an",
-    // Conjunctions
-    "and", "but", "or", "nor", "so", "yet", "because", "if", "when",
-    "although", "though", "unless", "until", "while", "where"
+    // Articles and conjunctions are defined separately below
   ],
   
   // Articles should not be separated from the word they modify
@@ -93,8 +85,8 @@ export default {
     "No\\. \\d+"
   ],
   
-  // Apple service names on one line
-  
+  // Apple brand services
+
   appleServices: [
     "Apple One",
     "Apple Arcade",
@@ -102,7 +94,7 @@ export default {
     "Apple TV"
   ],
   
-  // Game and app names stay on one line
+
   appGameNames: [
     "Monopoly Go",
     "Candy Crush",
@@ -111,9 +103,8 @@ export default {
 
   // Compound words that should stay together
   compoundWords: [
-    "smart-home",
-    "e-mail",
-    "real-time"
+    "smart-home"
+    // Note: e-mail and real-time already defined in fixedExpressions
   ],
   
   // DNT terms that shouldn't be broken

@@ -20,7 +20,6 @@ if (typeof window !== 'undefined') {
 export async function enhanceWordMetricsWithLocalization(wordMetrics, locale, options = { enableLocalization: true }) {
   // When toggle is off, return metrics with basic line breaks
   if (options.enableLocalization === false) {
-    console.log('Localization toggle is OFF - using basic line breaks');
     return wordMetrics.map((metric, index) => {
       // For basic line breaks, avoid breaks:
       // 1. At the last word
@@ -51,11 +50,8 @@ export async function enhanceWordMetricsWithLocalization(wordMetrics, locale, op
   
   // Skip localization processing if not needed for this locale
   if (!localeConfigManager.needsLocalization(locale)) {
-    console.log(`Locale ${locale} does not require localization processing`);
     return wordMetrics;
   }
-  
-  console.log(`Enhancing word metrics with localization rules for locale: ${locale}`);
   
   // Convert word metrics to a simple text string for processing
   const text = wordMetrics.map(w => w.text).join(' ');
@@ -94,12 +90,10 @@ export async function enhanceWordMetricsWithLocalization(wordMetrics, locale, op
 export function filterCandidatesByLocalizationRules(candidates, words, locale, options = { enableLocalization: true }) {
   // Skip filtering if localization is disabled
   if (options.enableLocalization === false) {
-    console.log('Localization rules disabled - skipping candidate filtering');
     return candidates;
   }
   
   // Use universal rule processor for dynamic filtering
-  console.log(`Applying localization filtering for locale: ${locale}`);
   return universalRuleProcessor.filterCandidates(candidates, words, locale);
 }
 
@@ -139,8 +133,6 @@ export function createLocalizedLineBreakOptimizer(originalOptimizer) {
     // Check if localization is explicitly disabled
     const isLocalizationEnabled = options.enableLocalization !== false;
     
-    console.log(`Line break optimization: localization ${isLocalizationEnabled ? 'ENABLED' : 'DISABLED'}`);
-    
     // When localization is disabled, use basic word-level line breaking
     // regardless of the locale specified
     const effectiveLocale = isLocalizationEnabled ? locale : DEFAULT_LOCALE;
@@ -158,16 +150,8 @@ export function createLocalizedLineBreakOptimizer(originalOptimizer) {
     
     // Apply localization filtering for non-English locales if enabled
     if (isLocalizationEnabled && locale && locale !== DEFAULT_LOCALE) {
-      console.log(`Applying localization rules for ${locale}`);
       // Pass the toggle state to the filter function as well
       return filterCandidatesByLocalizationRules(candidates, words, locale, { enableLocalization: true });
-    }
-    
-    // If localization is disabled or locale is English, return unfiltered candidates
-    if (!isLocalizationEnabled) {
-      console.log(`Localization rules disabled - using standard line breaking`);
-    } else if (locale === DEFAULT_LOCALE) {
-      console.log(`Using English locale - no special rules applied`);
     }
     
     return candidates;

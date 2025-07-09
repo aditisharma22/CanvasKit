@@ -56,13 +56,6 @@ export default {
     "Apple News+",
     "Apple Books",
     "Fitness+", 
-    "Apple One Super Bowl",
-    "Apple Music Super Bowl",
-    // Special French colon cases
-    "Apple Music Super Bowl : la performance",
-    "Apple One Super Bowl : la performance",
-    "Super Bowl : la performance",
-    // Add arcade with lowercase for French text matching
     "Apple arcade"
   ],
   

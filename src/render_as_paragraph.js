@@ -160,7 +160,6 @@ export async function render(text, targetWidth, options = {}) {
 
   const container = document.getElementById(containerId);
   if (!container) {
-    console.error(`Container ${containerId} not found`);
     return;
   }
 
@@ -201,7 +200,7 @@ export async function render(text, targetWidth, options = {}) {
     // Sort candidates by score (lower is better in line breaking)
     enhancedCandidates.sort((a, b) => (a.score || 0) - (b.score || 0));
     
-    console.log('Sorted candidates by score:', enhancedCandidates.map((c, i) => `${i+1}: ${c.score?.toFixed(2) || 0}`));
+
     
     // Ensure we have enough candidates - generate additional ones if needed
     const candidatesToDisplay = [...enhancedCandidates];
@@ -646,14 +645,7 @@ export async function render(text, targetWidth, options = {}) {
       candidate.scoreBreakdown.protectedBreaks = protectedBreakCount;
     }
     
-    // Debug logging to validate candidate scores
-    console.log(`Candidate ${index + 1}:`, {
-      score: candidate.score,
-      scoreBreakdown: candidate.scoreBreakdown,
-      lines: candidate.lines?.length,
-      lineWidths: candidate.lineWidths,
-      protectedBreaks: protectedBreakCount
-    });
+
       
       const candidateDiv = document.createElement('div');
       candidateDiv.className = 'candidate-block';
@@ -677,12 +669,9 @@ export async function render(text, targetWidth, options = {}) {
       
       // Calculate proper match percentage based on candidate ranking
       const rawScore = candidate.score || 0;
-      console.log(`Candidate ${index + 1} raw score:`, rawScore);
       
       // Use our helper function to calculate the match percentage
       const matchPercentage = calculateCandidateMatchPercentage(candidate, index);
-      
-      console.log(`Candidate ${index + 1} calculated match:`, matchPercentage);
       
       label.textContent = `Candidate ${index + 1}: ${matchPercentage.toFixed(1)}% match (Score: ${rawScore.toFixed(1)})`;
       
@@ -978,7 +967,6 @@ export async function render(text, targetWidth, options = {}) {
     }
 
   } catch (error) {
-    console.error('Error rendering text layout:', error);
     container.innerHTML = `<div style="color: red; padding: 20px;">Error rendering layout: ${error.message}</div>`;
   }
 }
