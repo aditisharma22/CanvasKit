@@ -1947,9 +1947,7 @@
           if (segment.colonTransformation === "titleSubtitle") {
             wordSpan.style.border = '1px dashed #FFC107';
           }
-        }
-        
-        // Add reason for line breaking rule in the title
+        }          // Add reason for line breaking rule in the title
         let reason = "";
         const locale = document.getElementById('opportunitiesLocaleSelect').value;
         
@@ -1977,6 +1975,18 @@
             } else {
               reason = "FrenchRule.md rule: Avoid break here";
             }
+          } else if (locale === 'en') {
+            if (isValidText && ['the', 'a', 'an'].includes(segmentText.toLowerCase())) {
+              reason = "EnglishRule: Article should stay with following word";
+            } else if (isValidText && ['of', 'in', 'on', 'with', 'by', 'for', 'to', 'from', 'at'].includes(segmentText.toLowerCase())) {
+              reason = "EnglishRule: No line break after prepositions";
+            } else if (segment._partOfAppleService || (isValidText && /Apple|Music|TV\+|Arcade|One|Fitness\+/.test(segmentText))) {
+              reason = "EnglishRule: Apple service names on one line";
+            } else if (segment._partOfGameName || (isValidText && /Monopoly|Go|Candy|Crush|Clash|Royale/.test(segmentText))) {
+              reason = "EnglishRule: Game and app names stay on one line";
+            } else {
+              reason = "EnglishRule: Avoid break here";
+            }
           } else {
             reason = "Rule: Avoid break here";
           }
@@ -1992,7 +2002,7 @@
         } else {
           wordSpan.classList.add('avoid-break');
           
-          // Special styling for Apple service name parts
+          // Special styling for Apple service name parts - work in all locales
           if (segment._partOfAppleService || 
               (isValidText && /Apple|Music|Super|Bowl|Arcade|One|Fitness\+|TV\+|News\+/.test(segmentText))) {
             wordSpan.style.borderBottom = '2px solid #64b5f6';
@@ -2002,19 +2012,22 @@
             if (segment._partOfAppleService) {
               wordSpan.title = `Part of Apple service: ${segment._partOfAppleService}`;
             } else {
-              wordSpan.title = "FrenchRule.md: Apple service names on one line";
+              let rulePrefix = locale === 'fr' ? 'FrenchRule.md' : (locale === 'en' ? 'EnglishRule' : locale);
+              wordSpan.title = `${rulePrefix}: Apple service names on one line`;
             }
           }
           
-          // Special styling for game name parts
+          // Special styling for game name parts - work in all locales
           if (segment._partOfGameName) {
             wordSpan.style.borderBottom = '2px solid #9ccc65';
             wordSpan.style.backgroundColor = 'rgba(156, 204, 101, 0.1)';
-            wordSpan.title = `FrenchRule.md: Game name "${segment._partOfGameName}" must stay on one line`;
+            let rulePrefix = locale === 'fr' ? 'FrenchRule.md' : (locale === 'en' ? 'EnglishRule' : locale);
+            wordSpan.title = `${rulePrefix}: Game name "${segment._partOfGameName}" must stay on one line`;
           } else if (isValidText && /Monopoly|Go|Candy|Crush|Clash|Royale|Temple|Run/.test(segmentText)) {
             wordSpan.style.borderBottom = '2px solid #9ccc65';
             wordSpan.style.backgroundColor = 'rgba(156, 204, 101, 0.1)';
-            wordSpan.title = "FrenchRule.md: Game names stay on one line";
+            let rulePrefix = locale === 'fr' ? 'FrenchRule.md' : (locale === 'en' ? 'EnglishRule' : locale);
+            wordSpan.title = `${rulePrefix}: Game names stay on one line`;
           }
         }
         

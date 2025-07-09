@@ -426,8 +426,8 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
       }
     }
     
-    // Apply special handling for Apple service names in French and Spanish text
-    if ((locale === 'fr' || locale === 'es') && rulesConfig.appleServices) {
+    // Apply special handling for Apple service names in all locales
+    if (rulesConfig.appleServices) {
       console.log(`[processTextForLineBreaking] Special handling for Apple service names in ${locale}`);
       
       // Detect Apple service names in text
@@ -464,8 +464,8 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
       }
     }
     
-    // Apply special handling for game names in French and Spanish text
-    if ((locale === 'fr' || locale === 'es') && rulesConfig.appGameNames) {
+    // Apply special handling for game names in all locales
+    if (rulesConfig.appGameNames) {
       console.log(`[processTextForLineBreaking] Special handling for game names in ${locale}`);
       
       // Detect game names in text

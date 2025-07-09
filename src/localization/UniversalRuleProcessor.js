@@ -103,16 +103,21 @@ export class UniversalRuleProcessor {
     const betweenRules = config.rules?.avoidBreakBetween || [];
     const words = metrics.map(m => m.text || m.segment || '');
 
+    // Convert metrics text to a single string for whole-text searching
+    const fullText = metrics.map(m => m.text || m.segment || '').join(' ').toLowerCase();
+
     for (const rule of betweenRules) {
       switch (rule) {
         case 'fixedExpressions':
           this.applyFixedExpressionRules(metrics, config);
           break;
         case 'appleServices':
-          this.applyServiceNameRules(metrics, config, 'appleServices');
+          // Enhanced implementation for Apple services
+          this.applyAppleServiceRules(metrics, config, fullText);
           break;
         case 'appGameNames':
-          this.applyServiceNameRules(metrics, config, 'appGameNames');
+          // Enhanced implementation for game names
+          this.applyGameNameRules(metrics, config, fullText);
           break;
         case 'personNames':
           this.applyPersonNameRules(metrics, config);
@@ -127,6 +132,116 @@ export class UniversalRuleProcessor {
           // Generic phrase protection
           this.applyGenericPhraseRules(metrics, config, rule);
           break;
+      }
+    }
+  }
+  
+  /**
+   * Apply Apple service name rules with improved text matching
+   * @param {Array} metrics - Word metrics array
+   * @param {Object} config - Locale configuration
+   * @param {string} fullText - The full lowercase text of all metrics joined
+   */
+  applyAppleServiceRules(metrics, config, fullText) {
+    const services = this.configManager.getRuleList(config, 'appleServices');
+    
+    for (const service of services) {
+      const serviceName = typeof service === 'string' ? service : 
+                         Array.isArray(service) ? service.join(' ') : '';
+      
+      if (!serviceName) continue;
+      
+      const serviceNameLower = serviceName.toLowerCase();
+      
+      // Check if the service name appears in the full text
+      if (fullText.includes(serviceNameLower)) {
+        console.log(`Found Apple service match: "${serviceName}" in text`);
+        
+        // First, find all positions where this service name appears
+        let startPos = 0;
+        let foundPos = -1;
+        
+        while ((foundPos = fullText.indexOf(serviceNameLower, startPos)) !== -1) {
+          // Calculate word boundaries
+          const serviceWords = serviceNameLower.split(/\s+/);
+          let wordCount = 0;
+          let currentPos = 0;
+          
+          // Identify which metrics contain parts of this service name
+          for (let i = 0; i < metrics.length; i++) {
+            const metric = metrics[i];
+            const metricText = (metric.text || metric.segment || '').toLowerCase();
+            
+            if (!metricText) continue;
+            
+            // Check if this metric is part of the service name
+            if (currentPos + metricText.length > foundPos && currentPos < foundPos + serviceNameLower.length) {
+              // This metric overlaps with the service name position
+              metric.lineBreaking = 'avoid';
+              metric._partOfAppleService = serviceName;
+              this.addRuleMetadata(metric, 'appleServices', 'between', serviceName);
+            }
+            
+            currentPos += metricText.length + 1; // +1 for space
+          }
+          
+          // Move to find next occurrence
+          startPos = foundPos + serviceNameLower.length;
+        }
+      }
+    }
+  }
+  
+  /**
+   * Apply game name rules with improved text matching
+   * @param {Array} metrics - Word metrics array
+   * @param {Object} config - Locale configuration
+   * @param {string} fullText - The full lowercase text of all metrics joined
+   */
+  applyGameNameRules(metrics, config, fullText) {
+    const gameNames = this.configManager.getRuleList(config, 'appGameNames');
+    
+    for (const gameName of gameNames) {
+      const gameNameText = typeof gameName === 'string' ? gameName : 
+                          Array.isArray(gameName) ? gameName.join(' ') : '';
+      
+      if (!gameNameText) continue;
+      
+      const gameNameLower = gameNameText.toLowerCase();
+      
+      // Check if the game name appears in the full text
+      if (fullText.includes(gameNameLower)) {
+        console.log(`Found game name match: "${gameNameText}" in text`);
+        
+        // Find all positions where this game name appears
+        let startPos = 0;
+        let foundPos = -1;
+        
+        while ((foundPos = fullText.indexOf(gameNameLower, startPos)) !== -1) {
+          // Calculate word boundaries
+          let currentPos = 0;
+          
+          // Identify which metrics contain parts of this game name
+          for (let i = 0; i < metrics.length; i++) {
+            const metric = metrics[i];
+            const metricText = (metric.text || metric.segment || '').toLowerCase();
+            
+            if (!metricText) continue;
+            
+            // Check if this metric is part of the game name
+            if (currentPos + metricText.length > foundPos && currentPos < foundPos + gameNameLower.length) {
+              // This metric overlaps with the game name position
+              metric.lineBreaking = 'avoid';
+              metric._partOfGameName = gameNameText;
+              this.addRuleMetadata(metric, 'appGameNames', 'between', gameNameText);
+            }
+            
+            currentPos += metricText.length + 1; // +1 for space
+          }
+          
+          // Move to find next occurrence
+          startPos = foundPos + gameNameLower.length;
+        }
       }
     }
   }
@@ -171,22 +286,20 @@ export class UniversalRuleProcessor {
   }
 
   /**
-   * Apply service/brand name rules
+   * Legacy method - kept for backward compatibility but functionality moved to specialized methods
    * @param {Array} metrics - Word metrics array
    * @param {Object} config - Locale configuration
    * @param {string} serviceType - Type of service (appleServices, appGameNames)
+   * @deprecated Use applyAppleServiceRules or applyGameNameRules instead
    */
   applyServiceNameRules(metrics, config, serviceType) {
-    const services = this.configManager.getRuleList(config, serviceType);
-    const fullText = metrics.map(m => m.text || '').join(' ').toLowerCase();
-
-    for (const service of services) {
-      const serviceName = typeof service === 'string' ? service : 
-                         Array.isArray(service) ? service.join(' ') : '';
-      
-      if (serviceName && fullText.includes(serviceName.toLowerCase())) {
-        this.markServiceName(metrics, serviceName, serviceType);
-      }
+    // Forward to the appropriate specialized method
+    if (serviceType === 'appleServices') {
+      const fullText = metrics.map(m => m.text || '').join(' ').toLowerCase();
+      this.applyAppleServiceRules(metrics, config, fullText);
+    } else if (serviceType === 'appGameNames') {
+      const fullText = metrics.map(m => m.text || '').join(' ').toLowerCase();
+      this.applyGameNameRules(metrics, config, fullText);
     }
   }
 
