@@ -469,34 +469,6 @@ export class UniversalRuleProcessor {
   }
 
   /**
-   * Mark service name to avoid line breaks
-   * @param {Array} metrics - Word metrics array
-   * @param {string} serviceName - Service name
-   * @param {string} serviceType - Type of service
-   */
-  markServiceName(metrics, serviceName, serviceType) {
-    const words = serviceName.toLowerCase().split(/\s+/);
-    
-    for (let i = 0; i <= metrics.length - words.length; i++) {
-      let match = true;
-      
-      for (let j = 0; j < words.length; j++) {
-        if (metrics[i + j]?.text?.toLowerCase() !== words[j]) {
-          match = false;
-          break;
-        }
-      }
-      
-      if (match) {
-        for (let j = 0; j < words.length; j++) {
-          metrics[i + j].lineBreaking = CONFIG.LINE_BREAK.AVOID;
-          this.addRuleMetadata(metrics[i + j], serviceType, 'between', serviceName);
-        }
-      }
-    }
-  }
-
-  /**
    * Mark a range of characters in metrics to avoid line breaks
    * @param {Array} metrics - Word metrics array
    * @param {number} startPos - Start position in full text

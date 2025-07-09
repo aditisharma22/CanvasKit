@@ -94,10 +94,12 @@ export default {
   ],
   
   // Apple service names on one line
+  
   appleServices: [
     "Apple One",
+    "Apple Arcade",
     "Apple Music",
-    "Apple TV+"
+    "Apple TV"
   ],
   
   // Game and app names stay on one line

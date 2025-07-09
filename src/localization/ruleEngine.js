@@ -182,12 +182,12 @@ export function applySegmentationRules(wordMetricsArray, ruleConfig) {
       violations.push([i, `'${currText}' | '${nextText}'`, "Avoid break in name/brand"]);
     }
 
-    // Avoid break for scores (e.g., "100 Punkte")
+    // Avoid break for scores 
     if (isNumeric(currText) && REGEX_PATTERNS.SCORE_PATTERN?.test(nextText)) {
       violations.push([i, `'${currText}' | '${nextText}'`, "Avoid break in score"]);
     }
 
-    // Avoid break before periods (e.g., Japanese periods)
+    // Avoid break before periods 
     if (rules?.avoidBreakBefore?.includes("period") && 
         periods && periods.includes(nextText)) {
       violations.push([i, `'${currText}' | '${nextText}'`, "Do not break before period"]);
