@@ -85,20 +85,29 @@ export default {
     "No\\. \\d+"
   ],
   
-  // Apple brand services
-
+  /**
+   * Avoid unnecessary line breaking
+   * 
+   * These specialized rule lists define groups of text that should never be broken
+   * across multiple lines to maintain readability, brand integrity, and proper
+   * semantic meaning.
+   */
+  
+  // Apple brand services that should remain on a single line to maintain brand identity
   appleServices: [
     "Apple One",
     "Apple Arcade",
     "Apple Music",
-    "Apple TV"
+    "Apple TV",
+    "Apple Watch"
   ],
   
-
+  // Game and app titles that should be treated as unbreakable units
   appGameNames: [
-    "Monopoly Go",
     "Candy Crush",
-    "Clash Royale"
+    "Clash Royale",
+    "Zombie Attack",
+    "Monopoly Go"
   ],
 
   // Compound words that should stay together

@@ -767,8 +767,7 @@
           <h1>TextFit+</h1>
         </div>
         <div class="header-actions" style="display: flex; align-items: center;">
-          <a href="documentation.html" class="secondary-button">Documentation</a>
-          <div style="display: flex; align-items: center; margin-left: 15px; background: rgba(0,0,0,0.05); padding: 5px 10px; border-radius: 20px;">
+          <div style="display: flex; align-items: center; background: rgba(0,0,0,0.05); padding: 5px 10px; border-radius: 20px;">
             <span id="theme-label" style="margin-right: 8px; font-size: 14px; font-weight: 500;">Light Mode</span>
             <label class="theme-switch">
               <input type="checkbox" id="theme-toggle">
@@ -785,6 +784,7 @@
     <div class="tabs">
       <div class="tab-button active" data-tab="lineBreaking">Line Breaking</div>
       <div class="tab-button" data-tab="lineBreakOpportunities">Line Break Opportunities</div>
+      <div class="tab-button" data-tab="customRules">Custom Rules</div>
     </div>
     
     <!-- Line Breaking Tab -->
@@ -943,6 +943,67 @@
               <div class="info-icon">ℹ️</div>
               <div class="info-text">
                 Enter text and click "Analyze Text" to visualize line breaking rules.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Custom Rules Tab -->
+    <div id="customRules" class="tab-content">
+      <div id="customRulesWrapper">
+        <div class="controls-section">
+          <div class="result-card">
+            <h3>English Line Breaking Rules Editor</h3>
+            
+            <div style="padding: 20px;">
+              <!-- Apple Services Section -->
+              <div style="margin-bottom: 25px;">
+                <h4 style="margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                  Apple Services
+                </h4>
+                
+                <div style="display: flex; margin-bottom: 15px;">
+                  <input type="text" id="appleServiceInput" placeholder="New Apple service name..." 
+                        style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px 0 0 4px;" />
+                  <button id="addAppleService" class="primary-button" 
+                        style="border-radius: 0 4px 4px 0; margin: 0;">Add</button>
+                </div>
+                
+                <div id="appleServiceFeedback" class="feedback-message" style="margin: 10px 0; display: none;"></div>
+                
+                <div id="currentAppleServices" style="background: rgba(0,0,0,0.03); padding: 10px; border-radius: 5px;">
+                  <div style="font-weight: 500; margin-bottom: 5px;">Current Entries:</div>
+                  <div id="appleServicesList">
+                    <!-- Will be populated by JavaScript -->
+                    <div style="color: #888; font-style: italic;">Loading...</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Game Names Section -->
+              <div>
+                <h4 style="margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                  Game Names
+                </h4>
+                
+                <div style="display: flex; margin-bottom: 15px;">
+                  <input type="text" id="gameNameInput" placeholder="New game name..." 
+                        style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px 0 0 4px;" />
+                  <button id="addGameName" class="primary-button" 
+                        style="border-radius: 0 4px 4px 0; margin: 0;">Add</button>
+                </div>
+                
+                <div id="gameNameFeedback" class="feedback-message" style="margin: 10px 0; display: none;"></div>
+                
+                <div id="currentGameNames" style="background: rgba(0,0,0,0.03); padding: 10px; border-radius: 5px;">
+                  <div style="font-weight: 500; margin-bottom: 5px;">Current Entries:</div>
+                  <div id="gameNamesList">
+                    <!-- Will be populated by JavaScript -->
+                    <div style="color: #888; font-style: italic;">Loading...</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -2333,6 +2394,277 @@
         localStorage.setItem('theme', 'light');
         themeLabel.textContent = 'Light Mode';
       }
+    });
+    
+    // Load current rules
+    async function loadCurrentRules() {
+      try {
+        // Fetch the en.js file content - using relative path since this file is served by Vite
+        const response = await fetch('/src/localization/rules/en.js');
+        
+        if (!response.ok) {
+          throw new Error(`Could not load rules file: ${response.status} ${response.statusText}`);
+        }
+        
+        const jsContent = await response.text();
+        
+        // Extract Apple services - use better regex to extract actual strings
+        const appleServicesMatch = jsContent.match(/appleServices:\s*\[([\s\S]*?)\]/);
+        const appleServices = [];
+        
+        if (appleServicesMatch) {
+          // Extract all string literals using regex
+          const stringRegex = /"([^"]+)"|'([^']+)'/g;
+          let match;
+          
+          while ((match = stringRegex.exec(appleServicesMatch[1])) !== null) {
+            // match[1] will be the content inside double quotes, match[2] for single quotes
+            appleServices.push(match[1] || match[2]);
+          }
+        } else {
+          console.warn('Could not find appleServices section in en.js');
+        }
+        
+        // Extract app/game names - same better approach
+        const gameNamesMatch = jsContent.match(/appGameNames:\s*\[([\s\S]*?)\]/);
+        const gameNames = [];
+        
+        if (gameNamesMatch) {
+          // Extract all string literals using regex
+          const stringRegex = /"([^"]+)"|'([^']+)'/g;
+          let match;
+          
+          while ((match = stringRegex.exec(gameNamesMatch[1])) !== null) {
+            // match[1] will be the content inside double quotes, match[2] for single quotes
+            gameNames.push(match[1] || match[2]);
+          }
+        } else {
+          console.warn('Could not find appGameNames section in en.js');
+        }
+        
+        // Update UI with current values
+        displayAppleServices(appleServices);
+        displayGameNames(gameNames);
+        
+      } catch (error) {
+        console.error('Error loading current rules:', error);
+        
+        // Show error in both feedback areas
+        showFeedback('appleServiceFeedback', `Failed to load rules: ${error.message}`, false);
+        showFeedback('gameNameFeedback', `Failed to load rules: ${error.message}`, false);
+        
+        // Set empty lists to show the error state
+        displayAppleServices([]);
+        displayGameNames([]);
+      }
+    }
+    
+    // Display Apple services in the UI
+    function displayAppleServices(services) {
+      const list = document.getElementById('appleServicesList');
+      if (services.length === 0) {
+        list.innerHTML = '<div style="color: #888; font-style: italic;">No custom services added yet</div>';
+        return;
+      }
+      
+      list.innerHTML = services.map(service => 
+        `<div style="padding: 5px; margin: 2px 0; background: rgba(0,113,227,0.1); border-radius: 3px; display: flex; justify-content: space-between;">
+          <span>${service}</span>
+          <button class="remove-entry" data-type="appleServices" data-name="${service}" 
+                  style="background: none; border: none; color: #ff5252; cursor: pointer; padding: 0 5px;">✕</button>
+        </div>`
+      ).join('');
+      
+      // Add event listeners to remove buttons
+      document.querySelectorAll('#appleServicesList .remove-entry').forEach(btn => {
+        btn.addEventListener('click', function() {
+          removeCustomRule(this.dataset.type, this.dataset.name);
+        });
+      });
+    }
+    
+    // Display game names in the UI
+    function displayGameNames(games) {
+      const list = document.getElementById('gameNamesList');
+      if (games.length === 0) {
+        list.innerHTML = '<div style="color: #888; font-style: italic;">No custom game names added yet</div>';
+        return;
+      }
+      
+      list.innerHTML = games.map(game => 
+        `<div style="padding: 5px; margin: 2px 0; background: rgba(76,201,160,0.1); border-radius: 3px; display: flex; justify-content: space-between;">
+          <span>${game}</span>
+          <button class="remove-entry" data-type="appGameNames" data-name="${game}" 
+                  style="background: none; border: none; color: #ff5252; cursor: pointer; padding: 0 5px;">✕</button>
+        </div>`
+      ).join('');
+      
+      // Add event listeners to remove buttons
+      document.querySelectorAll('#gameNamesList .remove-entry').forEach(btn => {
+        btn.addEventListener('click', function() {
+          removeCustomRule(this.dataset.type, this.dataset.name);
+        });
+      });
+    }
+    
+    // Helper function to show feedback
+    function showFeedback(elementId, message, isSuccess) {
+      const feedbackEl = document.getElementById(elementId);
+      feedbackEl.innerHTML = message;
+      feedbackEl.style.display = 'block';
+      feedbackEl.style.padding = '10px';
+      feedbackEl.style.borderRadius = '4px';
+      feedbackEl.style.marginBottom = '15px';
+      
+      if (isSuccess) {
+        feedbackEl.style.backgroundColor = '#d4edda';
+        feedbackEl.style.color = '#155724';
+        feedbackEl.style.border = '1px solid #c3e6cb';
+      } else {
+        feedbackEl.style.backgroundColor = '#f8d7da';
+        feedbackEl.style.color = '#721c24';
+        feedbackEl.style.border = '1px solid #f5c6cb';
+      }
+      
+      // Auto-hide after 5 seconds
+      setTimeout(() => {
+        feedbackEl.style.display = 'none';
+      }, 5000);
+    }
+    
+    // Function to update custom rules
+    async function updateCustomRules(type, name) {
+      const feedbackId = type === 'appleServices' ? 'appleServiceFeedback' : 'gameNameFeedback';
+      
+      try {
+        const response = await fetch('http://localhost:3000/api/update-rules', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            type, 
+            name,
+            locale: 'en' // Always use English locale
+          })
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Server error:', errorText);
+          throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          // Show success message
+          showFeedback(feedbackId, `Successfully added "${name}" to English ${type}. Please restart the application for changes to take effect.`, true);
+          
+          // Reload the current rules to update the UI
+          loadCurrentRules();
+        } else {
+          showFeedback(feedbackId, `Error: ${result.error}`, false);
+        }
+      } catch (error) {
+        console.error('Error updating rules:', error);
+        showFeedback(feedbackId, `Failed to update rules: ${error.message}`, false);
+      }
+    }
+    
+    // Function to remove custom rule
+    async function removeCustomRule(type, name) {
+      const feedbackId = type === 'appleServices' ? 'appleServiceFeedback' : 'gameNameFeedback';
+      
+      try {
+        const response = await fetch('http://localhost:3000/api/remove-rule', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            type, 
+            name,
+            locale: 'en' // Always use English locale
+          })
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Server error:', errorText);
+          throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          // Show success message
+          showFeedback(feedbackId, `Successfully removed "${name}" from English ${type}. Please restart the application for changes to take effect.`, true);
+          
+          // Reload the current rules to update the UI
+          loadCurrentRules();
+        } else {
+          showFeedback(feedbackId, `Error: ${result.error}`, false);
+        }
+      } catch (error) {
+        console.error('Error removing rule:', error);
+        showFeedback(feedbackId, `Failed to remove rule: ${error.message}`, false);
+      }
+    }
+    
+    // Check if API server is running
+    async function checkServerStatus() {
+      try {
+        const response = await fetch('http://localhost:3000/api/test');
+        if (response.ok) {
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error('API server is not running:', error);
+        return false;
+      }
+    }
+    
+    // Set up event listeners once document is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load current rules when the tab is activated
+      document.querySelector('.tab-button[data-tab="customRules"]').addEventListener('click', async function() {
+        // Check if server is running first
+        const serverRunning = await checkServerStatus();
+        if (!serverRunning) {
+          showFeedback('appleServiceFeedback', 'API server is not running. Please start it with: npm run start-server', false);
+          showFeedback('gameNameFeedback', 'API server is not running. Please start it with: npm run start-server', false);
+        } else {
+          loadCurrentRules();
+        }
+      });
+      
+      // Add Apple service button
+      document.getElementById('addAppleService').addEventListener('click', function() {
+        const input = document.getElementById('appleServiceInput');
+        const serviceName = input.value.trim();
+        
+        if (serviceName) {
+          updateCustomRules('appleServices', serviceName);
+          input.value = ''; // Clear input field
+        } else {
+          showFeedback('appleServiceFeedback', 'Please enter a service name', false);
+        }
+      });
+      
+      // Add game name button
+      document.getElementById('addGameName').addEventListener('click', function() {
+        const input = document.getElementById('gameNameInput');
+        const gameName = input.value.trim();
+        
+        if (gameName) {
+          updateCustomRules('appGameNames', gameName);
+          input.value = ''; // Clear input field
+        } else {
+          showFeedback('gameNameFeedback', 'Please enter a game name', false);
+        }
+      });
     });
     
     go.click();
