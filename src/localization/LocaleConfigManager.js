@@ -1,12 +1,6 @@
-/**
- * LocaleConfigManager - managing all locale rules in one place
- */
+// LocaleConfigManager - Manages locale-specific line breaking rules
 
 import ruleConfigs from './rules/ruleConfigs.js';
-
-/**
- * config constants 
- */
 export const CONFIG = {
   DEFAULT_LOCALE: 'en',
   FALLBACK_LOCALE: 'en',
@@ -38,20 +32,14 @@ export const CONFIG = {
   }
 };
 
-/**
- * This is the main locale manager class
- */
+// Main locale manager class
 class LocaleConfigManager {
   constructor() {
     this.configs = ruleConfigs;
     this.cache = new Map();
   }
 
-  /**
-   * Get configuration for a specific locale with fallback support
-   * @param {string} locale - The locale code
-   * @returns {Object} - The locale configuration
-   */
+  // Get configuration for a specific locale with fallback support
   getConfig(locale = CONFIG.DEFAULT_LOCALE) {
     // Check cache first
     if (this.cache.has(locale)) {
@@ -79,11 +67,7 @@ class LocaleConfigManager {
     return config;
   }
 
-  /**
-    * Create a default configuration for a locale 
-   * @param {string} locale - The locale code
-   * @returns {Object} - Basic placeholder config that should work OK
-   */
+  // Create a default configuration for a locale
   createDefaultConfig(locale) {
     return {
       locale,
@@ -107,12 +91,7 @@ class LocaleConfigManager {
     };
   }
 
-  /**
-   * Normalize configuration to ensure all required properties exist
-   * @param {Object} config - The configuration object
-   * @param {string} locale - The locale code
-   * @returns {Object} - Normalized configuration
-   */
+  // Normalize configuration to ensure all required properties exist
   normalizeConfig(config, locale) {
     const defaultConfig = this.createDefaultConfig(locale);
     
@@ -126,48 +105,27 @@ class LocaleConfigManager {
     };
   }
 
-  /**
-   * Check if a locale is supported
-   * @param {string} locale - The locale code
-   * @returns {boolean} - True if locale is supported
-   */
+  // Check if a locale is supported
   isSupported(locale) {
     return CONFIG.SUPPORTED_LOCALES.includes(locale) || !!this.configs[locale];
   }
 
-  /**
-   * Get all supported locales
-   * @returns {string[]} - Array of supported locale codes
-   */
+  // Get all supported locales
   getSupportedLocales() {
     return [...CONFIG.SUPPORTED_LOCALES, ...Object.keys(this.configs)].filter((locale, index, arr) => arr.indexOf(locale) === index);
   }
 
-  /**
-   * Check if localization processing is needed for a locale
-   * @param {string} locale - The locale code
-   * @returns {boolean} - True if processing is needed
-   */
+  // Check if localization processing is needed for a locale
   needsLocalization(locale) {
     return locale && locale !== CONFIG.DEFAULT_LOCALE && this.isSupported(locale);
   }
 
-  /**
-   * Get rule lists by name from configuration
-   * @param {Object} config - The locale configuration
-   * @param {string} ruleName - The name of the rule list
-   * @returns {Array} - The rule list array
-   */
+  // Get rule lists by name from configuration
   getRuleList(config, ruleName) {
     return config[ruleName] || config.rules?.[ruleName] || [];
   }
 
-  /**
-   * Check if a word matches any entry in a list (case-insensitive)
-   * @param {string} word - The word to check
-   * @param {Array} list - The list to check against
-   * @returns {boolean} - True if word matches any entry
-   */
+  // Check if a word matches any entry in a list (case-insensitive)
   matchesList(word, list) {
     if (!Array.isArray(list) || !word) return false;
     return list.some(entry => typeof entry === 'string' && word.toLowerCase() === entry.toLowerCase());
@@ -175,13 +133,7 @@ class LocaleConfigManager {
 
 
 
-  /**
-   * Check if breaking at a specific position would split a protected phrase
-   * @param {number} breakIdx - The break position
-   * @param {Array} words - The words array
-   * @param {Array} phraseList - List of protected phrases
-   * @returns {boolean} - True if break would split a protected phrase
-   */
+  // Check if breaking at a specific position would split a protected phrase
   breakSplitsPhrase(breakIdx, words, phraseList) {
     if (!Array.isArray(phraseList) || !Array.isArray(words)) return false;
     
@@ -231,19 +183,7 @@ class LocaleConfigManager {
     return false;
   }
 
-  /**
-   * Apply universal rule checking logic
-   * @param {Object} params - Parameters object
-   * @param {string} params.rule - The rule type
-   * @param {string} params.context - The context (before, after, between)
-   * @param {Object} params.current - Current word/token
-   * @param {Object} params.next - Next word/token (for before/between rules)
-   * @param {Object} params.prev - Previous word/token (for after/between rules)
-   * @param {Object} params.config - Locale configuration
-   * @param {Array} params.words - All words (for between rules)
-   * @param {number} params.index - Current index (for between rules)
-   * @returns {boolean} - True if rule violation detected
-   */
+  // Apply universal rule checking logic
   applyRule({ rule, context, current, next, prev, config, words, index }) {
     const rules = config.rules || {};
     const ruleName = `avoidBreak${context.charAt(0).toUpperCase() + context.slice(1)}`;
@@ -303,18 +243,12 @@ class LocaleConfigManager {
     }
   }
 
-  /**
-   * Clear configuration cache
-   */
+  // Clear configuration cache
   clearCache() {
     this.cache.clear();
   }
 
-  /**
-   * Register a new locale configuration
-   * @param {string} locale - The locale code
-   * @param {Object} config - The configuration object
-   */
+  // Register a new locale configuration
   registerLocale(locale, config) {
     this.configs[locale] = config;
     this.cache.delete(locale); // Clear cache for this locale

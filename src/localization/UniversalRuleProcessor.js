@@ -1,26 +1,13 @@
-/**
- * Universal Rule Processor
- * Provides dynamic rule processing for all locales without hardcoded logic
- * Handles all types of line breaking rules in a unified, extensible manner
- */
+// Universal Rule Processor - Handles line breaking rules for all locales
 
 import { localeConfigManager, CONFIG } from './LocaleConfigManager.js';
 
-/**
- * Universal Rule Processor Class
- * Processes line breaking rules dynamically for any locale
- */
 export class UniversalRuleProcessor {
   constructor() {
     this.configManager = localeConfigManager;
   }
 
-  /**
-   * Process word metrics with locale-specific line breaking rules
-   * @param {Array} wordMetricsArray - Array of word metrics objects
-   * @param {string} locale - The locale code
-   * @returns {Array} - Updated word metrics with line breaking annotations
-   */
+  // Apply locale-specific line breaking rules to word metrics
   processWordMetrics(wordMetricsArray, locale) {
     if (!Array.isArray(wordMetricsArray) || wordMetricsArray.length === 0) {
       return wordMetricsArray;
@@ -38,11 +25,7 @@ export class UniversalRuleProcessor {
     return processedMetrics;
   }
 
-  /**
-   * Apply "avoid break before" rules
-   * @param {Array} metrics - Word metrics array
-   * @param {Object} config - Locale configuration
-   */
+  // Apply rules to avoid breaks before certain elements
   applyBeforeRules(metrics, config) {
     const beforeRules = config.rules?.avoidBreakBefore || [];
 
@@ -66,11 +49,7 @@ export class UniversalRuleProcessor {
     }
   }
 
-  /**
-   * Apply "avoid break after" rules
-   * @param {Array} metrics - Word metrics array
-   * @param {Object} config - Locale configuration
-   */
+  // Apply "avoid break after" rules
   applyAfterRules(metrics, config) {
     const afterRules = config.rules?.avoidBreakAfter || [];
 
@@ -94,11 +73,7 @@ export class UniversalRuleProcessor {
     }
   }
 
-  /**
-   * Apply "avoid break between" rules
-   * @param {Array} metrics - Word metrics array
-   * @param {Object} config - Locale configuration
-   */
+  // Apply "avoid break between" rules
   applyBetweenRules(metrics, config) {
     const betweenRules = config.rules?.avoidBreakBetween || [];
     const words = metrics.map(m => m.text || m.segment || '');
@@ -136,12 +111,7 @@ export class UniversalRuleProcessor {
     }
   }
   
-  /**
-   * Apply Apple service name rules with improved text matching
-   * @param {Array} metrics - Word metrics array
-   * @param {Object} config - Locale configuration
-   * @param {string} fullText - The full lowercase text of all metrics joined
-   */
+  // Apply Apple service name rules with improved text matching
   applyAppleServiceRules(metrics, config, fullText) {
     const services = this.configManager.getRuleList(config, 'appleServices');
     
@@ -190,12 +160,7 @@ export class UniversalRuleProcessor {
     }
   }
   
-  /**
-   * Apply game name rules with improved text matching
-   * @param {Array} metrics - Word metrics array
-   * @param {Object} config - Locale configuration
-   * @param {string} fullText - The full lowercase text of all metrics joined
-   */
+  // Apply game name rules with improved text matching
   applyGameNameRules(metrics, config, fullText) {
     const gameNames = this.configManager.getRuleList(config, 'appGameNames');
     
@@ -242,11 +207,7 @@ export class UniversalRuleProcessor {
     }
   }
 
-  /**
-   * Apply special cases defined in the configuration
-   * @param {Array} metrics - Word metrics array
-   * @param {Object} config - Locale configuration
-   */
+  // Apply special cases defined in the configuration
   applySpecialCases(metrics, config) {
     const specialCases = config.rules?.specialCases || {};
 
@@ -257,11 +218,7 @@ export class UniversalRuleProcessor {
     }
   }
 
-  /**
-   * Apply fixed expression rules (hyphenated compounds, etc.)
-   * @param {Array} metrics - Word metrics array
-   * @param {Object} config - Locale configuration
-   */
+  // Apply fixed expression rules (hyphenated compounds, etc.)
   applyFixedExpressionRules(metrics, config) {
     const fixedExpressions = this.configManager.getRuleList(config, 'fixedExpressions');
     
@@ -283,11 +240,7 @@ export class UniversalRuleProcessor {
 
 
 
-  /**
-   * Apply person name rules
-   * @param {Array} metrics - Word metrics array
-   * @param {Object} config - Locale configuration
-   */
+  // Apply person name rules
   applyPersonNameRules(metrics, config) {
     const prefixes = this.configManager.getRuleList(config, 'personNamePrefixes');
     
@@ -303,11 +256,7 @@ export class UniversalRuleProcessor {
     }
   }
 
-  /**
-   * Apply adjective-noun rules
-   * @param {Array} metrics - Word metrics array
-   * @param {Object} config - Locale configuration
-   */
+  // Apply adjective-noun rules
   applyAdjectiveNounRules(metrics, config) {
     const adjectives = this.configManager.getRuleList(config, 'adjectives');
     
@@ -321,11 +270,7 @@ export class UniversalRuleProcessor {
     }
   }
 
-  /**
-   * Apply proper noun sequence rules
-   * @param {Array} metrics - Word metrics array
-   * @param {Object} config - Locale configuration
-   */
+  // Apply proper noun sequence rules
   applyProperNounRules(metrics, config) {
     for (let i = 0; i < metrics.length - 1; i++) {
       const current = metrics[i];
@@ -339,12 +284,7 @@ export class UniversalRuleProcessor {
     }
   }
 
-  /**
-   * Apply generic phrase protection rules
-   * @param {Array} metrics - Word metrics array
-   * @param {Object} config - Locale configuration
-   * @param {string} rule - Rule name
-   */
+  // Apply generic phrase protection rules
   applyGenericPhraseRules(metrics, config, rule) {
     const phrases = this.configManager.getRuleList(config, rule);
     const words = metrics.map(m => m.text || '');
@@ -357,12 +297,7 @@ export class UniversalRuleProcessor {
     }
   }
 
-  /**
-   * Apply a specific special case
-   * @param {Array} metrics - Word metrics array
-   * @param {string} caseKey - Special case key
-   * @param {Object} config - Locale configuration
-   */
+  // Apply a specific special case
   applySpecialCase(metrics, caseKey, config) {
     // Handle common special cases dynamically
     if (caseKey.includes('-') || caseKey.includes('\u2011')) {
@@ -372,11 +307,7 @@ export class UniversalRuleProcessor {
     }
   }
 
-  /**
-   * Mark hyphenated expression parts to avoid line breaks
-   * @param {Array} metrics - Word metrics array
-   * @param {string} expression - Hyphenated expression
-   */
+  // Mark hyphenated expression parts to avoid line breaks
   markHyphenatedExpression(metrics, expression) {
     const parts = expression.split(/[-\u2011]/); // Split on both regular and non-breaking hyphens
     if (parts.length !== 2) return;
@@ -397,11 +328,7 @@ export class UniversalRuleProcessor {
     }
   }
 
-  /**
-   * Mark regex expression matches to avoid line breaks
-   * @param {Array} metrics - Word metrics array
-   * @param {string} pattern - Regex pattern
-   */
+  // Mark regex expression matches to avoid line breaks
   markRegexExpression(metrics, pattern) {
     const fullText = metrics.map(m => m.text || '').join(' ');
     
@@ -420,11 +347,7 @@ export class UniversalRuleProcessor {
     }
   }
 
-  /**
-   * Mark multi-word expression to avoid line breaks
-   * @param {Array} metrics - Word metrics array
-   * @param {string} expression - Multi-word expression
-   */
+  // Mark multi-word expression to avoid line breaks
   markMultiWordExpression(metrics, expression) {
     const words = expression.toLowerCase().split(/\s+/);
     if (words.length < 2) return;
@@ -448,14 +371,7 @@ export class UniversalRuleProcessor {
     }
   }
 
-  /**
-   * Mark a range of characters in metrics to avoid line breaks
-   * @param {Array} metrics - Word metrics array
-   * @param {number} startPos - Start position in full text
-   * @param {number} endPos - End position in full text
-   * @param {string} ruleType - Type of rule
-   * @param {string} ruleValue - Rule value
-   */
+  // Mark a range of characters in metrics to avoid line breaks
   markRangeInMetrics(metrics, startPos, endPos, ruleType, ruleValue) {
     let currentPos = 0;
     
@@ -474,13 +390,7 @@ export class UniversalRuleProcessor {
     }
   }
 
-  /**
-   * Add rule metadata to a metric for debugging and analysis
-   * @param {Object} metric - Word metric object
-   * @param {string} rule - Rule name
-   * @param {string} context - Rule context
-   * @param {string} value - Rule value (optional)
-   */
+  // Add rule metadata to a metric for debugging and analysis
   addRuleMetadata(metric, rule, context, value = null) {
     if (!metric._appliedRules) {
       metric._appliedRules = [];
@@ -494,13 +404,7 @@ export class UniversalRuleProcessor {
     });
   }
 
-  /**
-   * Filter line breaking candidates based on locale rules
-   * @param {Array} candidates - Line breaking candidates
-   * @param {Array} words - Words array
-   * @param {string} locale - Locale code
-   * @returns {Array} - Filtered candidates
-   */
+  // Filter line breaking candidates based on locale rules
   filterCandidates(candidates, words, locale) {
     if (!this.configManager.needsLocalization(locale)) {
       return candidates;
@@ -521,13 +425,7 @@ export class UniversalRuleProcessor {
     });
   }
 
-  /**
-   * Check if a break position violates any rules
-   * @param {number} breakIdx - Break position
-   * @param {Array} words - Words array
-   * @param {Object} config - Locale configuration
-   * @returns {boolean} - True if break violates rules
-   */
+  // Check if a break position violates any rules
   isBreakViolation(breakIdx, words, config) {
     if (breakIdx <= 0 || breakIdx >= words.length - 1) return false;
 

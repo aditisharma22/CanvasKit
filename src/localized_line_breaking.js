@@ -7,16 +7,7 @@ if (typeof window !== 'undefined') {
   window.lineBreakRules = localeConfigManager.configs;
 }
 
-/**
- * Apply localizing constraints to the word metrics
- * This function enhances the standard metrics with locale-specific line breaking rules
- * 
- * @param {Array} wordMetrics - Original word metrics from CanvasKit
- * @param {string} locale - The ISO language code for the text (e.g., 'en', 'ja', 'de')
- * @param {Object} options - Additional options
- * @param {boolean} options.enableLocalization - Whether to apply localization rules
- * @returns {Array} - Enhanced word metrics with locale-specific line-breaking constraints
- */
+// Apply locale-specific line breaking rules to word metrics
 export async function enhanceWordMetricsWithLocalization(wordMetrics, locale, options = { enableLocalization: true }) {
   // When toggle is off, return metrics with basic line breaks
   if (options.enableLocalization === false) {
@@ -76,17 +67,8 @@ export async function enhanceWordMetricsWithLocalization(wordMetrics, locale, op
   });
 }
 
-/**
- * Filter line breaking candidates based on locale-specific rules
- * Removes candidates that violate language-specific line breaking conventions
- * 
- * @param {Array} candidates - Line breaking candidates from optimization algorithm
- * @param {Array} words - Original words array
- * @param {string} locale - ISO language code (e.g., 'en', 'ja', 'de')
- * @param {Object} options - Additional options
- * @param {boolean} options.enableLocalization - Whether to apply localization rules
- * @returns {Array} - Filtered candidates that respect locale-specific rules
- */
+// Filter line breaking candidates based on locale-specific rules
+// Removes candidates that violate language-specific line breaking conventions
 export function filterCandidatesByLocalizationRules(candidates, words, locale, options = { enableLocalization: true }) {
   // Skip filtering if localization is disabled
   if (options.enableLocalization === false) {
@@ -97,34 +79,13 @@ export function filterCandidatesByLocalizationRules(candidates, words, locale, o
   return universalRuleProcessor.filterCandidates(candidates, words, locale);
 }
 
-/**
- * Factory function to create a localization-aware line breaking optimizer
- * Wraps an existing line breaking optimizer with locale-specific rules
- *
- * @param {function} originalOptimizer - The original line breaking optimizer function
- * @returns {function} - Enhanced optimizer that respects locale-specific rules
- */
+// Factory function to create a localization-aware line breaking optimizer
+// Wraps an existing optimizer with locale-specific rules
 export function createLocalizedLineBreakOptimizer(originalOptimizer) {
   // Define constants for default values and locale handling
   const DEFAULT_LOCALE = 'en';
   
-  /**
-   * Localized line breaking optimizer function
-   * 
-   * @param {string[]} words - Array of words in the text
-   * @param {number[]} wordWidths - Array of word widths
-   * @param {number} spaceWidth - Width of space character
-   * @param {number} targetWidth - Target line width
-   * @param {number} candidateCount - Number of candidates to generate
-   * @param {HTMLElement} debugElement - Debug visualization element
-   * @param {number} balanceFactor - Balance factor (0-1)
-   * @param {number} minFillRatio - Minimum fill ratio (0-1)
-   * @param {string} mode - Optimization mode ('fit' or 'uniform')
-   * @param {string} locale - ISO language code (defaults to 'en')
-   * @param {Object} options - Additional options
-   * @param {boolean} options.enableLocalization - Whether to apply localization rules
-   * @returns {Array} - Optimized line breaking candidates for the specified locale
-   */
+  // Localized line breaking optimizer function
   return async function(words, wordWidths, spaceWidth, targetWidth, 
                         candidateCount, debugElement, balanceFactor, 
                         minFillRatio, mode, locale = DEFAULT_LOCALE, 

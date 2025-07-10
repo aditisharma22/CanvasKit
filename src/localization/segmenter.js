@@ -7,20 +7,19 @@ import {
 import { annotateLineBreakingWithSeparators, applySegmentationRules } from "./ruleEngine.js";
 import ruleEngine from "./rules/ruleConfigs.js";
 
+// Split text into segments using language-appropriate rules
 export async function segmentText(text, locale = "en") {
   try {
-    // Special pre-processing for German special terms
+    // Handle special terms preprocessing
     let preprocessedText = text;
     let eMailPositions = [];
     let smartHomePositions = [];
     
-    // Look for special terms in German text
+    // Special handling for German terms
     if (locale === 'de') {
-      // Look for "E‑Mail" with non-breaking hyphen (U+2011)
       const eMailRegex = /E[\u2011-]Mail/g;
       let match;
       
-      // Find all occurrences of E‑Mail or E-Mail
       while ((match = eMailRegex.exec(preprocessedText)) !== null) {
         eMailPositions.push({
           start: match.index,
@@ -29,10 +28,7 @@ export async function segmentText(text, locale = "en") {
         });
       }
       
-      // Look for "Smart-home" compound
-      const smartHomeRegex = /Smart-home/gi; // Case-insensitive
-      
-      // Find all occurrences of Smart-home
+      const smartHomeRegex = /Smart-home/gi;
       while ((match = smartHomeRegex.exec(preprocessedText)) !== null) {
         smartHomePositions.push({
           start: match.index,
@@ -205,14 +201,7 @@ export async function segmentText(text, locale = "en") {
   }
 }
 
-/**
- * Process text for line-breaking based on locale-specific rules
- * @param {string} text - Text to process
- * @param {string} locale - Locale code
- * @param {Object} options - Additional options
- * @param {boolean} options.enableLocalization - Whether to apply localization rules
- * @returns {Array} - Array of word metrics with line breaking annotations
- */
+// Process text for line-breaking based on locale-specific rules
 export async function processTextForLineBreaking(text, locale = "en", options = { enableLocalization: true }) {
   try {
     // Input validation
@@ -478,11 +467,7 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
   return wordMetricsArray;
 }
 
-/**
- * Get line breaking rules for a specific locale
- * @param {string} locale - The locale code
- * @returns {Object|null} - Rules configuration for the locale
- */
+// Get line breaking rules for a specific locale
 export function getLineBreakingRules(locale) {
   return ruleEngine[locale] || null;
 }

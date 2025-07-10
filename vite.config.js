@@ -6,10 +6,10 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: ['fs', 'path'] // Mark Node.js modules as external
+      external: ['fs', 'path'] // Node.js modules
     }
   },
   optimizeDeps: {
-    exclude: ['tnthai', 'wordcut'] // Exclude problematic Node.js packages
+    exclude: ['tnthai', 'wordcut'] // Node-only packages
   }
 });

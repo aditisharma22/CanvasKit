@@ -1,14 +1,4 @@
-/**
- * Convert text segments to word metrics format
- * Transforms segmented text into a structured format with boundary, line breaking, and separator information
- *
- * @param {Array} segments - Segments from Intl.Segmenter or custom segmentation
- * @param {string} sourceText - Original source text
- * @param {Array} lineBreakingAnnotations - Optional line breaking annotations for each segment
- * @param {CanvasRenderingContext2D} context - Optional canvas context for rect calculation
- * @param {Object} paragraph - Optional paragraph object for rect calculation
- * @returns {Array} - Array of word metrics objects
- */
+// Convert text segments to word metrics format with boundaries and line breaking info
 export function segmentsToWordMetrics(
   segments,
   sourceText,
@@ -33,13 +23,7 @@ export function segmentsToWordMetrics(
     const DEFAULT_SEPARATOR_WIDTH = 0;
     const DEFAULT_LINE_BREAKING = 'allow';
     
-    /**
-     * Count Unicode graphemes (visible characters) in a string
-     * This handles multi-codepoint characters properly
-     * 
-     * @param {string} str - String to count
-     * @returns {number} - Number of graphemes
-     */
+    // Count Unicode characters properly (handling multi-codepoint characters)
     function getGraphemesCount(str) {
       if (!str || typeof str !== 'string') return 0;
       try {
@@ -50,17 +34,8 @@ export function segmentsToWordMetrics(
       }
     }
     
-    /**
-     * Get bounding rectangle for a word
-     * Currently returns null as placeholder for future implementation
-     * 
-     * @param {CanvasRenderingContext2D} context - Canvas context
-     * @param {Object} paragraph - Paragraph object
-     * @param {Object} boundary - Word boundary
-     * @returns {Object|null} - Word bounding rectangle or null
-     */
+    // Get bounding rectangle for a word (placeholder for future implementation)
     function getWordRect(context, paragraph, boundary) {
-      // Placeholder for future implementation
       return null;
     }
 
@@ -175,11 +150,7 @@ export function segmentsToWordMetrics(
   return tokens;
 }
 
-/**
- * Checks if a character is a special character like % € $ °
- * @param {string} char Character to check
- * @return {boolean} true if special character
- */
+// Checks if a character is a special character like % € $ ° or punctuation
 export function isSpecialCharacter(char) {
   // Extended to include common punctuation characters that need special handling
   // Add U+2011 (non-breaking hyphen) and other dash/hyphen types (U+2013, U+2014)
@@ -189,12 +160,7 @@ export function isSpecialCharacter(char) {
          char === '\u2011' || char === '\u2013' || char === '\u2014'; // non-breaking hyphen, en-dash, em-dash
 }
 
-/**
- * Properly handle consecutive special characters by ensuring they are correctly segmented
- * @param {Array} segments Array of segments
- * @param {string} text Original text
- * @return {Array} Enhanced segments with proper handling of consecutive special chars
- */
+// Handle consecutive special characters by ensuring they are correctly segmented
 export function handleConsecutiveSpecialChars(segments, text) {
   if (!segments || !Array.isArray(segments) || segments.length === 0 || !text) {
     return segments || [];
@@ -236,11 +202,7 @@ export function handleConsecutiveSpecialChars(segments, text) {
   return enhancedSegments.sort((a, b) => (a.index || 0) - (b.index || 0));
 }
 
-/**
- * Detects sequences of special characters and returns information about them
- * @param {string} text - The text to analyze
- * @returns {Array} Array of objects with information about special character sequences
- */
+// Detects sequences of special characters and returns information about them
 export function detectSpecialCharSequences(text) {
   if (!text || typeof text !== 'string') return [];
   
@@ -295,13 +257,7 @@ export function detectSpecialCharSequences(text) {
   return sequences;
 }
 
-/**
- * Specifically processes text with consecutive percent symbols
- * to ensure they are properly segmented and will be displayed correctly
- * 
- * @param {string} text The original text to process
- * @returns {object} Object with processed text and special character positions
- */
+// Process text with consecutive percent symbols for proper segmentation
 export function processConsecutivePercentSymbols(text) {
   if (!text || typeof text !== 'string') {
     return { 

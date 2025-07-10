@@ -1,26 +1,4 @@
-/**
- * Line break optimization module
- * Implements an optimal line-breaking algorithm similar to Knuth-Plass
- * with support for multiple candidate generation and scoring
- */
-
-/**
- * Computes optimal line breaks for given text
- * 
- * @param {string[]} words - Array of words
- * @param {number[]} wordWidths - Array of word widths (must match length of words)
- * @param {number} spaceWidth - Width of a space character
- * @param {number} targetWidth - Target width for each line
- * @param {number} candidateCount - Number of candidates to generate (default: 1)
- * @param {Element} debugOutput - Optional element to output debug information
- * @param {number} balanceFactor - Balance between raggedness and evenness (0 to 1, default: 0.5)
- * @param {number} minFillRatio - Minimum fill ratio for lines (default: 0.5)
- * @param {string} mode - Layout mode: 'fit' or 'fill' (default: 'fit')
- * @param {string} locale - The locale to use for line breaking rules (default: 'en')
- * @param {Object} options - Additional options
- * @param {boolean} options.enableLocalization - Whether to apply localization rules (default: true)
- * @returns {Array<Object>} - Array of candidate line breaking solutions
- */
+// Optimal line-breaking algorithm similar to Knuth-Plass with candidate generation
 export function computeBreaks(
   words,
   wordWidths,
@@ -328,15 +306,7 @@ export function computeBreaks(
   return candidates;
 }
 
-/**
- * Calculate a difference score between two break patterns
- * Higher score means more different (more diverse) candidates
- * 
- * @param {number[]} pattern1 - First break pattern
- * @param {number[]} pattern2 - Second break pattern
- * @param {number} totalWords - Total word count for normalization
- * @returns {number} - Difference score
- */
+// Calculate a difference score between two break patterns (higher score = more diverse)
 function breakPatternDifference(pattern1, pattern2, totalWords) {
   // Convert break patterns to sets for easier comparison
   const set1 = new Set(pattern1);
@@ -371,16 +341,7 @@ function breakPatternDifference(pattern1, pattern2, totalWords) {
   return totalDifference + (lineCountDiff * 2);
 }
 
-/**
- * Calculate score breakdown for a candidate solution with normalized metrics
- * Metrics are calculated on a 0-100% scale where appropriate to match UI requirements
- * 
- * @param {Array} lines - Lines of text
- * @param {Array} lineWidths - Widths of each line
- * @param {number} targetWidth - Target width
- * @param {number} balanceFactor - Balance factor between raggedness and evenness
- * @returns {Object} - Score breakdown with normalized metrics
- */
+// Calculate score breakdown for a candidate solution with normalized metrics (0-100% scale)
 function calculateScoreBreakdown(lines, lineWidths, targetWidth, balanceFactor) {
   // Skip calculation for empty inputs
   if (!lines || !lineWidths || lines.length === 0 || lineWidths.length === 0) {
@@ -570,14 +531,7 @@ function calculateScoreBreakdown(lines, lineWidths, targetWidth, balanceFactor) 
   };
 }
 
-/**
- * Reconstruct solution from breaks array
- * 
- * @param {Array} words - Words array
- * @param {Array} breaks - Breaks array
- * @param {number} j - Current position
- * @returns {Array} - Array of lines, each containing words
- */
+// Reconstruct solution from breaks array
 function reconstructSolution(words, breaks, j) {
   if (j === 0) return [];
   
@@ -592,14 +546,7 @@ function reconstructSolution(words, breaks, j) {
   return result;
 }
 
-/**
- * Calculate widths for each line
- * 
- * @param {Array} lines - Lines of text
- * @param {Array} wordWidths - Word widths
- * @param {number} spaceWidth - Space width
- * @returns {Array} - Line widths
- */
+// Calculate widths for each line
 function calculateLineWidths(lines, wordWidths, spaceWidth) {
   return lines.map(line => {
     let width = 0;
@@ -624,12 +571,7 @@ function calculateLineWidths(lines, wordWidths, spaceWidth) {
   });
 }
 
-/**
- * Find break indices (where line breaks occur in the original word array)
- * 
- * @param {Array} lines - Lines of text
- * @returns {Array} - Break indices
- */
+// Find break indices (where line breaks occur in the original word array)
 function findBreakIndices(lines) {
   let breaks = [];
   let wordCount = 0;
@@ -643,13 +585,7 @@ function findBreakIndices(lines) {
   return breaks;
 }
 
-/**
- * Create debug tree display with comprehensive metrics
- * 
- * @param {Object} solution - Best solution
- * @param {number} wordCount - Total word count
- * @returns {string} - Debug HTML with enhanced metrics
- */
+// Create debug tree display with comprehensive metrics
 function createDebugTree(solution, wordCount) {
   if (!solution) return "No solution found";
   

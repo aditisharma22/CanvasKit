@@ -1,35 +1,17 @@
-/**
- * Rule engine for handling line breaking and segmentation rules
- * This module processes word metrics based on locale-specific rules
- */
+// Rule engine for applying line breaking rules to text segments
 
 import { universalRuleProcessor } from './UniversalRuleProcessor.js';
 import { localeConfigManager, CONFIG } from './LocaleConfigManager.js';
-
-/**
- * This function adds line breaking info based on spaces and punctuation
-
- * 
- * @param {Array} wordMetricsArray - All our word chunks
- * @param {Object} ruleConfig - Rules for the specific language
- * @returns {Array} - Same array but with line breaking info added
- */
+// Apply line breaking rules based on the locale configuration
 export function annotateLineBreakingWithSeparators(wordMetricsArray, ruleConfig) {
   if (!ruleConfig || !ruleConfig.locale) {
     return wordMetricsArray;
   }
 
-  // Apply universal rule processing using the locale from the configuration
   return universalRuleProcessor.processWordMetrics(wordMetricsArray, ruleConfig.locale);
 }
 
-/**
- * Apply segmentation rules and track violations for debugging
- * 
- * @param {Array} wordMetricsArray - Array of word metrics objects
- * @param {Object} ruleConfig - Language-specific rule configuration
- * @returns {Array} - List of rule violations for debugging
- */
+// Track rule application for debugging purposes
 export function applySegmentationRules(wordMetricsArray, ruleConfig) {
   // Extract rule configurations
   const { 
@@ -58,9 +40,7 @@ export function applySegmentationRules(wordMetricsArray, ruleConfig) {
   const isNumeric = (w) => REGEX_PATTERNS.NUMERIC?.test(w);
   const isProperNoun = (w) => REGEX_PATTERNS.PROPER_NOUN?.test(w);
 
-  /**
-   * Check if two adjacent words form a fixed expression or brand name
-   */
+  // Check if two adjacent words form a fixed expression or brand name
   function isFixedExpressionOrAppleService(curr, next, separator) {
     // Combine words with separator
     const combined = `${curr.text}${separator}${next.text}`;

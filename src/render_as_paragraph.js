@@ -1,17 +1,4 @@
-/**
- * Update the tree output with JSON data for the selected candidate
- * @param {Object} candidate - The selected candidate object
- * @param {number} index - The candidate index
- * @param {string} locale - The locale being used
- * @param {string} text - The original text
- * @param {number} targetWidth - The target width
- */
-/**
- * Calculate candidate match percentage based on score and ranking
- * @param {Object} candidate - The candidate object
- * @param {number} index - The candidate index
- * @returns {number} - The match percentage (0-100)
- */
+// Calculate candidate quality score as a percentage based on ranking and raw score
 function calculateCandidateMatchPercentage(candidate, index) {
   const rawScore = candidate.score || 0;
   let matchPercentage;
@@ -116,32 +103,15 @@ function updateTreeOutput(candidate, index, locale, text, targetWidth) {
   treeOutput.innerHTML = `<pre style="margin: 0; padding: 15px; font-family: inherit; font-size: inherit; color: inherit;">${jsonString}</pre>`;
 }
 
-/**
- * Paragraph rendering functionality for CanvasKit-based text layout
- * Handles the creation and rendering of text with optimized line breaks
- */
+// Paragraph rendering functionality with optimized line breaks
 
 import { computeBreaks } from './optimize_linebreaks.js';
 import { enhanceWordMetricsWithLocalization } from './localized_line_breaking.js';
 import { localeConfigManager } from './localization/LocaleConfigManager.js';
 
-/**
- * Main render function that creates text layouts with optimized line breaks
- * @param {string} text - The text to render
- * @param {number} targetWidth - Target width for the layout
- * @param {Object} options - Rendering options
- * @param {number} [options.fontSize=40] - Font size in pixels
- * @param {number} [options.candidateCount=5] - Number of layout candidates to generate
- * @param {number} [options.balanceFactor=0.5] - Balance between evenness and target width (0-1):
- *   - 0: prioritize even line lengths (more consistent but may deviate from target width)
- *   - 0.5: balanced approach (default)
- *   - 1: prioritize lines matching target width (may have varying line lengths)
- * @param {number} [options.minFillRatio=0.5] - Minimum fill ratio of lines relative to target width
- * @param {string} [options.mode="fit"] - Layout mode: "fit" or "fill"
- * @param {string} [options.locale="en"] - Locale for language-specific line breaking rules
- * @param {string} [options.containerId="output"] - ID of container element for rendered output
- * @returns {Promise} - Promise that resolves when rendering is complete
- */
+// Main render function that creates text layouts with optimized line breaks
+// Options include fontSize, candidateCount, balanceFactor (0-1), minFillRatio,
+// mode ("fit"/"fill"), locale, and containerId
 export async function render(text, targetWidth, options = {}) {
   const {
     fontSize = 40,

@@ -1,13 +1,5 @@
-/**
- * Break Tree Visualizer
- * Provides visualization and analysis of line breaking candidates
- */
-
-/**
- * Build a grouped tree structure from line breaking candidates
- * @param {Array} candidates - Array of line breaking candidates
- * @returns {Object} - Grouped tree structure
- */
+// Break Tree Visualizer - Visualization tool for line breaking candidates
+// Organize candidates into a hierarchical structure for visualization
 export function buildGroupedTree(candidates) {
   if (!candidates || !Array.isArray(candidates)) {
     return { children: [], summary: { totalCandidates: 0 } };
@@ -57,11 +49,7 @@ export function buildGroupedTree(candidates) {
   return tree;
 }
 
-/**
- * Render the tree structure to HTML
- * @param {Object} tree - Tree structure to render
- * @param {Element} container - Container element
- */
+// Render tree structure to HTML
 export function renderTree(tree, container) {
   if (!container) {
     return;
@@ -85,11 +73,7 @@ export function renderTree(tree, container) {
   container.appendChild(treeElement);
 }
 
-/**
- * Render a candidate node
- * @param {Object} candidate - Candidate data
- * @returns {Element} - Rendered candidate element
- */
+// Create HTML element for a candidate
 function renderCandidateNode(candidate) {
   const element = document.createElement('div');
   element.className = 'node candidate-node';
@@ -130,11 +114,7 @@ function renderCandidateNode(candidate) {
   return element;
 }
 
-/**
- * Render a line node
- * @param {Object} line - Line data
- * @returns {Element} - Rendered line element
- */
+// Render a line node
 function renderLineNode(line) {
   const element = document.createElement('div');
   element.className = 'node line-node';
@@ -150,11 +130,7 @@ function renderLineNode(line) {
   return element;
 }
 
-/**
- * Render summary information
- * @param {Object} tree - Tree structure
- * @param {Element} container - Container element
- */
+// Render summary information
 export function renderSummary(tree, container) {
   if (!container || !tree || !tree.summary) {
     return;
