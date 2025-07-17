@@ -37,6 +37,7 @@ export function buildGroupedTree(candidates) {
           text: Array.isArray(line) ? line.join(' ') : line,
           words: Array.isArray(line) ? line : line.split(' '),
           width: candidate.lineWidths ? candidate.lineWidths[lineIndex] : 0,
+          isProtectedBreak: candidate.protectedBreakLines && candidate.protectedBreakLines.includes(lineIndex),
           children: []
         };
         node.children.push(lineNode);
@@ -119,10 +120,16 @@ function renderLineNode(line) {
   const element = document.createElement('div');
   element.className = 'node line-node';
   
+  // Check if this line has a protected break
+  const protectedBreakClass = line.isProtectedBreak ? 'protected-break' : '';
+  const protectedBreakIndicator = line.isProtectedBreak ? 
+    '<span class="protected-break-indicator" title="Protected Break">⚠️</span>' : '';
+  
   element.innerHTML = `
-    <div class="line-header">
+    <div class="line-header ${protectedBreakClass}">
       <span class="line-number">Line ${line.number}</span>
       <span class="line-width">Width: ${line.width}px</span>
+      ${protectedBreakIndicator}
     </div>
     <div class="line-text">"${line.text}"</div>
   `;

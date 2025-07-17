@@ -35,7 +35,7 @@ export default {
   
   // Words that should not be separated from what they modify
   articles: [
-    "the", "a", "an"
+    "the", "a", "an", "brown"
   ],
   
   prepositions: [

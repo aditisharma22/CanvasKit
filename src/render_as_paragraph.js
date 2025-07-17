@@ -75,6 +75,9 @@ function updateTreeOutput(candidate, index, locale, text, targetWidth) {
       const lineText = Array.isArray(line) ? line.join(' ') : line;
       const lineWidth = candidate.lineWidths ? candidate.lineWidths[lineIndex] : targetWidth * 0.9;
       
+      // Check if this line has a protected break
+      const isProtectedBreak = candidate.protectedBreakLines && candidate.protectedBreakLines.includes(lineIndex);
+      
       return {
         lineNumber: lineIndex + 1,
         text: lineText,
@@ -82,7 +85,7 @@ function updateTreeOutput(candidate, index, locale, text, targetWidth) {
         width: Math.round(lineWidth),
         fillPercentage: Math.round((lineWidth / targetWidth) * 100) + '%',
         hasBreakAfter: lineIndex < (candidate.lines?.length || 1) - 1,
-        isProtectedBreak: false
+        isProtectedBreak: isProtectedBreak
       };
     }),
     breaks: candidate.breaks || [],
@@ -198,11 +201,12 @@ export async function render(text, targetWidth, options = {}) {
         syntheticLineWidths, 
         targetWidth, 
         variationIndex,
-        locale
+        locale,
+        options.enableLocalization !== false
       );
       
       // Function to calculate realistic metrics for synthetic candidates
-      function calculateSyntheticMetrics(lines, lineWidths, targetWidth, variationIndex, locale = 'en') {
+      function calculateSyntheticMetrics(lines, lineWidths, targetWidth, variationIndex, locale = 'en', isLocalizationEnabled = true) {
         // For synthetic metrics, we'll calculate real values based on actual line properties
         // rather than using artificial values
         
@@ -283,6 +287,7 @@ export async function render(text, targetWidth, options = {}) {
         // ===== DETECT PROTECTED BREAKS =====
         // Actually calculate protected breaks based on typography rules
         let protectedBreaks = 0;
+        let protectedBreakLines = [];
         
         // Get appropriate function words from locale config
         const config = localeConfigManager.getConfig(locale || 'en');
@@ -303,11 +308,13 @@ export async function render(text, targetWidth, options = {}) {
             // Check for function words at line end
             if (functionWords.includes(lastWord)) {
               protectedBreaks++;
+              protectedBreakLines.push(i);
             }
             
             // Check for hyphenated words broken at inappropriate places
             if (lastWord.endsWith('-')) {
               protectedBreaks++;
+              protectedBreakLines.push(i);
             }
           }
         }
@@ -343,6 +350,7 @@ export async function render(text, targetWidth, options = {}) {
           widows: widows,
           orphans: orphans,
           protectedBreaks: protectedBreaks,
+          protectedBreakLines: protectedBreakLines,
           balanceFactor: balanceFactor,
           score: score
         };
@@ -353,6 +361,7 @@ export async function render(text, targetWidth, options = {}) {
         lines: syntheticLines,
         lineWidths: syntheticLineWidths,
         scoreBreakdown: syntheticMetrics,
+        protectedBreakLines: syntheticMetrics.protectedBreakLines || [],
         breaks: [],
         lineBreaks: []
       };
@@ -370,39 +379,68 @@ export async function render(text, targetWidth, options = {}) {
     }
     
     // Detect protected breaks using locale rules
-  function detectProtectedBreaks(candidateLines, locale) {
+  function detectProtectedBreaks(candidateLines, locale, isLocalizationEnabled = true) {
     // Skip if no lines or only one line
     if (!candidateLines || candidateLines.length <= 1) {
-      return 0;
+      return { count: 0, lines: [] };
     }
     
+    // If localization is disabled, use basic rules only
+    if (!isLocalizationEnabled) {
+      // When localization is disabled, we still check for widows and orphans,
+      // but not language-specific protected breaks
+      let violations = 0;
+      let protectedBreakLines = [];
+      
+      // Check for widows only when localization is disabled
+      if (candidateLines.length > 1 && candidateLines[candidateLines.length - 1].length === 1) {
+        violations++;
+      }
+      
+      return { count: violations, lines: protectedBreakLines };
+    }
+    
+    // With localization enabled, apply full rules:
     let violations = 0;
+    let protectedBreakLines = [];
     
     // LOCALE-SPECIFIC RULES
+    let result;
     switch (locale) {
       case 'fr':
-        violations += detectFrenchProtectedBreaks(candidateLines);
+        result = detectFrenchProtectedBreaks(candidateLines);
+        violations = result.count;
+        protectedBreakLines = result.lines;
         break;
       case 'de':
-        violations += detectGermanProtectedBreaks(candidateLines);
+        result = detectGermanProtectedBreaks(candidateLines);
+        violations = result.count;
+        protectedBreakLines = result.lines;
         break;
       case 'es':
-        violations += detectSpanishProtectedBreaks(candidateLines);
+        result = detectSpanishProtectedBreaks(candidateLines);
+        violations = result.count;
+        protectedBreakLines = result.lines;
         break;
       case 'ja':
-        violations += detectJapaneseProtectedBreaks(candidateLines);
+        result = detectJapaneseProtectedBreaks(candidateLines);
+        violations = result.count;
+        protectedBreakLines = result.lines;
         break;
       default:
         // For English and other languages, use standard rules with specified locale
-        violations += detectStandardProtectedBreaks(candidateLines, locale);
+        result = detectStandardProtectedBreaks(candidateLines, locale);
+        violations = result.count;
+        protectedBreakLines = result.lines;
     }
     
-    return violations;
+    return { count: violations, lines: protectedBreakLines };
   }
   
   // Standard protected breaks check (mainly English and similar languages)
   function detectStandardProtectedBreaks(candidateLines, locale = 'en') {
     let violations = 0;
+    let protectedBreakLines = [];
     
     // Get the configuration for the specified locale
     const config = localeConfigManager.getConfig(locale);
@@ -434,11 +472,13 @@ export async function render(text, targetWidth, options = {}) {
       // Check if last word is a function word (preposition, article, etc.)
       if (functionWords.includes(lastWord)) {
         violations++;
+        protectedBreakLines.push(i);
       }
       
       // Check for hyphenated words broken across lines
       if (lastWord.endsWith('-') && i < candidateLines.length - 1) {
         violations++;
+        protectedBreakLines.push(i);
       }
       
       // Check for numbers separated from their units
@@ -446,6 +486,7 @@ export async function render(text, targetWidth, options = {}) {
         const nextLine = candidateLines[i+1];
         if (nextLine.length > 0 && unitsOfMeasure.includes(nextLine[0].toLowerCase())) {
           violations++;
+          protectedBreakLines.push(i);
         }
       }
     }
@@ -453,14 +494,16 @@ export async function render(text, targetWidth, options = {}) {
     // Check for widows
     if (candidateLines.length > 1 && candidateLines[candidateLines.length - 1].length === 1) {
       violations++;
+      // Widow is not a protected break in the same sense, so we don't add it to protectedBreakLines
     }
     
-    return violations;
+    return { count: violations, lines: protectedBreakLines };
   }
   
   // French-specific protected breaks check
   function detectFrenchProtectedBreaks(candidateLines) {
     let violations = 0;
+    let protectedBreakLines = [];
     
     // Get French locale config
     const config = localeConfigManager.getConfig('fr');
@@ -478,26 +521,30 @@ export async function render(text, targetWidth, options = {}) {
       // Check for French function words at line end
       if (frenchFunctionWords.includes(lastWord)) {
         violations++;
+        protectedBreakLines.push(i);
       }
       
       // Check for colon at line end (should be avoided in French typography)
       // This can be controlled by config.rules.removeColonAtLineEnd
       if (lastWord.endsWith(':')) {
         violations++;
+        protectedBreakLines.push(i);
       }
       
       // Check for quotation marks and guillemets
       if (lastWord.includes('«') && !lastWord.includes('»')) {
         violations++;
+        protectedBreakLines.push(i);
       }
     }
     
-    return violations;
+    return { count: violations, lines: protectedBreakLines };
   }
   
   // German-specific protected breaks check
   function detectGermanProtectedBreaks(candidateLines) {
     let violations = 0;
+    let protectedBreakLines = [];
     
     // Get German locale config
     const config = localeConfigManager.getConfig('de');
@@ -515,6 +562,7 @@ export async function render(text, targetWidth, options = {}) {
       // Check for German function words at line end
       if (germanFunctionWords.includes(lastWord)) {
         violations++;
+        protectedBreakLines.push(i);
       }
       
       // Check for compound nouns broken improperly
@@ -524,15 +572,17 @@ export async function render(text, targetWidth, options = {}) {
            compound.includes('-') && compound.split('-')[0] === lastWord)) || 
           (lastWord.length > 8 && lastWord.endsWith('-'))) {
         violations++;
+        protectedBreakLines.push(i);
       }
     }
     
-    return violations;
+    return { count: violations, lines: protectedBreakLines };
   }
   
   // Spanish-specific protected breaks check
   function detectSpanishProtectedBreaks(candidateLines) {
     let violations = 0;
+    let protectedBreakLines = [];
     
     // Get Spanish locale config
     const config = localeConfigManager.getConfig('es');
@@ -550,25 +600,29 @@ export async function render(text, targetWidth, options = {}) {
       // Check for Spanish function words at line end
       if (spanishFunctionWords.includes(lastWord)) {
         violations++;
+        protectedBreakLines.push(i);
       }
       
       // Check for opening punctuation without closing
       // Spanish specific rules for opening/closing punctuation
       if (lastWord.includes('¿') && !lastWord.includes('?')) {
         violations++;
+        protectedBreakLines.push(i);
       }
       
       if (lastWord.includes('¡') && !lastWord.includes('!')) {
         violations++;
+        protectedBreakLines.push(i);
       }
     }
     
-    return violations;
+    return { count: violations, lines: protectedBreakLines };
   }
   
   // Japanese-specific protected breaks check
   function detectJapaneseProtectedBreaks(candidateLines) {
     let violations = 0;
+    let protectedBreakLines = [];
     
     // Get Japanese locale config
     const config = localeConfigManager.getConfig('ja');
@@ -584,6 +638,8 @@ export async function render(text, targetWidth, options = {}) {
       const lastWord = line[line.length - 1];
       if (!lastWord) continue;
       
+      let lineHasViolation = false;
+      
       // Check for Japanese opening brackets without closing
       // These pairs should be defined in the config
       const bracketsRules = config.rules?.bracketPairs || {};
@@ -591,6 +647,7 @@ export async function render(text, targetWidth, options = {}) {
       Object.entries(bracketsRules).forEach(([opening, closing]) => {
         if (lastWord.includes(opening) && !lastWord.includes(closing)) {
           violations++;
+          lineHasViolation = true;
         }
       });
       
@@ -599,23 +656,33 @@ export async function render(text, targetWidth, options = {}) {
       if (japanesePunctuation.includes(lastChar)) {
         // Punctuation should not end a line
         violations++;
+        lineHasViolation = true;
+      }
+      
+      if (lineHasViolation) {
+        protectedBreakLines.push(i);
       }
     }
     
-    return violations;
+    return { count: violations, lines: protectedBreakLines };
   }
 
   // Display candidates
   candidatesToDisplay.slice(0, candidateCount).forEach((candidate, index) => {
-    // Add protected breaks detection to each candidate
-    const protectedBreakCount = detectProtectedBreaks(candidate.lines, locale);
+    // Check if localization is enabled from options
+    const isLocalizationEnabled = options.enableLocalization !== false;
+    
+    // Add protected breaks detection to each candidate, respecting localization toggle
+    const protectedBreaksResult = detectProtectedBreaks(candidate.lines, locale, isLocalizationEnabled);
+    const protectedBreakCount = protectedBreaksResult.count;
+    
+    // Store protected break lines in the candidate
+    candidate.protectedBreakLines = protectedBreaksResult.lines;
     
     // Update the scoreBreakdown with the actual count
     if (candidate.scoreBreakdown) {
       candidate.scoreBreakdown.protectedBreaks = protectedBreakCount;
     }
-    
-
       
       const candidateDiv = document.createElement('div');
       candidateDiv.className = 'candidate-block';
