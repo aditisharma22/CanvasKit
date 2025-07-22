@@ -1,6 +1,6 @@
 // LocaleConfigManager - Manages locale-specific line breaking rules
+import ruleConfigs from './rules/ruleConfigs';
 
-import ruleConfigs from './rules/ruleConfigs.js';
 export const CONFIG = {
   DEFAULT_LOCALE: 'en',
   FALLBACK_LOCALE: 'en',
@@ -32,18 +32,56 @@ export const CONFIG = {
   }
 };
 
+interface ExtendedLocaleConfig {
+  locale?: string;
+  rules?: {
+    avoidBreakBefore?: string[];
+    avoidBreakAfter?: string[];
+    avoidBreakBetween?: string[];
+    specialCases?: Record<string, any>;
+    [key: string]: any;
+  };
+  appleServices?: string[];
+  appGameNames?: string[];
+  fixedExpressions?: string[];
+  percentSymbols?: string[];
+  periods?: string[];
+  adjectives?: string[];
+  personNamePrefixes?: string[];
+  [key: string]: any;
+}
+
+interface WordContext {
+  text?: string;
+  separator?: string;
+}
+
+interface RuleApplicationContext {
+  rule: string;
+  context: string;
+  current: WordContext;
+  next?: WordContext;
+  prev?: WordContext;
+  config: ExtendedLocaleConfig;
+  words: string[];
+  index: number;
+}
+
 // Main locale manager class
 class LocaleConfigManager {
+  private configs: Record<string, ExtendedLocaleConfig>;
+  private cache: Map<string, ExtendedLocaleConfig>;
+
   constructor() {
-    this.configs = ruleConfigs;
+    this.configs = ruleConfigs as Record<string, ExtendedLocaleConfig>;
     this.cache = new Map();
   }
 
   // Get configuration for a specific locale with fallback support
-  getConfig(locale = CONFIG.DEFAULT_LOCALE) {
+  getConfig(locale: string = CONFIG.DEFAULT_LOCALE): ExtendedLocaleConfig {
     // Check cache first
     if (this.cache.has(locale)) {
-      return this.cache.get(locale);
+      return this.cache.get(locale)!;
     }
 
     // Get the config with fallback
@@ -68,7 +106,7 @@ class LocaleConfigManager {
   }
 
   // Create a default configuration for a locale
-  createDefaultConfig(locale) {
+  private createDefaultConfig(locale: string): ExtendedLocaleConfig {
     return {
       locale,
       rules: {
@@ -92,7 +130,7 @@ class LocaleConfigManager {
   }
 
   // Normalize configuration to ensure all required properties exist
-  normalizeConfig(config, locale) {
+  private normalizeConfig(config: ExtendedLocaleConfig, locale: string): ExtendedLocaleConfig {
     const defaultConfig = this.createDefaultConfig(locale);
     
     return {
@@ -106,35 +144,33 @@ class LocaleConfigManager {
   }
 
   // Check if a locale is supported
-  isSupported(locale) {
+  isSupported(locale: string): boolean {
     return CONFIG.SUPPORTED_LOCALES.includes(locale) || !!this.configs[locale];
   }
 
   // Get all supported locales
-  getSupportedLocales() {
+  getSupportedLocales(): string[] {
     return [...CONFIG.SUPPORTED_LOCALES, ...Object.keys(this.configs)].filter((locale, index, arr) => arr.indexOf(locale) === index);
   }
 
   // Check if localization processing is needed for a locale
-  needsLocalization(locale) {
-    return locale && locale !== CONFIG.DEFAULT_LOCALE && this.isSupported(locale);
+  needsLocalization(locale: string): boolean {
+    return !!locale && locale !== CONFIG.DEFAULT_LOCALE && this.isSupported(locale);
   }
 
   // Get rule lists by name from configuration
-  getRuleList(config, ruleName) {
+  getRuleList(config: ExtendedLocaleConfig, ruleName: string): string[] {
     return config[ruleName] || config.rules?.[ruleName] || [];
   }
 
   // Check if a word matches any entry in a list (case-insensitive)
-  matchesList(word, list) {
+  matchesList(word: string, list: string[]): boolean {
     if (!Array.isArray(list) || !word) return false;
     return list.some(entry => typeof entry === 'string' && word.toLowerCase() === entry.toLowerCase());
   }
 
-
-
   // Check if breaking at a specific position would split a protected phrase
-  breakSplitsPhrase(breakIdx, words, phraseList) {
+  breakSplitsPhrase(breakIdx: number, words: string[], phraseList: string[]): boolean {
     if (!Array.isArray(phraseList) || !Array.isArray(words)) return false;
     
     for (const phrase of phraseList) {
@@ -184,7 +220,7 @@ class LocaleConfigManager {
   }
 
   // Apply universal rule checking logic
-  applyRule({ rule, context, current, next, prev, config, words, index }) {
+  applyRule({ rule, context, current, next, prev, config, words, index }: RuleApplicationContext): boolean {
     const rules = config.rules || {};
     const ruleName = `avoidBreak${context.charAt(0).toUpperCase() + context.slice(1)}`;
     
@@ -196,7 +232,7 @@ class LocaleConfigManager {
       case 'punctuation':
         const punctuation = this.getRuleList(config, 'punctuation');
         const targetWord = context === 'before' ? next : (context === 'after' ? current : null);
-        return targetWord && this.matchesList(targetWord.text, punctuation);
+        return !!targetWord && this.matchesList(targetWord.text || '', punctuation);
 
       case 'articles':
       case 'prepositions':
@@ -212,20 +248,20 @@ class LocaleConfigManager {
         }
         const ruleList = this.getRuleList(config, listName);
         const checkWord = context === 'before' ? next : current;
-        return checkWord && this.matchesList(checkWord.text, ruleList);
+        return !!checkWord && this.matchesList(checkWord.text || '', ruleList);
 
       case 'hyphen':
         const hyphenChars = [CONFIG.SEPARATORS.HYPHEN, CONFIG.SEPARATORS.NON_BREAKING_HYPHEN, CONFIG.SEPARATORS.EN_DASH, CONFIG.SEPARATORS.EM_DASH];
-        return current && (
-          hyphenChars.includes(current.separator) || 
-          hyphenChars.some(char => current.text?.endsWith(char))
+        return !!current && (
+          hyphenChars.includes(current.separator || '') || 
+          hyphenChars.some(char => (current.text || '').endsWith(char))
         );
 
       case 'numeric':
-        if (context === 'after' && CONFIG.REGEX_PATTERNS.NUMERIC.test(current.text)) {
+        if (context === 'after' && CONFIG.REGEX_PATTERNS.NUMERIC.test(current.text || '')) {
           const units = this.getRuleList(config, 'unitsOfMeasure');
           const percentSymbols = this.getRuleList(config, 'percentSymbols');
-          return next && (this.matchesList(next.text, units) || this.matchesList(next.text, percentSymbols));
+          return !!next && (this.matchesList(next.text || '', units) || this.matchesList(next.text || '', percentSymbols));
         }
         return false;
 
@@ -244,12 +280,12 @@ class LocaleConfigManager {
   }
 
   // Clear configuration cache
-  clearCache() {
+  clearCache(): void {
     this.cache.clear();
   }
 
   // Register a new locale configuration
-  registerLocale(locale, config) {
+  registerLocale(locale: string, config: ExtendedLocaleConfig): void {
     this.configs[locale] = config;
     this.cache.delete(locale); // Clear cache for this locale
   }

@@ -2,18 +2,38 @@ import {
   segmentsToWordMetrics, 
   handleConsecutiveSpecialChars, 
   isSpecialCharacter, 
-  processConsecutivePercentSymbols 
-} from "./segmenterUtils.js";
-import { annotateLineBreakingWithSeparators, applySegmentationRules } from "./ruleEngine.js";
-import ruleEngine from "./rules/ruleConfigs.js";
+  processConsecutivePercentSymbols,
+  Segment as BaseSegment,
+} from "./segmenterUtils";
+import { annotateLineBreakingWithSeparators, applySegmentationRules, WordMetric } from "./ruleEngine";
+import ruleEngine from "./rules/ruleConfigs";
+
+// Define our own Segment interface that extends the base one with email-specific properties
+interface Segment extends BaseSegment {
+  isPartOfEMail?: boolean;
+  eMailFullText?: string;
+}
+
+// Define SpecialPosition interface for position tracking
+interface SpecialPosition {
+  start: number;
+  end: number;
+  text: string;
+}
+
+interface SpecialPosition {
+  start: number;
+  end: number;
+  text: string;
+}
 
 // Split text into segments using language-appropriate rules
-export async function segmentText(text, locale = "en") {
+export async function segmentText(text: string, locale = "en"): Promise<Segment[]> {
   try {
     // Handle special terms preprocessing
     let preprocessedText = text;
-    let eMailPositions = [];
-    let smartHomePositions = [];
+    let eMailPositions: SpecialPosition[] = [];
+    let smartHomePositions: SpecialPosition[] = [];
     
     // Special handling for German terms
     if (locale === 'de') {
@@ -42,15 +62,33 @@ export async function segmentText(text, locale = "en") {
     const { processedText, specialCharPositions } = processConsecutivePercentSymbols(preprocessedText);
     
     // Use the browser's built-in Intl.Segmenter if available
-    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
-      const segmenter = new Intl.Segmenter(locale, { granularity: "word" });
+    if (typeof Intl !== 'undefined' && 'Segmenter' in Intl) {
+      // Add TypeScript declaration for Intl.Segmenter
+      interface SegmentInfo {
+        segment: string;
+        index: number;
+        input: string;
+        isWordLike?: boolean;
+      }
+
+      interface Segmenter {
+        segment(text: string): Iterable<SegmentInfo>;
+      }
+
+      interface SegmenterConstructor {
+        new(locale: string, options: { granularity: string }): Segmenter;
+      }
+
+      // Cast Intl.Segmenter to our interface
+      const SegmenterConstructor = (Intl as any).Segmenter as unknown as SegmenterConstructor;
+      const segmenter = new SegmenterConstructor(locale, { granularity: "word" });
       const segments = [...segmenter.segment(text)];
       
       // Create a map of all characters already included in segments to avoid duplicates
-      const processedCharPositions = new Map();
+      const processedCharPositions = new Map<number, boolean>();
       
       // Enhanced segments with special handling for % symbols
-      const enhancedSegments = [];
+      const enhancedSegments: Segment[] = [];
       
       // First, add all regular segments
       for (const seg of segments) {
@@ -111,7 +149,7 @@ export async function segmentText(text, locale = "en") {
             enhancedSegments.push({
               segment: seg.segment,
               index: seg.index,
-              isWordLike: seg.isWordLike,
+              isWordLike: (seg as any).isWordLike,
               // Check if this segment is punctuation - include non-breaking hyphens
               isPunctuation: seg.segment.length === 1 && /[:;.,!?\-–—\u2011\u2013\u2014]/.test(seg.segment),
               // Check for non-breaking hyphen in the segment
@@ -146,8 +184,8 @@ export async function segmentText(text, locale = "en") {
     console.warn(`Segmentation failed for ${locale}, falling back to improved default`, err);
     
     // Enhanced fallback segmentation that handles special characters and preserves spaces
-    let segments = [];
-    let processedPositions = new Map();
+    let segments: Segment[] = [];
+    let processedPositions = new Map<number, boolean>();
     
     // First pass: Use a regex that properly handles all character types
     // Modified pattern to properly preserve punctuation like hyphens and colons
@@ -189,20 +227,21 @@ export async function segmentText(text, locale = "en") {
         isPunctuation,
         input: text
       });
-      
-      currentPos = index + segment.length;
     }
     
     // Process consecutive special characters
-    // Use let instead of const for segments so we can reassign
     segments = handleConsecutiveSpecialChars(segments, text);
     
     return segments;
   }
 }
 
+interface ProcessOptions {
+  enableLocalization?: boolean;
+}
+
 // Process text for line-breaking based on locale-specific rules
-export async function processTextForLineBreaking(text, locale = "en", options = { enableLocalization: true }) {
+export async function processTextForLineBreaking(text: string, locale = "en", options: ProcessOptions = { enableLocalization: true }): Promise<WordMetric[]> {
   try {
     // Input validation
     if (!text || typeof text !== 'string') {
@@ -243,7 +282,7 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
     const enhancedSegments = handleConsecutiveSpecialChars(segments, text);
     
     // Get locale-specific rules
-    const rulesConfig = ruleEngine[locale] || {};
+    const rulesConfig = (ruleEngine as any)[locale] || {};
 
     // Filter out invalid segments before processing
     const validSegments = enhancedSegments.filter(seg => 
@@ -258,7 +297,8 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
 
     // Apply line breaking rules and get annotations
     const lineBreakingAnnotations = annotateLineBreakingWithSeparators(validSegments, rulesConfig);
-    let wordMetricsArray = segmentsToWordMetrics(validSegments, text, lineBreakingAnnotations);
+    // Cast the result of segmentsToWordMetrics to our WordMetric[] type
+    let wordMetricsArray: WordMetric[] = segmentsToWordMetrics(validSegments, text, lineBreakingAnnotations as any) as any;
     
     // Special direct check for Smart-home compound in the text
     if (locale === 'de' && text.toLowerCase().includes('smart-home')) {
@@ -278,7 +318,7 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
     if (rulesConfig.rules?.avoidBreakBefore) {
       // Get list of punctuation, articles, and prepositions from rules
       const punctuation = rulesConfig.punctuation || [];
-      const articles = (rulesConfig.functionWords || []).filter(w => w.length <= 3); // Simple heuristic for articles
+      const articles = (rulesConfig.functionWords || []).filter((w: string) => w.length <= 3); // Simple heuristic for articles
       const prepositions = rulesConfig.prepositions || [];
       
       // Check each word metric against the rules
@@ -313,7 +353,6 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
     
     // This handles hyphenated words
     if (rulesConfig.fixedExpressions && Array.isArray(rulesConfig.fixedExpressions)) {
-
       const fullText = wordMetricsArray.map(m => m.text).join('');
       for (const expr of rulesConfig.fixedExpressions) {
         if (typeof expr === 'string' && (expr.includes('\u2011') || expr === 'E‑Mail')) {
@@ -453,21 +492,21 @@ export async function processTextForLineBreaking(text, locale = "en", options = 
     );
     
     // Apply additional segmentation rules to identify line-breaking constraints
-    wordMetricsArray = annotateLineBreakingWithSeparators(wordMetricsArray, rulesConfig);
+    wordMetricsArray = annotateLineBreakingWithSeparators(wordMetricsArray as any, rulesConfig) as any;
     
-    return wordMetricsArray;
-  } catch (error) {
-    console.error('Error in processTextForLineBreaking:', error);
-    return [];
-  }    // Check for rule violations (can be used for validation or debugging)
+    // Check for rule violations (can be used for validation or debugging)
     if (rulesConfig.rules && typeof applySegmentationRules === "function") {
       applySegmentationRules(wordMetricsArray, rulesConfig);
     }
   
-  return wordMetricsArray;
+    return wordMetricsArray;
+  } catch (error) {
+    console.error('Error in processTextForLineBreaking:', error);
+    return [];
+  }
 }
 
 // Get line breaking rules for a specific locale
-export function getLineBreakingRules(locale) {
-  return ruleEngine[locale] || null;
+export function getLineBreakingRules(locale: string) {
+  return (ruleEngine as any)[locale] || null;
 }

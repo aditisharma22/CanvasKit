@@ -1,11 +1,57 @@
+// Types for segmenterUtils
+export interface Segment {
+  segment?: string;
+  text?: string;
+  index?: number;
+  isWordLike?: boolean;
+  isSpace?: boolean;
+  isPunctuation?: boolean;
+  isNonBreakingHyphen?: boolean;
+  hasNonBreakingHyphen?: boolean;
+  input?: string;
+}
+
+export interface WordMetric {
+  text: string;
+  trimmedText?: string;
+  charCount?: number;
+  boundary?: {
+    start: number;
+    end: number;
+  };
+  rect?: any;
+  lineBreaking?: string;
+  separator?: string;
+  separatorWidth?: number;
+  separatorCharCount?: number;
+  [key: string]: any;
+}
+
+export interface SpecialCharSequence {
+  start: number;
+  chars: string[];
+  type: string;
+}
+
+export interface ProcessedTextResult {
+  processedText: string;
+  specialCharPositions: Map<number, SpecialCharInfo>;
+}
+
+export interface SpecialCharInfo {
+  isConsecutive: boolean;
+  position: number;
+  totalCount: number;
+}
+
 // Convert text segments to word metrics format with boundaries and line breaking info
 export function segmentsToWordMetrics(
-  segments,
-  sourceText,
-  lineBreakingAnnotations = [],
-  context,
-  paragraph
-) {
+  segments: Segment[],
+  sourceText: string,
+  lineBreakingAnnotations: string[] = [],
+  context?: any,
+  paragraph?: any
+): WordMetric[] {
   try {
     // Validate inputs
     if (!segments || !Array.isArray(segments)) {
@@ -24,7 +70,7 @@ export function segmentsToWordMetrics(
     const DEFAULT_LINE_BREAKING = 'allow';
     
     // Count Unicode characters properly (handling multi-codepoint characters)
-    function getGraphemesCount(str) {
+    function getGraphemesCount(str: string | undefined): number {
       if (!str || typeof str !== 'string') return 0;
       try {
         return Array.from(str).length;
@@ -35,7 +81,7 @@ export function segmentsToWordMetrics(
     }
     
     // Get bounding rectangle for a word (placeholder for future implementation)
-    function getWordRect(context, paragraph, boundary) {
+    function getWordRect(context: any, paragraph: any, boundary: { start: number, end: number }) {
       return null;
     }
 
@@ -50,53 +96,55 @@ export function segmentsToWordMetrics(
       return [];
     }
     
-    const tokens = [];
+    const tokens: WordMetric[] = [];
 
-  // Process each segment
-  for (let i = 0; i < segArr.length; i++) {
-    const seg = segArr[i];
-    
-    // Use segment.text if it exists, otherwise use segment.segment
-    const segmentText = seg.text || seg.segment;
-    
-    // Skip segments without text
-    if (!segmentText || typeof segmentText !== 'string') continue;
-    
-    // Handle spaces differently - we want to preserve them in the output
-    const isSpace = seg.isSpace || /^\s+$/.test(segmentText);
-    
-    // Special handling for percent symbols, punctuation, and certain special characters
-    // Use the isSpecialCharacter function for consistency
-    const isSpecialChar = isSpecialCharacter(segmentText) || 
-                         (segmentText.length === 1 && isSpecialCharacter(segmentText[0]));
-    
-    // Ensure special characters are always treated as word-like
-    if (isSpecialChar && seg.isWordLike === false) {
-      seg.isWordLike = true;
-    }
-    
-    // Process special characters with extra care
-    if (isSpecialChar) {
-      // Ensure we don't already have this special character at this position
-      const alreadyHasSpecialChar = tokens.some(token => 
-        token.text === segmentText && 
-        token.boundary && 
-        token.boundary.start === seg.index
-      );
+    // Process each segment
+    for (let i = 0; i < segArr.length; i++) {
+      const seg = segArr[i];
       
-      if (alreadyHasSpecialChar) continue;
-    }      // Don't skip punctuation characters even if they're not marked as word-like
-    // This ensures we preserve characters like hyphens and colons
-    const isPunctuation = segmentText === ':' || segmentText === '-' || segmentText === ';' || 
-                          segmentText === '.' || segmentText === ',' || segmentText === '!' || 
-                          segmentText === '?' || segmentText === '—' || segmentText === '–' ||
-                          segmentText === '\u2011'; // non-breaking hyphen
-                          
-    // Special handling for non-breaking hyphens (like in E‑Mail)
-    const hasNonBreakingHyphen = segmentText.includes('\u2011');
-    
-    // Skip non-word characters only if they're not spaces, special chars, punctuation, or have non-breaking hyphens
-    if (seg.isWordLike === false && !isSpace && !isSpecialChar && !isPunctuation && !hasNonBreakingHyphen) continue;
+      // Use segment.text if it exists, otherwise use segment.segment
+      const segmentText = seg.text || seg.segment;
+      
+      // Skip segments without text
+      if (!segmentText || typeof segmentText !== 'string') continue;
+      
+      // Handle spaces differently - we want to preserve them in the output
+      const isSpace = seg.isSpace || /^\s+$/.test(segmentText);
+      
+      // Special handling for percent symbols, punctuation, and certain special characters
+      // Use the isSpecialCharacter function for consistency
+      const isSpecialChar = isSpecialCharacter(segmentText) || 
+                          (segmentText.length === 1 && isSpecialCharacter(segmentText[0]));
+      
+      // Ensure special characters are always treated as word-like
+      if (isSpecialChar && seg.isWordLike === false) {
+        seg.isWordLike = true;
+      }
+      
+      // Process special characters with extra care
+      if (isSpecialChar) {
+        // Ensure we don't already have this special character at this position
+        const alreadyHasSpecialChar = tokens.some(token => 
+          token.text === segmentText && 
+          token.boundary && 
+          token.boundary.start === seg.index
+        );
+        
+        if (alreadyHasSpecialChar) continue;
+      }      
+      
+      // Don't skip punctuation characters even if they're not marked as word-like
+      // This ensures we preserve characters like hyphens and colons
+      const isPunctuation = segmentText === ':' || segmentText === '-' || segmentText === ';' || 
+                            segmentText === '.' || segmentText === ',' || segmentText === '!' || 
+                            segmentText === '?' || segmentText === '—' || segmentText === '–' ||
+                            segmentText === '\u2011'; // non-breaking hyphen
+                            
+      // Special handling for non-breaking hyphens (like in E‑Mail)
+      const hasNonBreakingHyphen = segmentText.includes('\u2011');
+      
+      // Skip non-word characters only if they're not spaces, special chars, punctuation, or have non-breaking hyphens
+      if (seg.isWordLike === false && !isSpace && !isSpecialChar && !isPunctuation && !hasNonBreakingHyphen) continue;
 
       // Calculate segment boundaries safely
       const start = seg.index || 0;
@@ -146,12 +194,10 @@ export function segmentsToWordMetrics(
     console.error('Error in segmentsToWordMetrics:', error);
     return [];
   }
-  
-  return tokens;
 }
 
 // Checks if a character is a special character like % € $ ° or punctuation
-export function isSpecialCharacter(char) {
+export function isSpecialCharacter(char: string): boolean {
   // Extended to include common punctuation characters that need special handling
   // Add U+2011 (non-breaking hyphen) and other dash/hyphen types (U+2013, U+2014)
   return char === '%' || char === '€' || char === '$' || char === '°' ||
@@ -161,13 +207,13 @@ export function isSpecialCharacter(char) {
 }
 
 // Handle consecutive special characters by ensuring they are correctly segmented
-export function handleConsecutiveSpecialChars(segments, text) {
+export function handleConsecutiveSpecialChars(segments: Segment[], text: string): Segment[] {
   if (!segments || !Array.isArray(segments) || segments.length === 0 || !text) {
     return segments || [];
   }
 
   // Already processed positions
-  const processedPositions = new Map();
+  const processedPositions = new Map<number, boolean>();
   const enhancedSegments = [...segments];
   
   // First, mark all existing segment positions
@@ -203,12 +249,12 @@ export function handleConsecutiveSpecialChars(segments, text) {
 }
 
 // Detects sequences of special characters and returns information about them
-export function detectSpecialCharSequences(text) {
+export function detectSpecialCharSequences(text: string): SpecialCharSequence[] {
   if (!text || typeof text !== 'string') return [];
   
-  const sequences = [];
+  const sequences: SpecialCharSequence[] = [];
   let inSequence = false;
-  let currentSequence = {
+  let currentSequence: SpecialCharSequence = {
     start: -1,
     chars: [],
     type: ''
@@ -258,17 +304,17 @@ export function detectSpecialCharSequences(text) {
 }
 
 // Process text with consecutive percent symbols for proper segmentation
-export function processConsecutivePercentSymbols(text) {
+export function processConsecutivePercentSymbols(text: string): ProcessedTextResult {
   if (!text || typeof text !== 'string') {
     return { 
       processedText: text, 
-      specialCharPositions: new Map() 
+      specialCharPositions: new Map<number, SpecialCharInfo>()
     };
   }
   
   try {
     // Track positions of special characters
-    const specialCharPositions = new Map();
+    const specialCharPositions = new Map<number, SpecialCharInfo>();
     
     // Find consecutive percent symbols
     const regex = /(%{2,})/g;
@@ -306,7 +352,7 @@ export function processConsecutivePercentSymbols(text) {
     console.warn('Error processing consecutive percent symbols:', error);
     return { 
       processedText: text, 
-      specialCharPositions: new Map() 
+      specialCharPositions: new Map<number, SpecialCharInfo>()
     };
   }
 }

@@ -1,6 +1,34 @@
 // English (en) rules file
 
-export default {
+interface EnglishRules {
+  locale: string;
+  rules: {
+    avoidBreakBefore: string[];
+    avoidBreakAfter: string[];
+    avoidBreakBetween: string[];
+    removeColonAtLineEnd: boolean;
+    capitalizeSecondLineIfColonRemoved: boolean;
+  };
+  functionWords: string[];
+  articles: string[];
+  prepositions: string[];
+  conjunctions: string[];
+  adjectives: string[];
+  personNamePrefixes: string[];
+  fixedExpressions: string[];
+  appleServices: string[];
+  appGameNames: string[];
+  compoundWords: string[];
+  dntTerms: string[];
+  percentSymbols: string[];
+  unitsOfMeasure: string[];
+  punctuation: string[];
+  periods: string[];
+  syllablePatterns: string[];
+  specialCases: Record<string, boolean>;
+}
+
+const enRules: EnglishRules = {
   locale: "en",
   rules: {
     avoidBreakBefore: [
@@ -130,4 +158,6 @@ export default {
     "T-shirt": true,
     "real-time": true
   }
-}
+};
+
+export default enRules;

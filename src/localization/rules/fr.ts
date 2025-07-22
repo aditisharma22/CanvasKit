@@ -1,4 +1,26 @@
-export default {
+// French (fr) rules file
+
+interface FrenchRules {
+  locale: string;
+  rules: {
+    avoidBreakBefore: string[];
+    avoidBreakAfter: string[];
+    avoidBreakBetween: string[];
+    removeColonAtLineEnd: boolean;
+    capitalizeSecondLineIfColonRemoved: boolean;
+  };
+  articles: string[];
+  prepositions: string[];
+  adjectives: string[];
+  personNamePrefixes: string[];
+  appleServices: string[];
+  appGameNames: string[];
+  percentSymbols: string[];
+  unitsOfMeasure: string[];
+  punctuation: string[];
+}
+
+const frRules: FrenchRules = {
   locale: "fr",
   rules: {
     avoidBreakBefore: [
@@ -94,3 +116,5 @@ export default {
   // Punctuation that should not be at end/beginning of line
   punctuation: [".", ":", ";", "!", "?", "…"]
 };
+
+export default frRules;

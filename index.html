@@ -1023,11 +1023,11 @@
   <script src="https://unpkg.com/canvaskit-wasm@0.40.0/bin/canvaskit.js"></script>
   <script type="module">
     // Import the modules using relative paths
-    import { buildGroupedTree, renderTree, renderSummary } from './src/break_tree_visualizer.js';
-    import { render } from './src/render_as_paragraph.js';
+    import { buildGroupedTree, renderTree, renderSummary } from './src/break_tree_visualizer';
+    import { render } from './src/render_as_paragraph';
     import { 
       processTextForLineBreaking
-    } from './src/localization/segmenter.js';
+    } from './src/localization/segmenter';
 
     // Tab switching functionality
     const tabButtons = document.querySelectorAll('.tab-button');
@@ -2408,8 +2408,8 @@
     // Load current rules
     async function loadCurrentRules() {
       try {
-        // Fetch the en.js file content - using relative path since this file is served by Vite
-        const response = await fetch('/src/localization/rules/en.js');
+        // Fetch the en.ts file content - using relative path since this file is served by Vite
+        const response = await fetch('/src/localization/rules/en.ts');
         
         if (!response.ok) {
           throw new Error(`Could not load rules file: ${response.status} ${response.statusText}`);

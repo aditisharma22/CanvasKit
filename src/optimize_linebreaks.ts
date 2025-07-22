@@ -1,17 +1,47 @@
 // Optimal line-breaking algorithm similar to Knuth-Plass with candidate generation
+import { SyntheticMetrics } from './types';
+
+interface ScoreBreakdown {
+  raggedness: number;
+  evenness: number;
+  fillRatio: number;
+  fillPenalty?: number;
+  widows: number;
+  widowsOrphans?: number;
+  orphans: number;
+  protectedBreaks: number;
+  protected?: number;
+  balanceFactor: number;
+  score?: number;
+}
+
+interface OptimizeLineBreakCandidate {
+  score?: number;
+  lines?: string[][] | string[];
+  breaks?: number[];
+  lineBreaks?: number[];
+  lineWidths?: number[];
+  scoreBreakdown?: ScoreBreakdown;
+  protectedBreakLines?: number[];
+}
+
+interface ComputeBreaksOptions {
+  enableLocalization?: boolean;
+}
+
 export function computeBreaks(
-  words,
-  wordWidths,
-  spaceWidth,
-  targetWidth,
-  candidateCount = 1,
-  debugOutput = null,
-  balanceFactor = 0.5,
-  minFillRatio = 0.5,
-  mode = 'fit',
-  locale = 'en',
-  options = { enableLocalization: true }
-) {
+  words: string[],
+  wordWidths: number[],
+  spaceWidth: number,
+  targetWidth: number,
+  candidateCount: number = 1,
+  debugOutput: HTMLElement | null = null,
+  balanceFactor: number = 0.5,
+  minFillRatio: number = 0.5,
+  mode: string = 'fit',
+  locale: string = 'en',
+  options: ComputeBreaksOptions = { enableLocalization: true }
+): OptimizeLineBreakCandidate[] {
   // Validate inputs and ensure consistency
   if (words.length !== wordWidths.length) {
     console.error("Words array and widths array must have the same length", words.length, wordWidths.length);
@@ -28,16 +58,9 @@ export function computeBreaks(
   
   // Knuth-Plass algorithm implementation
   const n = words.length;
-  let penalties = new Array(n + 1);
-  let breaks = new Array(n + 1);
-  let widths = new Array(n + 1);
-  
-  // Initialize values
-  for (let i = 0; i <= n; i++) {
-    penalties[i] = Infinity;
-    breaks[i] = 0;
-    widths[i] = 0;
-  }
+  let penalties = new Array(n + 1).fill(Infinity);
+  let breaks = new Array(n + 1).fill(0);
+  let widths = new Array(n + 1).fill(0);
   
   // Base case
   penalties[0] = 0;
@@ -62,7 +85,7 @@ export function computeBreaks(
       }
       
       // Calculate line penalty based on mode and balance factor
-      let penalty;
+      let penalty: number;
       
       if (mode === 'fill') {
         // Fill mode: Prefer to fill as much of the line as possible
@@ -106,7 +129,7 @@ export function computeBreaks(
   let bestLineWidths = calculateLineWidths(bestSolution, wordWidths, spaceWidth);
   
   // Generate alternative solutions using a diverse set of starting points
-  let candidates = [
+  let candidates: OptimizeLineBreakCandidate[] = [
     {
       lines: bestSolution,
       breaks: findBreakIndices(bestSolution),
@@ -117,11 +140,13 @@ export function computeBreaks(
   ];
   
   // Track all generated break patterns to ensure diversity
-  let generatedBreakPatterns = new Set();
-  generatedBreakPatterns.add(candidates[0].breaks.join(","));
+  let generatedBreakPatterns = new Set<string>();
+  if (candidates[0].breaks) {
+    generatedBreakPatterns.add(candidates[0].breaks.join(","));
+  }
   
   // Main function to find alternatives
-  function findAlternatives() {
+  function findAlternatives(): void {
     // Create diverse alternative solutions by perturbing the dynamic programming algorithm
     for (let variant = 0; variant < Math.min(20, candidateCount * 2); variant++) {
       // Use different perturbation strategies based on the variant number
@@ -136,7 +161,7 @@ export function computeBreaks(
       const varianceFactor = 0.1 + (variant * 0.15);
       
       // Use different line width targets for variants
-      let variantTargetWidth;
+      let variantTargetWidth: number;
       
       if (variant % 4 === 0) {
         // Make lines slightly shorter
@@ -171,7 +196,7 @@ export function computeBreaks(
           }
           
           // Calculate line penalty with variations
-          let penalty;
+          let penalty: number;
           
           // Different penalty calculations for different variants
           if (variant % 3 === 0) {
@@ -248,16 +273,18 @@ export function computeBreaks(
       } else {
         // Check difference from all existing candidates
         for (const existingCandidate of candidates) {
-          const difference = breakPatternDifference(
-            breakIndices, 
-            existingCandidate.breaks,
-            words.length
-          );
-          
-          // Require a minimum difference to consider this unique
-          if (difference < minDifferenceThreshold) {
-            isUnique = false;
-            break;
+          if (existingCandidate.breaks && breakIndices) {
+            const difference = breakPatternDifference(
+              breakIndices, 
+              existingCandidate.breaks,
+              words.length
+            );
+            
+            // Require a minimum difference to consider this unique
+            if (difference < minDifferenceThreshold) {
+              isUnique = false;
+              break;
+            }
           }
         }
       }
@@ -296,7 +323,7 @@ export function computeBreaks(
   }
   
   // Sort candidates by score (lower is better)
-  candidates.sort((a, b) => a.score - b.score);
+  candidates.sort((a, b) => (a.score || 0) - (b.score || 0));
   
   // Output debug information if requested
   if (debugOutput) {
@@ -307,7 +334,7 @@ export function computeBreaks(
 }
 
 // Calculate a difference score between two break patterns (higher score = more diverse)
-function breakPatternDifference(pattern1, pattern2, totalWords) {
+function breakPatternDifference(pattern1: number[], pattern2: number[], totalWords: number): number {
   // Convert break patterns to sets for easier comparison
   const set1 = new Set(pattern1);
   const set2 = new Set(pattern2);
@@ -342,7 +369,7 @@ function breakPatternDifference(pattern1, pattern2, totalWords) {
 }
 
 // Calculate score breakdown for a candidate solution with normalized metrics (0-100% scale)
-function calculateScoreBreakdown(lines, lineWidths, targetWidth, balanceFactor) {
+function calculateScoreBreakdown(lines: string[][], lineWidths: number[], targetWidth: number, balanceFactor: number): ScoreBreakdown {
   // Skip calculation for empty inputs
   if (!lines || !lineWidths || lines.length === 0 || lineWidths.length === 0) {
     return {
@@ -363,11 +390,10 @@ function calculateScoreBreakdown(lines, lineWidths, targetWidth, balanceFactor) 
   // Only consider non-last lines unless there's only one line
   const raggedLinesToMeasure = lineWidths.length > 1 ? lineWidths.slice(0, -1) : [];
   let totalSquaredDeviation = 0;
+  let normalizedRaggedness = 0;
   
   // Skip calculation if we have nothing to measure (single line paragraph)
-  if (raggedLinesToMeasure.length === 0) {
-    var normalizedRaggedness = 0;
-  } else {
+  if (raggedLinesToMeasure.length > 0) {
     // Calculate squared deviations from target width
     for (let i = 0; i < raggedLinesToMeasure.length; i++) {
       const deviation = Math.abs(targetWidth - raggedLinesToMeasure[i]);
@@ -532,11 +558,11 @@ function calculateScoreBreakdown(lines, lineWidths, targetWidth, balanceFactor) 
 }
 
 // Reconstruct solution from breaks array
-function reconstructSolution(words, breaks, j) {
+function reconstructSolution(words: string[], breaks: number[], j: number): string[][] {
   if (j === 0) return [];
   
   let result = reconstructSolution(words, breaks, breaks[j]);
-  let line = [];
+  let line: string[] = [];
   
   for (let i = breaks[j]; i < j; i++) {
     line.push(words[i]);
@@ -547,7 +573,7 @@ function reconstructSolution(words, breaks, j) {
 }
 
 // Calculate widths for each line
-function calculateLineWidths(lines, wordWidths, spaceWidth) {
+function calculateLineWidths(lines: string[][], wordWidths: number[], spaceWidth: number): number[] {
   return lines.map(line => {
     let width = 0;
     let wordIndex = 0;
@@ -572,8 +598,8 @@ function calculateLineWidths(lines, wordWidths, spaceWidth) {
 }
 
 // Find break indices (where line breaks occur in the original word array)
-function findBreakIndices(lines) {
-  let breaks = [];
+function findBreakIndices(lines: string[][]): number[] {
+  let breaks: number[] = [];
   let wordCount = 0;
   
   // For each line except the last one
@@ -586,11 +612,11 @@ function findBreakIndices(lines) {
 }
 
 // Create debug tree display with comprehensive metrics
-function createDebugTree(solution, wordCount) {
+function createDebugTree(solution: OptimizeLineBreakCandidate, wordCount: number): string {
   if (!solution) return "No solution found";
   
-  const lineBreaks = solution.breaks;
-  const lineCount = solution.lines.length;
+  const lineBreaks = solution.breaks || [];
+  const lineCount = solution.lines?.length || 0;
   const avgWordsPerLine = wordCount / lineCount;
   
   let html = `
@@ -617,7 +643,7 @@ function createDebugTree(solution, wordCount) {
   html += '</div>';
   
   // Helper function to generate color-coded metric display with improved thresholds
-  function getMetricColor(value, isGoodWhenLow = false, thresholds = { good: 90, warning: 70 }) {
+  function getMetricColor(value: number, isGoodWhenLow: boolean = false, thresholds = { good: 90, warning: 70 }): string {
     if (isGoodWhenLow) {
       return value <= thresholds.good ? '#4caf50' : // Green for good
              value <= thresholds.warning ? '#ff9800' : // Orange for warning
@@ -630,20 +656,20 @@ function createDebugTree(solution, wordCount) {
   }
   
   // Extract metrics with proper fallbacks
-  const breakdowns = solution.scoreBreakdown || {};
-  const balanceFactor = breakdowns.balanceFactor?.toFixed(2) || '0.50';
-  const raggedness = breakdowns.raggedness || 0;
-  const evenness = breakdowns.evenness || 100;
-  const fillRatio = breakdowns.fillRatio || breakdowns.fillPenalty || 100;
-  const widows = breakdowns.widows || breakdowns.widowsOrphans || 0;
-  const orphans = breakdowns.orphans || 0;
-  const protectedBreaks = breakdowns.protectedBreaks || 0;
+  const breakdowns = solution.scoreBreakdown || {} as ScoreBreakdown;
+  const balanceFactor = (breakdowns as any).balanceFactor?.toFixed(2) || '0.50';
+  const raggedness = (breakdowns as any).raggedness || 0;
+  const evenness = (breakdowns as any).evenness || 100;
+  const fillRatio = (breakdowns as any).fillRatio || (breakdowns as any).fillPenalty || 100;
+  const widows = (breakdowns as any).widows || (breakdowns as any).widowsOrphans || 0;
+  const orphans = (breakdowns as any).orphans || 0;
+  const protectedBreaks = (breakdowns as any).protectedBreaks || 0;
   
   // Add enhanced score breakdown with color indicators and better explanations
   html += `
     <div style="margin-top: 10px; border-top: 1px dashed #666; padding-top: 10px;">
       <div style="font-weight: bold; font-size: 1.1em;">
-        Solution Score: ${solution.score.toFixed(2)}
+        Solution Score: ${solution.score?.toFixed(2)}
         <span style="font-size: 0.8em; color: #666; font-weight: normal;">(lower is better)</span>
       </div>
       
@@ -733,13 +759,13 @@ function createDebugTree(solution, wordCount) {
         <div style="display: flex; align-items: center; gap: 8px; margin: 8px 0;">
           <span style="font-size: 0.9em; min-width: 75px;">Even lines</span>
           <div style="flex: 1; height: 8px; background: linear-gradient(to right, #4caf50, #ffeb3b, #f44336); border-radius: 4px; position: relative;">
-            <div style="position: absolute; width: 12px; height: 12px; background: #3f51b5; border: 2px solid white; border-radius: 50%; top: -4px; left: calc(${parseFloat(balanceFactor) * 100}% - 6px); box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>
+            <div style="position: absolute; width: 12px; height: 12px; background: #3f51b5; border: 2px solid white; border-radius: 50%; top: -4px; left: calc(${parseFloat(balanceFactor.toString()) * 100}% - 6px); box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>
           </div>
           <span style="font-size: 0.9em; min-width: 75px; text-align: right;">Target width</span>
         </div>
         <div style="font-size: 0.9em; color: #666; margin-top: 2px;">
-          ${parseFloat(balanceFactor) < 0.4 ? 'Prioritizing even line lengths - lines will be more consistent in length, but may vary from target width' :
-          parseFloat(balanceFactor) > 0.6 ? 'Prioritizing target width adherence - lines will closely match the target width, but may vary in length' :
+          ${parseFloat(balanceFactor.toString()) < 0.4 ? 'Prioritizing even line lengths - lines will be more consistent in length, but may vary from target width' :
+          parseFloat(balanceFactor.toString()) > 0.6 ? 'Prioritizing target width adherence - lines will closely match the target width, but may vary in length' :
           'Balanced approach - compromise between even lines and target width adherence'}
         </div>
       </div>

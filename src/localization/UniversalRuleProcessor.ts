@@ -1,14 +1,70 @@
 // Universal Rule Processor - Handles line breaking rules for all locales
 
-import { localeConfigManager, CONFIG } from './LocaleConfigManager.js';
+import { localeConfigManager, CONFIG } from './LocaleConfigManager';
+import { WordMetrics } from '../types';
+
+// Import types from LocaleConfigManager or define them here
+interface ExtendedLocaleConfig {
+  locale?: string;
+  rules?: {
+    avoidBreakBefore?: string[];
+    avoidBreakAfter?: string[];
+    avoidBreakBetween?: string[];
+    specialCases?: Record<string, any>;
+    [key: string]: any;
+  };
+  appleServices?: string[];
+  appGameNames?: string[];
+  fixedExpressions?: string[];
+  percentSymbols?: string[];
+  periods?: string[];
+  adjectives?: string[];
+  personNamePrefixes?: string[];
+  [key: string]: any;
+}
+
+// Use ExtendedLocaleConfig instead of LocaleConfig
+type LocaleConfig = ExtendedLocaleConfig;
+
+// Define the rule application context interface to make it more flexible for different calling contexts
+interface RuleApplicationContext {
+  rule: string;
+  context: string;
+  current?: any;
+  next?: any;
+  prev?: any;
+  config: ExtendedLocaleConfig;
+  words?: string[];
+  index?: number;
+}
+
+// Define additional types
+type RuleContext = 'before' | 'after' | 'between';
+
+interface RuleMetadata {
+  rule: string;
+  context: RuleContext;
+  value: string | null;
+  timestamp: number;
+}
+
+// WordMetric interface to match what's used in this file
+interface WordMetric {
+  text?: string;
+  segment?: string;
+  lineBreaking?: string;
+  [key: string]: any;
+}
 
 export class UniversalRuleProcessor {
+  private configManager: typeof localeConfigManager;
+
   constructor() {
     this.configManager = localeConfigManager;
   }
 
   // Apply locale-specific line breaking rules to word metrics
-  processWordMetrics(wordMetricsArray, locale) {
+  processWordMetrics(wordMetricsArray: WordMetric[], locale: string): WordMetric[] {
     if (!Array.isArray(wordMetricsArray) || wordMetricsArray.length === 0) {
       return wordMetricsArray;
     }
@@ -26,7 +82,7 @@ export class UniversalRuleProcessor {
   }
 
   // Apply rules to avoid breaks before certain elements
-  applyBeforeRules(metrics, config) {
+  private applyBeforeRules(metrics: WordMetric[], config: LocaleConfig): void {
     const beforeRules = config.rules?.avoidBreakBefore || [];
 
     for (let i = 0; i < metrics.length - 1; i++) {
@@ -40,6 +96,7 @@ export class UniversalRuleProcessor {
           current,
           next,
           config,
+          words: metrics.map(m => m.text || ''),
           index: i
         })) {
           current.lineBreaking = CONFIG.LINE_BREAK.AVOID;
@@ -50,7 +107,7 @@ export class UniversalRuleProcessor {
   }
 
   // Apply "avoid break after" rules
-  applyAfterRules(metrics, config) {
+  private applyAfterRules(metrics: WordMetric[], config: LocaleConfig): void {
     const afterRules = config.rules?.avoidBreakAfter || [];
 
     for (let i = 0; i < metrics.length - 1; i++) {
@@ -64,6 +121,7 @@ export class UniversalRuleProcessor {
           current,
           next,
           config,
+          words: metrics.map(m => m.text || ''),
           index: i
         })) {
           current.lineBreaking = CONFIG.LINE_BREAK.AVOID;
@@ -74,7 +132,7 @@ export class UniversalRuleProcessor {
   }
 
   // Apply "avoid break between" rules
-  applyBetweenRules(metrics, config) {
+  private applyBetweenRules(metrics: WordMetric[], config: LocaleConfig): void {
     const betweenRules = config.rules?.avoidBreakBetween || [];
     const words = metrics.map(m => m.text || m.segment || '');
 
@@ -112,12 +170,12 @@ export class UniversalRuleProcessor {
   }
   
   // Apply Apple service name rules with improved text matching
-  applyAppleServiceRules(metrics, config, fullText) {
+  private applyAppleServiceRules(metrics: WordMetric[], config: LocaleConfig, fullText: string): void {
     const services = this.configManager.getRuleList(config, 'appleServices');
     
     for (const service of services) {
       const serviceName = typeof service === 'string' ? service : 
-                         Array.isArray(service) ? service.join(' ') : '';
+                         (Array.isArray(service) ? (service as string[]).join(' ') : '');
       
       if (!serviceName) continue;
       
@@ -146,7 +204,7 @@ export class UniversalRuleProcessor {
             if (currentPos + metricText.length > foundPos && currentPos < foundPos + serviceNameLower.length) {
               // This metric overlaps with the service name position
               metric.lineBreaking = 'avoid';
-              metric._partOfAppleService = serviceName;
+              (metric as any)._partOfAppleService = serviceName;
               this.addRuleMetadata(metric, 'appleServices', 'between', serviceName);
             }
             
@@ -161,12 +219,12 @@ export class UniversalRuleProcessor {
   }
   
   // Apply game name rules with improved text matching
-  applyGameNameRules(metrics, config, fullText) {
+  private applyGameNameRules(metrics: WordMetric[], config: LocaleConfig, fullText: string): void {
     const gameNames = this.configManager.getRuleList(config, 'appGameNames');
     
     for (const gameName of gameNames) {
       const gameNameText = typeof gameName === 'string' ? gameName : 
-                          Array.isArray(gameName) ? gameName.join(' ') : '';
+                          (Array.isArray(gameName) ? (gameName as string[]).join(' ') : '');
       
       if (!gameNameText) continue;
       
@@ -193,7 +251,7 @@ export class UniversalRuleProcessor {
             if (currentPos + metricText.length > foundPos && currentPos < foundPos + gameNameLower.length) {
               // This metric overlaps with the game name position
               metric.lineBreaking = 'avoid';
-              metric._partOfGameName = gameNameText;
+              (metric as any)._partOfGameName = gameNameText;
               this.addRuleMetadata(metric, 'appGameNames', 'between', gameNameText);
             }
             
@@ -208,7 +266,7 @@ export class UniversalRuleProcessor {
   }
 
   // Apply special cases defined in the configuration
-  applySpecialCases(metrics, config) {
+  private applySpecialCases(metrics: WordMetric[], config: LocaleConfig): void {
     const specialCases = config.rules?.specialCases || {};
 
     for (const [caseKey, caseValue] of Object.entries(specialCases)) {
@@ -219,7 +277,7 @@ export class UniversalRuleProcessor {
   }
 
   // Apply fixed expression rules (hyphenated compounds, etc.)
-  applyFixedExpressionRules(metrics, config) {
+  private applyFixedExpressionRules(metrics: WordMetric[], config: LocaleConfig): void {
     const fixedExpressions = this.configManager.getRuleList(config, 'fixedExpressions');
     
     for (const expression of fixedExpressions) {
@@ -238,10 +296,8 @@ export class UniversalRuleProcessor {
     }
   }
 
-
-
   // Apply person name rules
-  applyPersonNameRules(metrics, config) {
+  private applyPersonNameRules(metrics: WordMetric[], config: LocaleConfig): void {
     const prefixes = this.configManager.getRuleList(config, 'personNamePrefixes');
     
     for (let i = 0; i < metrics.length - 1; i++) {
@@ -249,7 +305,7 @@ export class UniversalRuleProcessor {
       const next = metrics[i + 1];
       
       if (this.configManager.matchesList(current.text, prefixes) && 
-          CONFIG.REGEX_PATTERNS.PROPER_NOUN.test(next.text)) {
+          CONFIG.REGEX_PATTERNS.PROPER_NOUN.test(next.text || '')) {
         current.lineBreaking = CONFIG.LINE_BREAK.AVOID;
         this.addRuleMetadata(current, 'personNames', 'between');
       }
@@ -257,7 +313,7 @@ export class UniversalRuleProcessor {
   }
 
   // Apply adjective-noun rules
-  applyAdjectiveNounRules(metrics, config) {
+  private applyAdjectiveNounRules(metrics: WordMetric[], config: LocaleConfig): void {
     const adjectives = this.configManager.getRuleList(config, 'adjectives');
     
     for (let i = 0; i < metrics.length - 1; i++) {
@@ -271,13 +327,13 @@ export class UniversalRuleProcessor {
   }
 
   // Apply proper noun sequence rules
-  applyProperNounRules(metrics, config) {
+  private applyProperNounRules(metrics: WordMetric[], config: LocaleConfig): void {
     for (let i = 0; i < metrics.length - 1; i++) {
       const current = metrics[i];
       const next = metrics[i + 1];
       
-      if (CONFIG.REGEX_PATTERNS.PROPER_NOUN.test(current.text) && 
-          CONFIG.REGEX_PATTERNS.PROPER_NOUN.test(next.text)) {
+      if (CONFIG.REGEX_PATTERNS.PROPER_NOUN.test(current.text || '') && 
+          CONFIG.REGEX_PATTERNS.PROPER_NOUN.test(next.text || '')) {
         current.lineBreaking = CONFIG.LINE_BREAK.AVOID;
         this.addRuleMetadata(current, 'properNounSequence', 'between');
       }
@@ -285,7 +341,7 @@ export class UniversalRuleProcessor {
   }
 
   // Apply generic phrase protection rules
-  applyGenericPhraseRules(metrics, config, rule) {
+  private applyGenericPhraseRules(metrics: WordMetric[], config: LocaleConfig, rule: string): void {
     const phrases = this.configManager.getRuleList(config, rule);
     const words = metrics.map(m => m.text || '');
     
@@ -298,7 +354,7 @@ export class UniversalRuleProcessor {
   }
 
   // Apply a specific special case
-  applySpecialCase(metrics, caseKey, config) {
+  private applySpecialCase(metrics: WordMetric[], caseKey: string, config: LocaleConfig): void {
     // Handle common special cases dynamically
     if (caseKey.includes('-') || caseKey.includes('\u2011')) {
       this.markHyphenatedExpression(metrics, caseKey);
@@ -308,7 +364,7 @@ export class UniversalRuleProcessor {
   }
 
   // Mark hyphenated expression parts to avoid line breaks
-  markHyphenatedExpression(metrics, expression) {
+  private markHyphenatedExpression(metrics: WordMetric[], expression: string): void {
     const parts = expression.split(/[-\u2011]/); // Split on both regular and non-breaking hyphens
     if (parts.length !== 2) return;
 
@@ -329,7 +385,7 @@ export class UniversalRuleProcessor {
   }
 
   // Mark regex expression matches to avoid line breaks
-  markRegexExpression(metrics, pattern) {
+  private markRegexExpression(metrics: WordMetric[], pattern: string): void {
     const fullText = metrics.map(m => m.text || '').join(' ');
     
     try {
@@ -348,7 +404,7 @@ export class UniversalRuleProcessor {
   }
 
   // Mark multi-word expression to avoid line breaks
-  markMultiWordExpression(metrics, expression) {
+  private markMultiWordExpression(metrics: WordMetric[], expression: string): void {
     const words = expression.toLowerCase().split(/\s+/);
     if (words.length < 2) return;
 
@@ -372,7 +428,7 @@ export class UniversalRuleProcessor {
   }
 
   // Mark a range of characters in metrics to avoid line breaks
-  markRangeInMetrics(metrics, startPos, endPos, ruleType, ruleValue) {
+  private markRangeInMetrics(metrics: WordMetric[], startPos: number, endPos: number, ruleType: string, ruleValue: string): void {
     let currentPos = 0;
     
     for (const metric of metrics) {
@@ -391,21 +447,21 @@ export class UniversalRuleProcessor {
   }
 
   // Add rule metadata to a metric for debugging and analysis
-  addRuleMetadata(metric, rule, context, value = null) {
-    if (!metric._appliedRules) {
-      metric._appliedRules = [];
+  private addRuleMetadata(metric: WordMetric, rule: string, context: RuleContext, value: string | null = null): void {
+    if (!(metric as any)._appliedRules) {
+      (metric as any)._appliedRules = [];
     }
     
-    metric._appliedRules.push({
+    (metric as any)._appliedRules.push({
       rule,
       context,
       value,
       timestamp: Date.now()
-    });
+    } as RuleMetadata);
   }
 
   // Filter line breaking candidates based on locale rules
-  filterCandidates(candidates, words, locale) {
+  filterCandidates(candidates: any[], words: string[], locale: string): any[] {
     if (!this.configManager.needsLocalization(locale)) {
       return candidates;
     }
@@ -426,7 +482,7 @@ export class UniversalRuleProcessor {
   }
 
   // Check if a break position violates any rules
-  isBreakViolation(breakIdx, words, config) {
+  private isBreakViolation(breakIdx: number, words: string[], config: LocaleConfig): boolean {
     if (breakIdx <= 0 || breakIdx >= words.length - 1) return false;
 
     const prev = { text: words[breakIdx - 1] };
@@ -439,7 +495,7 @@ export class UniversalRuleProcessor {
     // Check before rules
     for (const rule of rules.avoidBreakBefore || []) {
       if (this.configManager.applyRule({
-        rule, context: 'before', current: prev, next: curr, config
+        rule, context: 'before', current: prev, next: curr, config, words: words, index: breakIdx
       })) {
         return true;
       }
@@ -448,7 +504,7 @@ export class UniversalRuleProcessor {
     // Check after rules
     for (const rule of rules.avoidBreakAfter || []) {
       if (this.configManager.applyRule({
-        rule, context: 'after', current: prev, next: curr, config
+        rule, context: 'after', current: prev, next: curr, config, words: words, index: breakIdx
       })) {
         return true;
       }
@@ -457,7 +513,7 @@ export class UniversalRuleProcessor {
     // Check between rules
     for (const rule of rules.avoidBreakBetween || []) {
       if (this.configManager.applyRule({
-        rule, context: 'between', words, index: breakIdx, config
+        rule, context: 'between', current: {}, words, index: breakIdx, config
       })) {
         return true;
       }
@@ -465,9 +521,7 @@ export class UniversalRuleProcessor {
 
     return false;
   }
-
-
 }
 
-// Export singleton instance
+// Create and export an instance of UniversalRuleProcessor
 export const universalRuleProcessor = new UniversalRuleProcessor();

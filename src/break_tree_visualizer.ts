@@ -1,11 +1,13 @@
 // Break Tree Visualizer - Visualization tool for line breaking candidates
+import { LineBreakCandidate, TreeData, CandidateNode, LineNode } from './types';
+
 // Organize candidates into a hierarchical structure for visualization
-export function buildGroupedTree(candidates) {
+export function buildGroupedTree(candidates: LineBreakCandidate[]): TreeData {
   if (!candidates || !Array.isArray(candidates)) {
-    return { children: [], summary: { totalCandidates: 0 } };
+    return { children: [], summary: { totalCandidates: 0, bestScore: 0, worstScore: 0 } };
   }
 
-  const tree = {
+  const tree: TreeData = {
     children: [],
     summary: {
       totalCandidates: candidates.length,
@@ -15,7 +17,7 @@ export function buildGroupedTree(candidates) {
   };
 
   candidates.forEach((candidate, index) => {
-    const node = {
+    const node: CandidateNode = {
       id: `candidate-${index}`,
       type: 'candidate',
       rank: index + 1,
@@ -30,12 +32,12 @@ export function buildGroupedTree(candidates) {
     // Add line details as children
     if (candidate.lines) {
       candidate.lines.forEach((line, lineIndex) => {
-        const lineNode = {
+        const lineNode: LineNode = {
           id: `line-${index}-${lineIndex}`,
           type: 'line',
           number: lineIndex + 1,
-          text: Array.isArray(line) ? line.join(' ') : line,
-          words: Array.isArray(line) ? line : line.split(' '),
+          text: Array.isArray(line) ? line.join(' ') : line as string,
+          words: Array.isArray(line) ? line : (line as string).split(' '),
           width: candidate.lineWidths ? candidate.lineWidths[lineIndex] : 0,
           isProtectedBreak: candidate.protectedBreakLines && candidate.protectedBreakLines.includes(lineIndex),
           children: []
@@ -51,7 +53,7 @@ export function buildGroupedTree(candidates) {
 }
 
 // Render tree structure to HTML
-export function renderTree(tree, container) {
+export function renderTree(tree: TreeData, container: HTMLElement): void {
   if (!container) {
     return;
   }
@@ -75,7 +77,7 @@ export function renderTree(tree, container) {
 }
 
 // Create HTML element for a candidate
-function renderCandidateNode(candidate) {
+function renderCandidateNode(candidate: CandidateNode): HTMLElement {
   const element = document.createElement('div');
   element.className = 'node candidate-node';
   
@@ -91,7 +93,7 @@ function renderCandidateNode(candidate) {
   
   if (candidate.scoreBreakdown) {
     const breakdown = Object.entries(candidate.scoreBreakdown)
-      .map(([key, value]) => `${key}: ${typeof value === 'number' ? value.toFixed(2) : value}`)
+      .map(([key, value]) => `${key}: ${typeof value === 'number' ? (value as number).toFixed(2) : value}`)
       .join(' | ');
     details.innerHTML = `<div class="score-breakdown">${breakdown}</div>`;
   }
@@ -116,7 +118,7 @@ function renderCandidateNode(candidate) {
 }
 
 // Render a line node
-function renderLineNode(line) {
+function renderLineNode(line: LineNode): HTMLElement {
   const element = document.createElement('div');
   element.className = 'node line-node';
   
@@ -138,7 +140,7 @@ function renderLineNode(line) {
 }
 
 // Render summary information
-export function renderSummary(tree, container) {
+export function renderSummary(tree: TreeData, container: HTMLElement): void {
   if (!container || !tree || !tree.summary) {
     return;
   }

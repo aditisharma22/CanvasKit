@@ -1,4 +1,20 @@
-export default {
+// Spanish language rules for line breaking
+
+interface SpanishRules {
+  locale: string;
+  rules: {
+    avoidBreakBefore: string[];
+    avoidBreakAfter: string[];
+    avoidBreakBetween: string[];
+  };
+  functionWords: string[];
+  appleServices: string[];
+  appGameNames: string[];
+  prepositions: string[];
+  punctuation: string[];
+}
+
+const esRules: SpanishRules = {
   locale: "es",
   rules: {
     avoidBreakBefore: ["articles", "prepositions", "punctuation"],
@@ -24,3 +40,5 @@ export default {
   ],
   punctuation: [".", ":", ";", "!", "?"]
 };
+
+export default esRules;
