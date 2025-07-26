@@ -2,6 +2,24 @@
 import { SyntheticMetrics } from './types';
 import ruleEngine from './localization/rules/ruleConfigs';
 
+// Constants for magic numbers to improve readability and maintainability
+const CONSTANTS = {
+  // Penalty weights
+  WIDOW_PENALTY: 15,
+  ORPHAN_PENALTY: 10,
+  PROTECTED_BREAK_PENALTY: 8,
+  
+  // Layout constants
+  MAX_WIDTH_FACTOR: 1.5,
+  MIN_FILL_RATIO_ADJUSTMENT: 0.1,
+  
+  // Score thresholds
+  GOOD_RAGGEDNESS_THRESHOLD: 10,
+  WARNING_RAGGEDNESS_THRESHOLD: 30,
+  GOOD_EVENNESS_THRESHOLD: 90,
+  WARNING_EVENNESS_THRESHOLD: 75
+};
+
 interface ScoreBreakdown {
   raggedness: number;
   evenness: number;
@@ -28,6 +46,32 @@ interface OptimizeLineBreakCandidate {
 
 interface ComputeBreaksOptions {
   enableLocalization?: boolean;
+}
+
+/**
+ * Calculates the penalty for a line of a specific width relative to target width
+ * Takes into account the layout mode and balance factor for tuning penalties
+ */
+function calculateLinePenalty(
+  lineWidth: number, 
+  targetWidth: number, 
+  mode: string,
+  balanceFactor: number
+): number {
+  if (mode === 'fill') {
+    // Fill mode: Prefer to fill as much of the line as possible
+    return Math.abs(targetWidth - lineWidth);
+  } else {
+    // Fit mode: Allow lines to be shorter, penalize exceeding target width heavily
+    // Balance factor affects how we penalize deviations from target width
+    // Higher balance factor = more focus on matching target width
+    const underWeightFactor = 0.5 * (1 - balanceFactor); // Lower if high balance factor
+    const overWeightFactor = 3 * (0.5 + balanceFactor * 0.5); // Higher if high balance factor
+    
+    return lineWidth <= targetWidth 
+      ? (targetWidth - lineWidth) * underWeightFactor 
+      : (lineWidth - targetWidth) * overWeightFactor;
+  }
 }
 
 export function computeBreaks(
@@ -81,32 +125,17 @@ export function computeBreaks(
       }
       
       // Check if we exceed the target width
-      if (width > targetWidth * 1.5) {
+      if (width > targetWidth * CONSTANTS.MAX_WIDTH_FACTOR) {
         break; // This line is too wide, stop considering more words
       }
       
-      // Calculate line penalty based on mode and balance factor
-      let penalty: number;
-      
-      if (mode === 'fill') {
-        // Fill mode: Prefer to fill as much of the line as possible
-        penalty = Math.abs(targetWidth - width);
-      } else {
-        // Fit mode: Allow lines to be shorter, penalize exceeding target width heavily
-        // Balance factor affects how we penalize deviations from target width
-        // Higher balance factor = more focus on matching target width
-        const underWeightFactor = 0.5 * (1 - balanceFactor); // Lower if high balance factor
-        const overWeightFactor = 3 * (0.5 + balanceFactor * 0.5); // Higher if high balance factor
-        
-        penalty = width <= targetWidth 
-          ? (targetWidth - width) * underWeightFactor 
-          : (width - targetWidth) * overWeightFactor;
-      }
+      // Calculate line penalty using the extracted calculateLinePenalty function
+      let penalty = calculateLinePenalty(width, targetWidth, mode, balanceFactor);
       
       // Adjust penalty based on fill ratio to prevent too-short lines
       // Higher balance factor means stricter adherence to minFillRatio
       const fillRatio = width / targetWidth;
-      const adjustedMinFillRatio = minFillRatio + (balanceFactor * 0.1); // Higher balance factor means higher minimum fill ratio
+      const adjustedMinFillRatio = minFillRatio + (balanceFactor * CONSTANTS.MIN_FILL_RATIO_ADJUSTMENT); // Higher balance factor means higher minimum fill ratio
       if (fillRatio < adjustedMinFillRatio) {
         penalty += (adjustedMinFillRatio - fillRatio) * targetWidth * (1.5 + balanceFactor * 1);
       }
@@ -150,7 +179,7 @@ export function computeBreaks(
   function findAlternatives(): void {
     // Create diverse alternative solutions by perturbing the dynamic programming algorithm
     for (let variant = 0; variant < Math.min(20, candidateCount * 2); variant++) {
-      // Use different perturbation strategies based on the variant number
+      // Setup for dynamic programming with perturbations
       let altPenalties = new Array(n + 1).fill(Infinity);
       let altBreaks = new Array(n + 1).fill(0);
       let altWidths = new Array(n + 1).fill(0);
@@ -161,9 +190,8 @@ export function computeBreaks(
       // Variance factor increases with each variant to ensure diversity
       const varianceFactor = 0.1 + (variant * 0.15);
       
-      // Use different line width targets for variants
+      // Determine target width for this variant
       let variantTargetWidth: number;
-      
       if (variant % 4 === 0) {
         // Make lines slightly shorter
         variantTargetWidth = targetWidth * (0.95 - varianceFactor * 0.1);
@@ -470,15 +498,16 @@ function calculateScoreBreakdown(lines: string[][], lineWidths: number[], target
   let protectedBreaks = 0;
   
   // Get function words from the locale-specific rules configuration
-  const rulesConfig = (ruleEngine as any)[locale] || (ruleEngine as any)['en'];
+  // Add proper type casting to access rule properties
+  const rulesConfig = ruleEngine[locale as keyof typeof ruleEngine] || ruleEngine['en' as keyof typeof ruleEngine] || {};
   
-  // Combine articles, prepositions, conjunctions and other function words for line-break checking
-  const functionWords = [
-    ...(rulesConfig.articles || []),
-    ...(rulesConfig.prepositions || []),
-    ...(rulesConfig.conjunctions || []),
-    ...(rulesConfig.functionWords || [])
-  ];
+  // Use a Set for faster lookups when checking words
+  const functionWordsSet = new Set([
+    ...((rulesConfig as any).articles || []),
+    ...((rulesConfig as any).prepositions || []),
+    ...((rulesConfig as any).conjunctions || []),
+    ...((rulesConfig as any).functionWords || [])
+  ].map(word => word.toLowerCase()));  // Convert to lowercase for case-insensitive matching
   
   // Check each line except the last for protected break violations
   for (let i = 0; i < lines.length - 1; i++) {
@@ -487,7 +516,7 @@ function calculateScoreBreakdown(lines: string[][], lineWidths: number[], target
       const lastWord = line[line.length - 1].toLowerCase().replace(/[,.;:!?]$/, ''); // Remove punctuation
       
       // Check for function words at line end
-      if (functionWords.includes(lastWord)) {
+      if (functionWordsSet.has(lastWord)) {
         protectedBreaks++;
       }
       
@@ -529,10 +558,10 @@ function calculateScoreBreakdown(lines: string[][], lineWidths: number[], target
   const balancedRaggednessPenalty = raggednessPenalty * balanceFactor;
   const balancedEvennessPenalty = evennessPenalty * (1 - balanceFactor);
   
-  // Additional penalties for typographical issues
-  const widowPenalty = widowCount * 15; // 15 points per widow
-  const orphanPenalty = orphanCount * 10; // 10 points per orphan
-  const protectedBreakPenalty = protectedBreaks * 8; // 8 points per protected break violation
+  // Additional penalties for typographical issues using defined constants
+  const widowPenalty = widowCount * CONSTANTS.WIDOW_PENALTY; // Penalty per widow
+  const orphanPenalty = orphanCount * CONSTANTS.ORPHAN_PENALTY; // Penalty per orphan
+  const protectedBreakPenalty = protectedBreaks * CONSTANTS.PROTECTED_BREAK_PENALTY; // Penalty per protected break violation
   
   // Calculate final score (lower is better)
   const finalScore = balancedRaggednessPenalty + 
@@ -559,11 +588,16 @@ function calculateScoreBreakdown(lines: string[][], lineWidths: number[], target
   };
 }
 
-// Reconstruct solution from breaks array
-function reconstructSolution(words: string[], breaks: number[], j: number): string[][] {
+// Reconstruct solution from breaks array with memoization for performance
+function reconstructSolution(words: string[], breaks: number[], j: number, memo: Map<number, string[][]> = new Map()): string[][] {
+  // Return memoized result if available
+  if (memo.has(j)) return memo.get(j)!;
+  
+  // Base case
   if (j === 0) return [];
   
-  let result = reconstructSolution(words, breaks, breaks[j]);
+  // Recursive case with memoization
+  let result = reconstructSolution(words, breaks, breaks[j], memo);
   let line: string[] = [];
   
   for (let i = breaks[j]; i < j; i++) {
@@ -571,6 +605,9 @@ function reconstructSolution(words: string[], breaks: number[], j: number): stri
   }
   
   result.push(line);
+  
+  // Store result in memo cache
+  memo.set(j, result);
   return result;
 }
 
@@ -645,7 +682,14 @@ function createDebugTree(solution: OptimizeLineBreakCandidate, wordCount: number
   html += '</div>';
   
   // Helper function to generate color-coded metric display with improved thresholds
-  function getMetricColor(value: number, isGoodWhenLow: boolean = false, thresholds = { good: 90, warning: 70 }): string {
+  function getMetricColor(
+    value: number, 
+    isGoodWhenLow: boolean = false, 
+    thresholds = { 
+      good: CONSTANTS.GOOD_EVENNESS_THRESHOLD, 
+      warning: CONSTANTS.WARNING_EVENNESS_THRESHOLD 
+    }
+  ): string {
     if (isGoodWhenLow) {
       return value <= thresholds.good ? '#4caf50' : // Green for good
              value <= thresholds.warning ? '#ff9800' : // Orange for warning
@@ -683,13 +727,13 @@ function createDebugTree(solution: OptimizeLineBreakCandidate, wordCount: number
       </div>
       
       <div style="display: grid; grid-template-columns: auto 1fr; gap: 8px; margin: 8px 0;">
-        <div style="color: ${getMetricColor(raggedness, true, { good: 10, warning: 30 })}; font-weight: bold;">
+        <div style="color: ${getMetricColor(raggedness, true, { good: CONSTANTS.GOOD_RAGGEDNESS_THRESHOLD, warning: CONSTANTS.WARNING_RAGGEDNESS_THRESHOLD })}; font-weight: bold;">
           Raggedness:
         </div>
         <div>
           ${raggedness.toFixed(1)}% 
           <span style="color: #666; font-size: 0.9em;">
-            (0-10% ideal) - Measures how uneven the right margin appears
+            (0-${CONSTANTS.GOOD_RAGGEDNESS_THRESHOLD}% ideal) - Measures how uneven the right margin appears
           </span>
           <div style="width: 100%; height: 4px; background: #eee; margin-top: 3px;">
             <div style="width: ${Math.min(100, raggedness)}%; height: 4px; background: ${getMetricColor(raggedness, true, { good: 10, warning: 30 })};"></div>

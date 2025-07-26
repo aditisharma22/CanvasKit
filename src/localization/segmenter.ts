@@ -8,6 +8,27 @@ import {
 import { annotateLineBreakingWithSeparators, applySegmentationRules, WordMetric } from "./ruleEngine";
 import ruleEngine from "./rules/ruleConfigs";
 
+// Define interfaces for rule configuration to improve type safety
+interface RuleConfig {
+  locale?: string;
+  rules?: {
+    avoidBreakBefore?: string[];
+    avoidBreakAfter?: string[];
+    avoidBreakBetween?: string[];
+    specialCases?: Record<string, boolean>;
+    removeColonAtLineEnd?: boolean;
+    capitalizeSecondLineIfColonRemoved?: boolean;
+  };
+  functionWords?: string[];
+  prepositions?: string[];
+  articles?: string[];
+  conjunctions?: string[];
+  punctuation?: string[];
+  fixedExpressions?: string[];
+  appleServices?: string[];
+  appGameNames?: string[];
+}
+
 // Define our own Segment interface that extends the base one with email-specific properties
 interface Segment extends BaseSegment {
   isPartOfEMail?: boolean;
@@ -240,8 +261,8 @@ export async function processTextForLineBreaking(text: string, locale = "en", op
     // Process consecutive special characters
     const enhancedSegments = handleConsecutiveSpecialChars(segments, text);
     
-    // Get locale-specific rules
-    const rulesConfig = (ruleEngine as any)[locale] || {};
+    // Get locale-specific rules with proper typing
+    const rulesConfig: RuleConfig = ruleEngine[locale as keyof typeof ruleEngine] || {};
 
     // Filter out invalid segments before processing
     const validSegments = enhancedSegments.filter(seg => 
@@ -299,28 +320,9 @@ export async function processTextForLineBreaking(text: string, locale = "en", op
     }
     
     // Universal handling for hyphenated words (including non-breaking hyphens) is done in segmentation and by locale rules in rule configs only.
-
-    // Highlight the entire hyphenated word (word-hyphen-word), not just the hyphen
-    for (let i = 1; i < wordMetricsArray.length - 1; i++) {
-      const prev = wordMetricsArray[i - 1];
-      const curr = wordMetricsArray[i];
-      const next = wordMetricsArray[i + 1];
-      // Check for [word, hyphen, word] pattern
-      if (
-        prev && curr && next &&
-        typeof prev.text === 'string' && typeof curr.text === 'string' && typeof next.text === 'string' &&
-        /\w/.test(prev.text) &&
-        (curr.text === '-' || curr.text === '\u2011' || curr.text === '\u2013' || curr.text === '\u2014' || curr.text === '–' || curr.text === '—') &&
-        /\w/.test(next.text)
-      ) {
-        prev.lineBreaking = 'avoid';
-        curr.lineBreaking = 'avoid';
-        next.lineBreaking = 'avoid';
-        prev._isHyphenatedWord = true;
-        curr._isHyphenatedWord = true;
-        next._isHyphenatedWord = true;
-      }
-    }
+    
+    // Apply universal hyphenated word handling
+    handleHyphenatedWords(wordMetricsArray);
     
     // Apply special handling for Apple service names in all locales
     if (rulesConfig.appleServices) {
@@ -414,7 +416,46 @@ export async function processTextForLineBreaking(text: string, locale = "en", op
   }
 }
 
+// Helper functions for hyphenated word handling
+function isHyphen(text: string | undefined): boolean {
+  if (typeof text !== 'string') return false;
+  return text === '-' || text === '\u2011' || text === '\u2013' || text === '\u2014' || text === '–' || text === '—';
+}
+
+function isWordLike(text: string | undefined): boolean {
+  if (typeof text !== 'string') return false;
+  return /\w/.test(text);
+}
+
+/**
+ * Universal handling for hyphenated words across all locales
+ * Marks all parts of a hyphenated word (word-hyphen-word) for highlighting and line-break avoidance
+ */
+function handleHyphenatedWords(wordMetricsArray: WordMetric[]): void {
+  for (let i = 1; i < wordMetricsArray.length - 1; i++) {
+    const prev = wordMetricsArray[i - 1];
+    const curr = wordMetricsArray[i];
+    const next = wordMetricsArray[i + 1];
+    
+    // Check for [word, hyphen, word] pattern
+    if (
+      prev && curr && next &&
+      typeof prev.text === 'string' && typeof curr.text === 'string' && typeof next.text === 'string' &&
+      isWordLike(prev.text) &&
+      isHyphen(curr.text) &&
+      isWordLike(next.text)
+    ) {
+      prev.lineBreaking = 'avoid';
+      curr.lineBreaking = 'avoid';
+      next.lineBreaking = 'avoid';
+      prev._isHyphenatedWord = true;
+      curr._isHyphenatedWord = true;
+      next._isHyphenatedWord = true;
+    }
+  }
+}
+
 // Get line breaking rules for a specific locale
 export function getLineBreakingRules(locale: string) {
-  return (ruleEngine as any)[locale] || null;
+  return ruleEngine[locale as keyof typeof ruleEngine] || null;
 }
