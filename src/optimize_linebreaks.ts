@@ -1,5 +1,6 @@
 // Optimal line-breaking algorithm similar to Knuth-Plass with candidate generation
 import { SyntheticMetrics } from './types';
+import ruleEngine from './localization/rules/ruleConfigs';
 
 interface ScoreBreakdown {
   raggedness: number;
@@ -134,7 +135,7 @@ export function computeBreaks(
       lines: bestSolution,
       breaks: findBreakIndices(bestSolution),
       score: penalties[n],
-      scoreBreakdown: calculateScoreBreakdown(bestSolution, bestLineWidths, targetWidth, balanceFactor),
+      scoreBreakdown: calculateScoreBreakdown(bestSolution, bestLineWidths, targetWidth, balanceFactor, locale),
       lineWidths: bestLineWidths
     }
   ];
@@ -262,7 +263,7 @@ export function computeBreaks(
       
       // Calculate score breakdown for this candidate
       const scoreBreakdown = calculateScoreBreakdown(
-        altSolution, altLineWidths, targetWidth, balanceFactor
+        altSolution, altLineWidths, targetWidth, balanceFactor, locale
       );
       
       // Check if this break pattern is sufficiently different from existing ones
@@ -369,7 +370,7 @@ function breakPatternDifference(pattern1: number[], pattern2: number[], totalWor
 }
 
 // Calculate score breakdown for a candidate solution with normalized metrics (0-100% scale)
-function calculateScoreBreakdown(lines: string[][], lineWidths: number[], targetWidth: number, balanceFactor: number): ScoreBreakdown {
+function calculateScoreBreakdown(lines: string[][], lineWidths: number[], targetWidth: number, balanceFactor: number, locale: string = 'en'): ScoreBreakdown {
   // Skip calculation for empty inputs
   if (!lines || !lineWidths || lines.length === 0 || lineWidths.length === 0) {
     return {
@@ -468,14 +469,15 @@ function calculateScoreBreakdown(lines: string[][], lineWidths: number[], target
   // Calculate initial count based on basic rules
   let protectedBreaks = 0;
   
-  // List of common function words that shouldn't end a line
+  // Get function words from the locale-specific rules configuration
+  const rulesConfig = (ruleEngine as any)[locale] || (ruleEngine as any)['en'];
+  
+  // Combine articles, prepositions, conjunctions and other function words for line-break checking
   const functionWords = [
-    // Articles
-    'a', 'an', 'the', 
-    // Prepositions
-    'of', 'to', 'in', 'for', 'with', 'by', 'at', 'from', 'on', 'about',
-    // Conjunctions  
-    'and', 'but', 'or', 'nor', 'so', 'yet', 'as'
+    ...(rulesConfig.articles || []),
+    ...(rulesConfig.prepositions || []),
+    ...(rulesConfig.conjunctions || []),
+    ...(rulesConfig.functionWords || [])
   ];
   
   // Check each line except the last for protected break violations

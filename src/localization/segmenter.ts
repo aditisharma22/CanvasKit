@@ -30,34 +30,8 @@ interface SpecialPosition {
 // Split text into segments using language-appropriate rules
 export async function segmentText(text: string, locale = "en"): Promise<Segment[]> {
   try {
-    // Handle special terms preprocessing
+    // Universal preprocessing 
     let preprocessedText = text;
-    let eMailPositions: SpecialPosition[] = [];
-    let smartHomePositions: SpecialPosition[] = [];
-    
-    // Special handling for German terms
-    if (locale === 'de') {
-      const eMailRegex = /E[\u2011-]Mail/g;
-      let match;
-      
-      while ((match = eMailRegex.exec(preprocessedText)) !== null) {
-        eMailPositions.push({
-          start: match.index,
-          end: match.index + match[0].length,
-          text: match[0]
-        });
-      }
-      
-      const smartHomeRegex = /Smart-home/gi;
-      while ((match = smartHomeRegex.exec(preprocessedText)) !== null) {
-        smartHomePositions.push({
-          start: match.index,
-          end: match.index + match[0].length,
-          text: match[0]
-        });
-      }
-    }
-    
     // Pre-process the text to handle consecutive percent symbols
     const { processedText, specialCharPositions } = processConsecutivePercentSymbols(preprocessedText);
     
@@ -160,22 +134,7 @@ export async function segmentText(text: string, locale = "en"): Promise<Segment[
         }
       }
       
-      // Post-process for special cases like E‑Mail
-      if (eMailPositions.length > 0) {
-        for (const pos of eMailPositions) {
-          // Find any segments that overlap with E‑Mail positions
-          for (let i = 0; i < enhancedSegments.length; i++) {
-            const seg = enhancedSegments[i];
-            if (seg.index >= pos.start && seg.index < pos.end) {
-              // Mark this segment as part of E‑Mail
-              seg.isPartOfEMail = true;
-              seg.isWordLike = true;
-              seg.eMailFullText = pos.text;
-            }
-          }
-        }
-      }
-      
+     
       return enhancedSegments;
     } else {
       throw new Error('Intl.Segmenter not available');
@@ -300,19 +259,7 @@ export async function processTextForLineBreaking(text: string, locale = "en", op
     // Cast the result of segmentsToWordMetrics to our WordMetric[] type
     let wordMetricsArray: WordMetric[] = segmentsToWordMetrics(validSegments, text, lineBreakingAnnotations as any) as any;
     
-    // Special direct check for Smart-home compound in the text
-    if (locale === 'de' && text.toLowerCase().includes('smart-home')) {
-      // Find all occurrences of Smart, hyphen and home in the wordMetricsArray
-      for (let i = 0; i < wordMetricsArray.length; i++) {
-        const metric = wordMetricsArray[i];
-        if (metric.text && 
-            (metric.text.toLowerCase() === 'smart' || 
-             metric.text === '-' || 
-             metric.text.toLowerCase() === 'home')) {
-          metric.lineBreaking = 'avoid';
-        }
-      }
-    }
+  
     
     // Additional check for rules about avoiding breaks before punctuation, articles, and prepositions
     if (rulesConfig.rules?.avoidBreakBefore) {
@@ -351,66 +298,27 @@ export async function processTextForLineBreaking(text: string, locale = "en", op
       }
     }
     
-    // This handles hyphenated words
-    if (rulesConfig.fixedExpressions && Array.isArray(rulesConfig.fixedExpressions)) {
-      const fullText = wordMetricsArray.map(m => m.text).join('');
-      for (const expr of rulesConfig.fixedExpressions) {
-        if (typeof expr === 'string' && (expr.includes('\u2011') || expr === 'E‑Mail')) {
-          if (fullText.includes(expr)) {
-            // Find the word metrics that match the expression
-            for (let i = 0; i < wordMetricsArray.length; i++) {
-              const metric = wordMetricsArray[i];
-              if (metric.text === 'E' || metric.text === 'Mail' || 
-                  metric.text === expr || metric.text.includes('\u2011')) {
-                metric.lineBreaking = 'avoid';
-              }
-            }
-          }
-        }
-        
-        // Special handling for Smart-home
-        if (typeof expr === 'string' && expr === 'Smart-home') {
-          // Look for both exact match and case-insensitive match
-          if (fullText.includes('Smart-home') || fullText.toLowerCase().includes('smart-home')) {
-            // Find and mark Smart, hyphen, and home parts
-            for (let i = 0; i < wordMetricsArray.length; i++) {
-              const metric = wordMetricsArray[i];
-              if (metric.text.toLowerCase() === 'smart' || 
-                  metric.text === '-' || 
-                  metric.text.toLowerCase() === 'home') {
-                metric.lineBreaking = 'avoid';
-                // Set a flag for special handling
-                metric._isSmartHomeCompound = true;
-              }
-            }
-          }
-        }
-      }
-      
-      // Look for parts of hyphenated expressions with regular hyphens
-      for (let i = 0; i < wordMetricsArray.length - 1; i++) {
-        const currWord = wordMetricsArray[i];
-        const nextWord = wordMetricsArray[i + 1];
-        
-        // Skip if either is a space
-        if (currWord.text.trim() === '' || nextWord.text.trim() === '') {
-          continue;
-        }
-        
-        // Check against fixed expressions that have hyphens
-        for (const expr of rulesConfig.fixedExpressions) {
-          if (typeof expr === 'string' && expr.includes('-')) {
-            const [first, second] = expr.split('-');
-            
-            // Check for a match with the parts of the hyphenated expression
-            if (currWord.text.toLowerCase() === first.toLowerCase() && 
-                nextWord.text.toLowerCase() === second.toLowerCase()) {
-                      // Mark both parts with avoid line breaking
-              currWord.lineBreaking = 'avoid';
-              nextWord.lineBreaking = 'avoid';
-            }
-          }
-        }
+    // Universal handling for hyphenated words (including non-breaking hyphens) is done in segmentation and by locale rules in rule configs only.
+
+    // Highlight the entire hyphenated word (word-hyphen-word), not just the hyphen
+    for (let i = 1; i < wordMetricsArray.length - 1; i++) {
+      const prev = wordMetricsArray[i - 1];
+      const curr = wordMetricsArray[i];
+      const next = wordMetricsArray[i + 1];
+      // Check for [word, hyphen, word] pattern
+      if (
+        prev && curr && next &&
+        typeof prev.text === 'string' && typeof curr.text === 'string' && typeof next.text === 'string' &&
+        /\w/.test(prev.text) &&
+        (curr.text === '-' || curr.text === '\u2011' || curr.text === '\u2013' || curr.text === '\u2014' || curr.text === '–' || curr.text === '—') &&
+        /\w/.test(next.text)
+      ) {
+        prev.lineBreaking = 'avoid';
+        curr.lineBreaking = 'avoid';
+        next.lineBreaking = 'avoid';
+        prev._isHyphenatedWord = true;
+        curr._isHyphenatedWord = true;
+        next._isHyphenatedWord = true;
       }
     }
     
