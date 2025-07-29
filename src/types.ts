@@ -51,6 +51,20 @@ export interface ProtectedBreakResult {
   lines: number[];
 }
 
+export interface ScoreBreakdown {
+  raggedness: number;
+  evenness: number;
+  fillRatio: number;
+  fillPenalty?: number;
+  widows: number;
+  widowsOrphans?: number;
+  orphans: number;
+  protectedBreaks: number;
+  protected?: number;
+  balanceFactor: number;
+  score?: number;
+}
+
 export interface SyntheticMetrics {
   raggedness: number;
   evenness: number;
@@ -61,6 +75,16 @@ export interface SyntheticMetrics {
   protectedBreakLines: number[];
   balanceFactor: number;
   score: number;
+}
+
+export interface OptimizeLineBreakCandidate {
+  score?: number;
+  lines?: string[][] | string[];
+  breaks?: number[];
+  lineBreaks?: number[];
+  lineWidths?: number[];
+  scoreBreakdown?: ScoreBreakdown;
+  protectedBreakLines?: number[];
 }
 
 export interface WordMetrics {

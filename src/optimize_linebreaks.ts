@@ -1,78 +1,19 @@
 // Optimal line-breaking algorithm similar to Knuth-Plass with candidate generation
-import { SyntheticMetrics } from './types';
+import { SyntheticMetrics, ScoreBreakdown, OptimizeLineBreakCandidate } from './types';
 import ruleEngine from './localization/rules/ruleConfigs';
+import { LAYOUT_CONSTANTS as CONSTANTS } from './utils/constants';
+import { 
+  getMetricStatusColor 
+} from './utils/helpers';
+import { calculateLinePenalty, findBreakIndices, calculateLineWidths } from './utils/helpers';
 
-// Constants for magic numbers to improve readability and maintainability
-const CONSTANTS = {
-  // Penalty weights
-  WIDOW_PENALTY: 15,
-  ORPHAN_PENALTY: 10,
-  PROTECTED_BREAK_PENALTY: 8,
-  
-  // Layout constants
-  MAX_WIDTH_FACTOR: 1.5,
-  MIN_FILL_RATIO_ADJUSTMENT: 0.1,
-  
-  // Score thresholds
-  GOOD_RAGGEDNESS_THRESHOLD: 10,
-  WARNING_RAGGEDNESS_THRESHOLD: 30,
-  GOOD_EVENNESS_THRESHOLD: 90,
-  WARNING_EVENNESS_THRESHOLD: 75
-};
-
-interface ScoreBreakdown {
-  raggedness: number;
-  evenness: number;
-  fillRatio: number;
-  fillPenalty?: number;
-  widows: number;
-  widowsOrphans?: number;
-  orphans: number;
-  protectedBreaks: number;
-  protected?: number;
-  balanceFactor: number;
-  score?: number;
-}
-
-interface OptimizeLineBreakCandidate {
-  score?: number;
-  lines?: string[][] | string[];
-  breaks?: number[];
-  lineBreaks?: number[];
-  lineWidths?: number[];
-  scoreBreakdown?: ScoreBreakdown;
-  protectedBreakLines?: number[];
-}
+// We've moved these interfaces to types.ts
 
 interface ComputeBreaksOptions {
   enableLocalization?: boolean;
 }
 
-/**
- * Calculates the penalty for a line of a specific width relative to target width
- * Takes into account the layout mode and balance factor for tuning penalties
- */
-function calculateLinePenalty(
-  lineWidth: number, 
-  targetWidth: number, 
-  mode: string,
-  balanceFactor: number
-): number {
-  if (mode === 'fill') {
-    // Fill mode: Prefer to fill as much of the line as possible
-    return Math.abs(targetWidth - lineWidth);
-  } else {
-    // Fit mode: Allow lines to be shorter, penalize exceeding target width heavily
-    // Balance factor affects how we penalize deviations from target width
-    // Higher balance factor = more focus on matching target width
-    const underWeightFactor = 0.5 * (1 - balanceFactor); // Lower if high balance factor
-    const overWeightFactor = 3 * (0.5 + balanceFactor * 0.5); // Higher if high balance factor
-    
-    return lineWidth <= targetWidth 
-      ? (targetWidth - lineWidth) * underWeightFactor 
-      : (lineWidth - targetWidth) * overWeightFactor;
-  }
-}
+// Using the calculateLinePenalty function from utils/helpers.ts
 
 export function computeBreaks(
   words: string[],
@@ -88,6 +29,11 @@ export function computeBreaks(
   options: ComputeBreaksOptions = { enableLocalization: true }
 ): OptimizeLineBreakCandidate[] {
   // Validate inputs and ensure consistency
+  if (!Array.isArray(words) || !Array.isArray(wordWidths)) {
+    console.error("Invalid input: words and wordWidths must be arrays");
+    return [];
+  }
+  
   if (words.length !== wordWidths.length) {
     console.error("Words array and widths array must have the same length", words.length, wordWidths.length);
     return [];
@@ -96,6 +42,24 @@ export function computeBreaks(
   if (words.length === 0) {
     return [];
   }
+  
+  // Validate numeric parameters
+  if (typeof targetWidth !== 'number' || targetWidth <= 0) {
+    console.error("Invalid targetWidth: must be a positive number");
+    return [];
+  }
+  
+  if (typeof spaceWidth !== 'number' || spaceWidth < 0) {
+    console.error("Invalid spaceWidth: must be a non-negative number");
+    return [];
+  }
+  
+  // Normalize parameters to prevent errors
+  const safeBalanceFactor = Math.max(0, Math.min(1, balanceFactor || 0.5));
+  const safeMinFillRatio = Math.max(0, Math.min(1, minFillRatio || 0.5));
+  const safeCandidateCount = Math.max(1, Math.min(20, candidateCount || 1));
+  const safeMode = ['fit', 'fill'].includes(mode) ? mode : 'fit';
+  const safeLocale = typeof locale === 'string' && locale ? locale : 'en';
 
   // Set a stronger minimum difference threshold to ensure real diversity between candidates
   // Scale based on paragraph length to ensure meaningful diversity in longer text
@@ -130,12 +94,12 @@ export function computeBreaks(
       }
       
       // Calculate line penalty using the extracted calculateLinePenalty function
-      let penalty = calculateLinePenalty(width, targetWidth, mode, balanceFactor);
+      let penalty = calculateLinePenalty(width, targetWidth, safeMode, safeBalanceFactor);
       
       // Adjust penalty based on fill ratio to prevent too-short lines
       // Higher balance factor means stricter adherence to minFillRatio
       const fillRatio = width / targetWidth;
-      const adjustedMinFillRatio = minFillRatio + (balanceFactor * CONSTANTS.MIN_FILL_RATIO_ADJUSTMENT); // Higher balance factor means higher minimum fill ratio
+      const adjustedMinFillRatio = safeMinFillRatio + (safeBalanceFactor * CONSTANTS.MIN_FILL_RATIO_ADJUSTMENT); // Higher balance factor means higher minimum fill ratio
       if (fillRatio < adjustedMinFillRatio) {
         penalty += (adjustedMinFillRatio - fillRatio) * targetWidth * (1.5 + balanceFactor * 1);
       }
@@ -164,7 +128,7 @@ export function computeBreaks(
       lines: bestSolution,
       breaks: findBreakIndices(bestSolution),
       score: penalties[n],
-      scoreBreakdown: calculateScoreBreakdown(bestSolution, bestLineWidths, targetWidth, balanceFactor, locale),
+      scoreBreakdown: calculateScoreBreakdown(bestSolution, bestLineWidths, targetWidth, safeBalanceFactor, safeLocale),
       lineWidths: bestLineWidths
     }
   ];
@@ -178,7 +142,7 @@ export function computeBreaks(
   // Main function to find alternatives
   function findAlternatives(): void {
     // Create diverse alternative solutions by perturbing the dynamic programming algorithm
-    for (let variant = 0; variant < Math.min(20, candidateCount * 2); variant++) {
+    for (let variant = 0; variant < Math.min(20, safeCandidateCount * 2); variant++) {
       // Setup for dynamic programming with perturbations
       let altPenalties = new Array(n + 1).fill(Infinity);
       let altBreaks = new Array(n + 1).fill(0);
@@ -341,12 +305,12 @@ export function computeBreaks(
   let attemptCount = 0;
   const maxAttempts = 10;
   
-  while (candidates.length < candidateCount && attemptCount < maxAttempts) {
+  while (candidates.length < safeCandidateCount && attemptCount < maxAttempts) {
     findAlternatives();
     attemptCount++;
     
     // If we can't find enough diverse candidates, gradually reduce the difference threshold
-    if (attemptCount > 5 && candidates.length < candidateCount) {
+    if (attemptCount > 5 && candidates.length < safeCandidateCount) {
       minDifferenceThreshold = Math.max(1, minDifferenceThreshold - 1);
     }
   }
@@ -611,44 +575,7 @@ function reconstructSolution(words: string[], breaks: number[], j: number, memo:
   return result;
 }
 
-// Calculate widths for each line
-function calculateLineWidths(lines: string[][], wordWidths: number[], spaceWidth: number): number[] {
-  return lines.map(line => {
-    let width = 0;
-    let wordIndex = 0;
-    
-    // Find the index of each word in the original words array
-    for (let i = 0; i < lines.indexOf(line); i++) {
-      wordIndex += lines[i].length;
-    }
-    
-    // Calculate the width of this line
-    for (let i = 0; i < line.length; i++) {
-      width += wordWidths[wordIndex + i];
-      
-      // Add space width except after last word
-      if (i < line.length - 1) {
-        width += spaceWidth;
-      }
-    }
-    
-    return width;
-  });
-}
-
-// Find break indices (where line breaks occur in the original word array)
-function findBreakIndices(lines: string[][]): number[] {
-  let breaks: number[] = [];
-  let wordCount = 0;
-  
-  // For each line except the last one
-  for (let i = 0; i < lines.length - 1; i++) {
-    wordCount += lines[i].length;
-    breaks.push(wordCount - 1); // Index of last word in the line
-  }
-  
-  return breaks;
-}
+// Using calculateLineWidths and findBreakIndices from utils/helpers.ts
 
 // Create debug tree display with comprehensive metrics
 function createDebugTree(solution: OptimizeLineBreakCandidate, wordCount: number): string {

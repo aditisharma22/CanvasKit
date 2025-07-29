@@ -1,36 +1,10 @@
 // LocaleConfigManager - Manages locale-specific line breaking rules
 import ruleConfigs from './rules/ruleConfigs';
+import { LOCALIZATION_CONSTANTS as CONFIG } from '../utils/constants';
+import { ERROR_MESSAGES } from '../utils/constants';
 
-export const CONFIG = {
-  DEFAULT_LOCALE: 'en',
-  FALLBACK_LOCALE: 'en',
-  SUPPORTED_LOCALES: ['en', 'de', 'fr', 'es', 'ja'],
-  
-  // Line breaking behavior constants
-  LINE_BREAK: {
-    ALLOW: 'allow',
-    AVOID: 'avoid'
-  },
-  
-  // Common separators
-  SEPARATORS: {
-    SPACE: ' ',
-    HYPHEN: '-',
-    NON_BREAKING_HYPHEN: '\u2011',
-    EN_DASH: '\u2013',
-    EM_DASH: '\u2014'
-  },
-  
-  // Common punctuation patterns
-  REGEX_PATTERNS: {
-    PUNCTUATION: /^[.,:;!?%)]$/,
-    NUMERIC: /^\d+$/,
-    PROPER_NOUN: /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+$/,
-    WHITESPACE: /^\s+$/,
-    SPECIAL_CHARS: /^[%°€$]$/,
-    HYPHENS: /^[:;.,!?\-–—\u2011\u2013\u2014]$/
-  }
-};
+// Re-export constants for backward compatibility
+export { LOCALIZATION_CONSTANTS as CONFIG } from '../utils/constants';
 
 interface ExtendedLocaleConfig {
   locale?: string;
@@ -88,7 +62,7 @@ class LocaleConfigManager {
     let config = this.configs[locale];
     
     if (!config && locale !== CONFIG.FALLBACK_LOCALE) {
-      console.warn(`No configuration found for locale '${locale}', falling back to '${CONFIG.FALLBACK_LOCALE}'`);
+      console.warn(ERROR_MESSAGES.LOCALE_NOT_FOUND(locale, CONFIG.FALLBACK_LOCALE));
       config = this.configs[CONFIG.FALLBACK_LOCALE] || this.createDefaultConfig(locale);
     }
     
