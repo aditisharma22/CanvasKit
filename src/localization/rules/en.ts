@@ -63,25 +63,36 @@ const enRules: EnglishRules = {
   
   // Words that should not be separated from what they modify
   articles: [
-    "the", "a", "an", "brown"
+    "the", "a", "an"
   ],
   
   prepositions: [
     "of", "in", "on", "with", "by", "for", "to", "from", "at", "about", 
     "under", "over", "between", "among", "through", "during", "before",
-    "after", "since", "until", "against", "into", "onto", "upon"
+    "after", "since", "until", "against", "into", "onto", "upon", 
+    "across", "along", "around", "behind", "beneath", "beside", "beyond",
+    "despite", "inside", "outside", "off", "near", "past", "within", 
+    "without", "like", "as", "except", "than", "up", "down"
   ],
   
   conjunctions: [
-    "and", "but", "or", "nor", "so", "yet", "because", "if", "when",
-    "although", "though", "unless", "until", "while", "where"
+    "and", "but", "or", "nor", "so", "yet", "for", "because", "if", "when",
+    "although", "though", "even though", "unless", "until", "while", "where",
+    "since", "as", "after", "before", "once", "whereas", "as if", "as though",
+    "provided that", "in order that", "now that", "so that", "as soon as"
   ],
   
   adjectives: [
-    "new", "good", "high", "old", "great", "big", "small", "large", "young",
-    "long", "black", "white", "red", "blue", "green", "free", "poor", "full",
-    "best", "right", "wrong", "true", "false", "same", "whole", "important",
-    "only", "early", "late", "recent", "final", "main", "major", "current"
+    "good", "bad", "happy", "sad", "big", "small", "large", "tiny", "tall", "short",
+    "long", "young", "old", "new", "hot", "cold", "warm", "cool", "fast", "slow",
+    "early", "late", "easy", "hard", "difficult", "simple", "strong", "weak",
+    "beautiful", "ugly", "clean", "dirty", "bright", "dark", "light", "heavy",
+    "rich", "poor", "smart", "dumb", "kind", "mean", "funny", "serious", "brave",
+    "shy", "friendly", "angry", "calm", "loud", "quiet", "soft", "rough", "smooth",
+    "round", "square", "flat", "sharp", "thin", "thick", "red", "blue", "green",
+    "yellow", "white", "black", "brown", "orange", "gray", "purple", "pink",
+    "first", "last", "next", "previous", "few", "many", "several", "all", "some",
+    "each", "every", "much", "more", "most", "less", "least", "same", "different"
   ],
   
   // Title prefixes that stay with names
