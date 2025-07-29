@@ -138,7 +138,12 @@ export class UniversalRuleProcessor {
 
     // Convert metrics text to a single string for whole-text searching
     const fullText = metrics.map(m => m.text || m.segment || '').join(' ').toLowerCase();
-
+    
+    // Always apply preposition, conjunction, and adjective rules for protected words
+    this.applyPrepositionRules(metrics, config);
+    this.applyConjunctionRules(metrics, config);
+    this.applyAdjectiveNounRules(metrics, config);
+    
     for (const rule of betweenRules) {
       switch (rule) {
         case 'fixedExpressions':
@@ -322,6 +327,34 @@ export class UniversalRuleProcessor {
       if (this.configManager.matchesList(current.text, adjectives)) {
         current.lineBreaking = CONFIG.LINE_BREAK.AVOID;
         this.addRuleMetadata(current, 'adjectiveNoun', 'between');
+      }
+    }
+  }
+  
+  // Apply preposition rules
+  private applyPrepositionRules(metrics: WordMetric[], config: LocaleConfig): void {
+    const prepositions = this.configManager.getRuleList(config, 'prepositions');
+    
+    for (let i = 0; i < metrics.length - 1; i++) {
+      const current = metrics[i];
+      
+      if (this.configManager.matchesList(current.text, prepositions)) {
+        current.lineBreaking = CONFIG.LINE_BREAK.AVOID;
+        this.addRuleMetadata(current, 'prepositions', 'between');
+      }
+    }
+  }
+  
+  // Apply conjunction rules
+  private applyConjunctionRules(metrics: WordMetric[], config: LocaleConfig): void {
+    const conjunctions = this.configManager.getRuleList(config, 'conjunctions');
+    
+    for (let i = 0; i < metrics.length - 1; i++) {
+      const current = metrics[i];
+      
+      if (this.configManager.matchesList(current.text, conjunctions)) {
+        current.lineBreaking = CONFIG.LINE_BREAK.AVOID;
+        this.addRuleMetadata(current, 'conjunctions', 'between');
       }
     }
   }
